@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
@@ -12,6 +11,7 @@ import {
   Keyboard,
   StatusBar,
 } from 'react-native';
+import tw from 'twrnc';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -44,28 +44,28 @@ const LoginScreen = ({ navigation }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={tw`flex-1 bg-[#f8f9fa]`}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <StatusBar barStyle="dark-content" />
         
-        <View style={styles.logoContainer}>
+        <View style={tw`items-center mt-15`}>
           <Image
             source={require('../assets/icon.png')}
-            style={styles.logo}
+            style={tw`w-20 h-20`}
             resizeMode="contain"
           />
-          <Text style={styles.appName}>SmartFit</Text>
+          <Text style={tw`text-2xl font-bold text-[#3a86ff] mt-2.5`}>SmartFit</Text>
         </View>
         
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to continue</Text>
+        <View style={tw`flex-1 px-6 mt-8`}>
+          <Text style={tw`text-3xl font-bold text-[#212529]`}>Welcome Back</Text>
+          <Text style={tw`text-base text-[#6c757d] mt-1 mb-8`}>Sign in to continue</Text>
           
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+          <View style={tw`mb-5`}>
+            <Text style={tw`text-sm text-[#495057] mb-2`}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={tw`bg-[#ffffff] border border-[#ced4da] rounded-lg p-4 text-base`}
               placeholder="Enter your email"
               value={email}
               onChangeText={setEmail}
@@ -74,10 +74,10 @@ const LoginScreen = ({ navigation }) => {
             />
           </View>
           
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
+          <View style={tw`mb-5`}>
+            <Text style={tw`text-sm text-[#495057] mb-2`}>Password</Text>
             <TextInput
-              style={styles.input}
+              style={tw`bg-[#ffffff] border border-[#ced4da] rounded-lg p-4 text-base`}
               placeholder="Enter your password"
               value={password}
               onChangeText={setPassword}
@@ -85,25 +85,25 @@ const LoginScreen = ({ navigation }) => {
             />
           </View>
           
-          <TouchableOpacity style={styles.forgotPasswordContainer}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          <TouchableOpacity style={tw`self-end mb-8`}>
+            <Text style={tw`text-[#3a86ff] text-sm`}>Forgot Password?</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+            style={tw`${isLoading ? 'bg-[#a8c6ff]' : 'bg-[#3a86ff]'} rounded-lg p-4 items-center mb-5`}
             onPress={handleLogin}
             disabled={isLoading}
           >
-            <Text style={styles.buttonText}>
+            <Text style={tw`text-[#ffffff] text-base font-bold`}>
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Text>
           </TouchableOpacity>
         </View>
         
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+        <View style={tw`flex-row justify-center mb-8`}>
+          <Text style={tw`text-[#6c757d] text-sm`}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.signUpText}>Sign Up</Text>
+            <Text style={tw`text-[#3a86ff] text-sm font-bold`}>Sign Up</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -111,94 +111,6 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: 60,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-  },
-  appName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#3a86ff',
-    marginTop: 10,
-  },
-  formContainer: {
-    flex: 1,
-    paddingHorizontal: 25,
-    marginTop: 30,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#212529',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6c757d',
-    marginTop: 5,
-    marginBottom: 30,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    color: '#495057',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
-  },
-  forgotPasswordContainer: {
-    alignSelf: 'flex-end',
-    marginBottom: 30,
-  },
-  forgotPasswordText: {
-    color: '#3a86ff',
-    fontSize: 14,
-  },
-  button: {
-    backgroundColor: '#3a86ff',
-    borderRadius: 8,
-    padding: 15,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  buttonDisabled: {
-    backgroundColor: '#a8c6ff',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 30,
-  },
-  footerText: {
-    color: '#6c757d',
-    fontSize: 14,
-  },
-  signUpText: {
-    color: '#3a86ff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});
+// No styles needed as we're using Tailwind CSS
 
 export default LoginScreen;
