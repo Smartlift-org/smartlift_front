@@ -11,8 +11,10 @@ import {
   Keyboard,
   ScrollView,
   StatusBar,
-  Alert,
 } from "react-native";
+import useCustomAlert from "../components/useCustomAlert";
+import PrivacyPolicyModal from "../components/PrivacyPolicyModal";
+import TermsOfServiceModal from "../components/TermsOfServiceModal";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList, RegisterData } from "../types";
@@ -25,12 +27,15 @@ type RegisterScreenProps = {
 const RegisterScreen: React.FC<RegisterScreenProps> = ({
   navigation,
 }: RegisterScreenProps) => {
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [privacyPolicyVisible, setPrivacyPolicyVisible] = useState<boolean>(false);
+  const [termsOfServiceVisible, setTermsOfServiceVisible] = useState<boolean>(false);
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
@@ -43,26 +48,41 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
   const handleRegister = async (): Promise<void> => {
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
+      showAlert({
+        title: "Error",
+        message: "Por favor complete todos los campos"
+      });
       return;
     }
 
     if (isOnlyWhitespace(firstName) || isOnlyWhitespace(lastName)) {
-      Alert.alert("Error", "First name and last name cannot be empty");
+      showAlert({
+        title: "Error",
+        message: "El nombre y apellido no pueden estar vacíos"
+      });
       return;
     }
 
     if (!isValidEmail(email)) {
-      Alert.alert("Error", "Please enter a valid email address");
+      showAlert({
+        title: "Error",
+        message: "Por favor ingrese una dirección de correo válida"
+      });
       return;
     }
     if (password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long");
+      showAlert({
+        title: "Error",
+        message: "La contraseña debe tener al menos 6 caracteres"
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      showAlert({
+        title: "Error",
+        message: "Las contraseñas no coinciden"
+      });
       return;
     }
 
@@ -80,17 +100,26 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
       await authService.register(userData);
 
       setIsLoading(false);
-      Alert.alert("Success", "Registration successful! Please log in.");
-      navigation.navigate("Login");
+      showAlert({
+        title: "Éxito",
+        message: "¡Registro exitoso! Por favor inicia sesión.",
+        buttons: [{
+          text: "Aceptar",
+          onPress: () => navigation.navigate("Login")
+        }]
+      });
     } catch (error: any) {
       setIsLoading(false);
       const errorMessage =
         error.response?.data?.errors?.[0] ||
         error.response?.data?.error ||
         error.message ||
-        "Registration failed. Please try again.";
+        "Error en el registro. Por favor intente nuevamente.";
 
-      Alert.alert("Registration Failed", errorMessage);
+      showAlert({
+        title: "Error de Registro",
+        message: errorMessage
+      });
     }
   };
 
@@ -100,6 +129,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         className="flex-1 bg-background"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
+        <AlertComponent />
+        <PrivacyPolicyModal 
+          visible={privacyPolicyVisible} 
+          onClose={() => setPrivacyPolicyVisible(false)} 
+        />
+        <TermsOfServiceModal 
+          visible={termsOfServiceVisible} 
+          onClose={() => setTermsOfServiceVisible(false)} 
+        />
         <StatusBar barStyle="dark-content" />
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className="items-center mt-10">
@@ -111,16 +149,16 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
           </View>
 
           <View className="px-6 mt-5">
-            <Text className="text-3xl font-bold text-text">Create Account</Text>
+            <Text className="text-3xl font-bold text-text">Crear Cuenta</Text>
             <Text className="text-base text-textLight mt-1 mb-6">
-              Sign up to get started
+              Regístrate para comenzar
             </Text>
 
             <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">First Name</Text>
+              <Text className="text-sm text-[#495057] mb-2">Nombre</Text>
               <TextInput
                 className="bg-white border border-border rounded-lg p-4 text-base"
-                placeholder="Enter your first name"
+                placeholder="Ingresa tu nombre"
                 value={firstName}
                 onChangeText={setFirstName}
                 autoCapitalize="words"
@@ -128,10 +166,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">Last Name</Text>
+              <Text className="text-sm text-[#495057] mb-2">Apellido</Text>
               <TextInput
                 className="bg-white border border-border rounded-lg p-4 text-base"
-                placeholder="Enter your last name"
+                placeholder="Ingresa tu apellido"
                 value={lastName}
                 onChangeText={setLastName}
                 autoCapitalize="words"
@@ -139,10 +177,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">Email</Text>
+              <Text className="text-sm text-[#495057] mb-2">Correo Electrónico</Text>
               <TextInput
                 className="bg-white border border-border rounded-lg p-4 text-base"
-                placeholder="Enter your email"
+                placeholder="Ingresa tu correo electrónico"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -151,10 +189,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">Password</Text>
+              <Text className="text-sm text-[#495057] mb-2">Contraseña</Text>
               <TextInput
                 className="bg-white border border-border rounded-lg p-4 text-base"
-                placeholder="Create a password"
+                placeholder="Crea una contraseña"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -163,11 +201,11 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
             <View className="mb-6">
               <Text className="text-sm text-[#495057] mb-2">
-                Confirm Password
+                Confirmar Contraseña
               </Text>
               <TextInput
                 className="bg-white border border-border rounded-lg p-4 text-base"
-                placeholder="Confirm your password"
+                placeholder="Confirma tu contraseña"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -182,26 +220,36 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
               disabled={isLoading}
             >
               <Text className="text-white text-base font-bold">
-                {isLoading ? "Creating Account..." : "Create Account"}
+                {isLoading ? "Creando Cuenta..." : "Crear Cuenta"}
               </Text>
             </TouchableOpacity>
 
             <View className="mb-5">
               <Text className="text-xs text-textLight text-center leading-5">
-                By signing up, you agree to our{" "}
-                <Text className="text-primary font-bold">Terms of Service</Text>{" "}
-                and{" "}
-                <Text className="text-primary font-bold">Privacy Policy</Text>
+                Al registrarte, aceptas nuestros{" "}
+                <Text 
+                  className="text-primary font-bold"
+                  onPress={() => setTermsOfServiceVisible(true)}
+                >
+                  Términos de Servicio
+                </Text>{" "}
+                y{" "}
+                <Text 
+                  className="text-primary font-bold"
+                  onPress={() => setPrivacyPolicyVisible(true)}
+                >
+                  Política de Privacidad
+                </Text>
               </Text>
             </View>
           </View>
 
           <View className="flex-row justify-center mb-8 mt-3">
             <Text className="text-textLight text-sm">
-              Already have an account?{" "}
+              ¿Ya tienes una cuenta?{" "}
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text className="text-primary text-sm font-bold">Sign In</Text>
+              <Text className="text-primary text-sm font-bold">Iniciar Sesión</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

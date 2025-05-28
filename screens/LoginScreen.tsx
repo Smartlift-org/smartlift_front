@@ -10,9 +10,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   StatusBar,
-  Alert,
   ActivityIndicator,
 } from "react-native";
+import useCustomAlert from "../components/useCustomAlert";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
@@ -26,10 +26,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const handleLogin = async (): Promise<void> => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+      showAlert({
+        title: "Error",
+        message: "Por favor complete todos los campos"
+      });
       return;
     }
 
@@ -50,9 +54,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       const errorMessage =
         error.response?.data?.error ||
         error.message ||
-        "Login failed. Please try again.";
+        "Error al iniciar sesión. Por favor intente nuevamente.";
 
-      Alert.alert("Login Failed", errorMessage);
+      showAlert({
+        title: "Error de Inicio de Sesión",
+        message: errorMessage
+      });
     }
   };
 
@@ -62,6 +69,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         className="flex-1 bg-background"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
+        <AlertComponent />
         <StatusBar barStyle="dark-content" />
 
         <View className="items-center mt-15 bg-background">
@@ -76,16 +84,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         </View>
 
         <View className="flex-1 px-6 mt-8">
-          <Text className="text-3xl font-bold text-text">Welcome Back</Text>
+          <Text className="text-3xl font-bold text-text">Bienvenido de Nuevo</Text>
           <Text className="text-base text-textLight mt-1 mb-8">
-            Sign in to continue
+            Inicia sesión para continuar
           </Text>
 
           <View className="mb-5">
-            <Text className="text-sm text-[#495057] mb-2">Email</Text>
+            <Text className="text-sm text-[#495057] mb-2">Correo Electrónico</Text>
             <TextInput
               className="bg-white border border-border rounded-lg p-4 text-base"
-              placeholder="Enter your email"
+              placeholder="Ingresa tu correo electrónico"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -94,10 +102,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           </View>
 
           <View className="mb-5">
-            <Text className="text-sm text-[#495057] mb-2">Password</Text>
+            <Text className="text-sm text-[#495057] mb-2">Contraseña</Text>
             <TextInput
               className="bg-white border border-border rounded-lg p-4 text-base"
-              placeholder="Enter your password"
+              placeholder="Ingresa tu contraseña"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -105,7 +113,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           </View>
 
           <TouchableOpacity className="self-end mb-8">
-            <Text className="text-primary text-sm">Forgot Password?</Text>
+            <Text className="text-primary text-sm">¿Olvidaste tu contraseña?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -116,17 +124,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             disabled={isLoading}
           >
             <Text className="text-white text-base font-bold">
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View className="flex-row justify-center mb-8">
           <Text className="text-textLight text-sm">
-            Don't have an account?{" "}
+            ¿No tienes una cuenta?{" "}
           </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-            <Text className="text-primary text-sm font-bold">Sign Up</Text>
+            <Text className="text-primary text-sm font-bold">Regístrate</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

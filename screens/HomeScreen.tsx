@@ -6,8 +6,8 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  Alert,
 } from "react-native";
+import useCustomAlert from "../components/useCustomAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 import type { RootStackParamList } from "../types";
@@ -17,16 +17,16 @@ type HomeScreenProps = {
 };
 
 const inspirationalQuotes: string[] = [
-  "The only bad workout is the one that didn't happen.",
-  "Your body can stand almost anything. It's your mind that you have to convince.",
-  "The hard days are what make you stronger.",
-  "Fitness is not about being better than someone else. It's about being better than you used to be.",
-  "The difference between try and triumph is a little umph.",
-  "Don't wish for it, work for it.",
-  "Strength does not come from the physical capacity. It comes from an indomitable will.",
-  "The only place where success comes before work is in the dictionary.",
-  "Your health is an investment, not an expense.",
-  "Take care of your body. It's the only place you have to live.",
+  "El único mal entrenamiento es el que no sucedió.",
+  "Tu cuerpo puede soportar casi cualquier cosa. Es tu mente la que tienes que convencer.",
+  "Los días difíciles son los que te hacen más fuerte.",
+  "El fitness no se trata de ser mejor que alguien más. Se trata de ser mejor de lo que solías ser.",
+  "La diferencia entre intentar y triunfar es un pequeño esfuerzo.",
+  "No lo desees, trabaja por ello.",
+  "La fuerza no viene de la capacidad física. Viene de una voluntad indomable.",
+  "El único lugar donde el éxito viene antes que el trabajo es en el diccionario.",
+  "Tu salud es una inversión, no un gasto.",
+  "Cuida tu cuerpo. Es el único lugar donde tienes que vivir.",
 ];
 
 const getRandomQuote = (): string => {
@@ -37,6 +37,8 @@ const getRandomQuote = (): string => {
 };
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const { showAlert, AlertComponent } = useCustomAlert();
+  
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -51,12 +53,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       });
     } catch (error) {
       console.error("Logout error:", error);
-      Alert.alert("Error", "Failed to logout. Please try again.");
+      showAlert({
+        title: "Error",
+        message: "Error al cerrar sesión. Por favor intente nuevamente."
+      });
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      <AlertComponent />
       <StatusBar barStyle="dark-content" />
       <ScrollView className="flex-grow">
         <View className="flex-1 p-6">
@@ -67,16 +73,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               onPress={handleLogout}
               className="px-4 py-2 rounded-lg bg-[#f1f3f5] border border-border"
             >
-              <Text className="text-[#495057] font-medium">Logout</Text>
+              <Text className="text-[#495057] font-medium">Cerrar Sesión</Text>
             </TouchableOpacity>
           </View>
 
           <View className="mb-8">
             <Text className="text-3xl font-bold text-text mb-2">
-              Welcome to SmartFit
+              Bienvenido a SmartLift
             </Text>
             <Text className="text-base text-textLight">
-              Your journey to a healthier lifestyle starts here
+              Tu camino hacia un estilo de vida más saludable comienza aquí
             </Text>
           </View>
 
@@ -85,77 +91,80 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               "{getRandomQuote()}"
             </Text>
             <Text className="text-white text-right font-medium">
-              - SmartFit
+              - SmartLift
             </Text>
           </View>
 
           <Text className="text-xl font-bold text-text mb-4">
-            Quick Actions
+            Acciones Rápidas
           </Text>
 
           <View className="flex-row flex-wrap justify-between">
             <TouchableOpacity
               className="bg-white rounded-xl p-4 mb-4 w-[48%] shadow-sm border border-[#e9ecef]"
               onPress={() =>
-                Alert.alert(
-                  "Coming Soon",
-                  "Workout tracking will be available soon!"
-                )
+                showAlert({
+                  title: "Próximamente",
+                  message: "¡El seguimiento de entrenamientos estará disponible pronto!"
+                })
               }
             >
               <View className="items-center">
                 <View className="w-12 h-12 rounded-full bg-[#e7f5ff] items-center justify-center mb-2">
                   <Text className="text-primary text-xl font-bold">💪</Text>
                 </View>
-                <Text className="text-text font-medium">Workouts</Text>
+                <Text className="text-text font-medium">Entrenamientos</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="bg-white rounded-xl p-4 mb-4 w-[48%] shadow-sm border border-[#e9ecef]"
               onPress={() =>
-                Alert.alert(
-                  "Coming Soon",
-                  "Nutrition tracking will be available soon!"
-                )
+                showAlert({
+                  title: "Próximamente",
+                  message: "¡El seguimiento nutricional estará disponible pronto!"
+                })
               }
             >
               <View className="items-center">
                 <View className="w-12 h-12 rounded-full bg-[#e7f5ff] items-center justify-center mb-2">
                   <Text className="text-primary text-xl font-bold">🥗</Text>
                 </View>
-                <Text className="text-text font-medium">Nutrition</Text>
+                <Text className="text-text font-medium">Nutrición</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="bg-white rounded-xl p-4 mb-4 w-[48%] shadow-sm border border-[#e9ecef]"
               onPress={() =>
-                Alert.alert(
-                  "Coming Soon",
-                  "Progress tracking will be available soon!"
-                )
+                showAlert({
+                  title: "Próximamente",
+                  message: "¡El seguimiento de progreso estará disponible pronto!"
+                })
               }
             >
               <View className="items-center">
                 <View className="w-12 h-12 rounded-full bg-[#e7f5ff] items-center justify-center mb-2">
                   <Text className="text-primary text-xl font-bold">📊</Text>
                 </View>
-                <Text className="text-text font-medium">Progress</Text>
+                <Text className="text-text font-medium">Progreso</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="bg-white rounded-xl p-4 mb-4 w-[48%] shadow-sm border border-[#e9ecef]"
               onPress={() =>
-                Alert.alert("Coming Soon", "Settings will be available soon!")
+                showAlert({
+                  title: "Próximamente",
+                  message: "¡La configuración estará disponible pronto!"
+                })
               }
             >
               <View className="items-center">
                 <View className="w-12 h-12 rounded-full bg-[#e7f5ff] items-center justify-center mb-2">
                   <Text className="text-primary text-xl font-bold">⚙️</Text>
                 </View>
-                <Text className="text-text font-medium">Settings</Text>
+                <Text className="text-text font-medium">Configuración</Text>
               </View>
             </TouchableOpacity>
           </View>

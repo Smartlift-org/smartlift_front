@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "smartfitfront",
-    "slug": "smartfitfront",
+    "name": "smartliftfront",
+    "slug": "smartliftfront",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",

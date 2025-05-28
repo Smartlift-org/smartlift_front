@@ -1,10 +1,10 @@
-# SmartFit Mobile App
+# SmartLift Mobile App
 
 A React Native mobile application for fitness tracking and workout management.
 
 ## Project Overview
 
-SmartFit is a mobile application built with React Native and Expo that allows users to track their workouts, monitor progress, and achieve their fitness goals. The app connects to a Ruby on Rails backend API for data management and user authentication.
+SmartLift is a mobile application built with React Native and Expo that allows users to track their workouts, monitor progress, and achieve their fitness goals. The app connects to a Ruby on Rails backend API for data management and user authentication.
 
 ## Features
 
@@ -47,7 +47,7 @@ SmartFit is a mobile application built with React Native and Expo that allows us
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd smartfitfront
+   cd smartliftfront
    ```
 
 2. Install dependencies:
@@ -78,7 +78,7 @@ To change the API URL, modify the `API_URL` constant in `services/authService.ts
 ## Project Structure
 
 ```
-smartfitfront/
+smartliftfront/
 ├── assets/                  # Images, fonts, and other static assets
 ├── components/              # Reusable UI components
 ├── screens/                 # Screen components

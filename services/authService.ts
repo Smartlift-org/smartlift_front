@@ -12,8 +12,8 @@ const API_URL = "http://10.0.2.2:3000/"; // For Android emulator pointing to loc
 // For iOS simulator: 'http://localhost:3000/'
 // For real device: use your computer's actual IP address
 
-const TOKEN_KEY = "@smartfit_token";
-const USER_KEY = "@smartfit_user";
+const TOKEN_KEY = "@smartlift_token";
+const USER_KEY = "@smartlift_user";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
