@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Checkbox } from "react-native-paper";
 import {
   View,
   Text,
@@ -36,6 +37,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [privacyPolicyVisible, setPrivacyPolicyVisible] = useState<boolean>(false);
   const [termsOfServiceVisible, setTermsOfServiceVisible] = useState<boolean>(false);
+  const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
@@ -82,6 +84,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
       showAlert({
         title: "Error",
         message: "Las contraseñas no coinciden"
+      });
+      return;
+    }
+
+    if (!acceptedTerms) {
+      showAlert({
+        title: "Términos no aceptados",
+        message: "Debes aceptar los Términos de Servicio y la Política de Privacidad para continuar"
       });
       return;
     }
@@ -212,6 +222,31 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
               />
             </View>
 
+            <View className="flex-row items-start mb-5 mt-2">
+              <Checkbox
+                status={acceptedTerms ? "checked" : "unchecked"}
+                onPress={() => setAcceptedTerms(!acceptedTerms)}
+                color="#3a86ff"
+                uncheckedColor="#6c757d"
+              />
+              <Text className="text-sm text-textLight flex-1 mt-2">
+                Acepto los{" "}
+                <Text 
+                  className="text-primary font-bold"
+                  onPress={() => setTermsOfServiceVisible(true)}
+                >
+                  Términos de Servicio
+                </Text>{" "}
+                y la{" "}
+                <Text 
+                  className="text-primary font-bold"
+                  onPress={() => setPrivacyPolicyVisible(true)}
+                >
+                  Política de Privacidad
+                </Text>
+              </Text>
+            </View>
+
             <TouchableOpacity
               className={`bg-primary rounded-lg p-4 items-center mb-5 ${
                 isLoading ? "bg-opacity-50" : ""
@@ -224,24 +259,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
               </Text>
             </TouchableOpacity>
 
-            <View className="mb-5">
-              <Text className="text-xs text-textLight text-center leading-5">
-                Al registrarte, aceptas nuestros{" "}
-                <Text 
-                  className="text-primary font-bold"
-                  onPress={() => setTermsOfServiceVisible(true)}
-                >
-                  Términos de Servicio
-                </Text>{" "}
-                y{" "}
-                <Text 
-                  className="text-primary font-bold"
-                  onPress={() => setPrivacyPolicyVisible(true)}
-                >
-                  Política de Privacidad
-                </Text>
-              </Text>
-            </View>
+
           </View>
 
           <View className="flex-row justify-center mb-8 mt-3">

@@ -24,7 +24,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
   title,
   message,
   onClose,
-  buttons = [{ text: 'OK' }]
+  buttons = [{ text: 'Aceptar' }]
 }) => {
 
   return (
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   buttonPrimary: {
-    backgroundColor: 'white',
+    backgroundColor: '#3a86ff',
   },
   buttonCancel: {
     backgroundColor: 'white',
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   buttonTextLight: {
-    color: '#3a86ff'
+    color: 'white'
   },
   buttonTextDark: {
     color: '#6c757d'
