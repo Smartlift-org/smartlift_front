@@ -38,6 +38,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [privacyPolicyVisible, setPrivacyPolicyVisible] = useState<boolean>(false);
   const [termsOfServiceVisible, setTermsOfServiceVisible] = useState<boolean>(false);
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
+  const [selectedRole, setSelectedRole] = useState<'user' | 'coach'>('user');
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
@@ -105,19 +106,42 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         email: email.trim().toLowerCase(),
         password: password,
         password_confirmation: confirmPassword,
+        role: selectedRole
       };
 
+      // Register the user
       await authService.register(userData);
-
-      setIsLoading(false);
-      showAlert({
-        title: "Éxito",
-        message: "¡Registro exitoso! Por favor inicia sesión.",
-        buttons: [{
-          text: "Aceptar",
-          onPress: () => navigation.navigate("Login")
-        }]
-      });
+      
+      // Auto-login after successful registration
+      try {
+        const loginResponse = await authService.login(userData.email, userData.password);
+        
+        setIsLoading(false);
+        
+        // Navigate to the appropriate home screen based on role
+        if (loginResponse.user.role === 'coach') {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "CoachHome" }]
+          });
+        } else {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "UserHome" }]
+          });
+        }
+      } catch (loginError) {
+        // If auto-login fails, still show success but redirect to login screen
+        setIsLoading(false);
+        showAlert({
+          title: "Registro Exitoso",
+          message: "Tu cuenta ha sido creada correctamente, pero no pudimos iniciar sesión automáticamente. Por favor inicia sesión manualmente.",
+          buttons: [{
+            text: "Ir a Login",
+            onPress: () => navigation.navigate("Login")
+          }]
+        });
+      }
     } catch (error: any) {
       setIsLoading(false);
       const errorMessage =
@@ -152,7 +176,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className="items-center mt-10">
             <Image
-              source={require("../assets/logo.png")}
+              source={require("../assets/smartlift_logo.png")}
               className="w-36 h-36"
               resizeMode="contain"
             />
@@ -196,6 +220,24 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-sm text-[#495057] mb-2">Tipo de Usuario</Text>
+              <View className="flex-row">
+                <TouchableOpacity 
+                  className={`flex-1 border ${selectedRole === 'user' ? 'bg-primary border-primary' : 'bg-white border-border'} rounded-lg p-4 mr-2 items-center`}
+                  onPress={() => setSelectedRole('user')}
+                >
+                  <Text className={`text-base ${selectedRole === 'user' ? 'text-white' : 'text-textLight'}`}>Usuario</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  className={`flex-1 border ${selectedRole === 'coach' ? 'bg-primary border-primary' : 'bg-white border-border'} rounded-lg p-4 ml-2 items-center`}
+                  onPress={() => setSelectedRole('coach')}
+                >
+                  <Text className={`text-base ${selectedRole === 'coach' ? 'text-white' : 'text-textLight'}`}>Entrenador</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View className="mb-4">
