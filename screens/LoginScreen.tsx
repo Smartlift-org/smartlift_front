@@ -16,6 +16,7 @@ import useCustomAlert from "../components/useCustomAlert";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
+import userStatsService from "../services/userStatsService";
 import { RootStackParamList } from "../types";
 
 type LoginScreenProps = {
@@ -44,9 +45,62 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
       const response = await authService.login(sanitizedEmail, password);
 
-      if (response && response.token) {
+      if (response && response.token && response.user) {
+        // Check if user has completed their profile (for regular users, not coaches)
+        const userRole = response.user.role;
+        
+        if (userRole === 'coach') {
+          setIsLoading(false);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "CoachHome" }],
+          });
+        } else {
+          // For regular users, check if they've completed their profile
+          try {
+            const hasCompletedProfile = await userStatsService.hasCompletedProfile();
+            setIsLoading(false);
+            
+            if (!hasCompletedProfile) {
+              // User hasn't completed their profile, redirect to stats profile screen
+              navigation.reset({
+                index: 0,
+                routes: [{ 
+                  name: "StatsProfile",
+                  params: { fromRedirect: true }
+                }],
+              });
+              
+              showAlert({
+                title: "Perfil incompleto",
+                message: "Por favor complete su perfil para continuar.",
+                primaryButtonText: "Entendido"
+              });
+            } else {
+              // User has completed their profile, proceed to home screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "UserHome" }],
+              });
+            }
+          } catch (error) {
+            console.error("Error checking profile completion:", error);
+            setIsLoading(false);
+            
+            // Default to user home if there's an error checking profile
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "UserHome" }],
+            });
+          }
+        }
+      } else {
         setIsLoading(false);
-        navigation.navigate("Home");
+        showAlert({
+          title: "Error",
+          message: "No se pudo obtener la información del usuario",
+          primaryButtonText: "Aceptar"
+        });
       }
     } catch (error: any) {
       setIsLoading(false);
@@ -74,7 +128,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         <View className="items-center mt-15 bg-background">
           <Image
-            source={require("../assets/icon.png")}
+            source={require("../assets/smartlift_logo.png")}
             className="w-36 h-36"
             resizeMode="contain"
             onError={(error: any) =>
@@ -84,7 +138,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         </View>
 
         <View className="flex-1 px-6 mt-8">
-          <Text className="text-3xl font-bold text-text">Bienvenido de Nuevo</Text>
+          <Text className="text-3xl font-bold text-text">Bienvenido</Text>
           <Text className="text-base text-textLight mt-1 mb-8">
             Inicia sesión para continuar
           </Text>

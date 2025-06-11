@@ -6,4 +6,5 @@ declare module 'react' {
   export type ReactElement = any;
   export function useState<T>(initialState: T | (() => T)): [T, (newState: T) => void];
   export function useLayoutEffect(effect: () => void | (() => void), deps?: ReadonlyArray<any>): void;
+  export function useEffect(effect: () => void | (() => void), deps?: ReadonlyArray<any>): void;
 }

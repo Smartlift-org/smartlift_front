@@ -4,6 +4,7 @@ import CustomAlert from './CustomAlert';
 interface AlertOptions {
   title: string;
   message: string;
+  primaryButtonText?: string;
   buttons?: Array<{
     text: string;
     onPress?: () => void;
@@ -20,6 +21,15 @@ export const useCustomAlert = () => {
   });
 
   const showAlert = (alertOptions: AlertOptions) => {
+    // If primaryButtonText is provided, create a button with it
+    if (alertOptions.primaryButtonText) {
+      alertOptions.buttons = [
+        { 
+          text: alertOptions.primaryButtonText,
+          onPress: () => hideAlert()
+        }
+      ];
+    }
     setOptions(alertOptions);
     setVisible(true);
   };
