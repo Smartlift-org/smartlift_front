@@ -1,13 +1,19 @@
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  Home: undefined;
+  UserHome: undefined;
+  CoachHome: undefined;
+  BasicProfile: undefined;
+  StatsProfile: { fromRedirect?: boolean };
 };
 
 export interface User {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
+  role: 'user' | 'coach';
+  created_at?: string;
 }
 
 export interface LoginResponse {
@@ -21,4 +27,5 @@ export interface RegisterData {
   email: string;
   password: string;
   password_confirmation: string;
+  role?: 'user' | 'coach';
 }
