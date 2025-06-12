@@ -1,0 +1,346 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  SafeAreaView,
+  StatusBar
+} from 'react-native';
+// Using basic types to avoid React Navigation import issues
+import { RootStackParamList } from '../types';
+import routineService, { Routine } from '../services/routineService';
+import { AntDesign, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+
+// Define simple props interface to avoid ESM/CommonJS compatibility issues
+type Props = {
+  navigation: any; // Using any for navigation to avoid compatibility issues
+  route: any;
+};
+
+const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const loadRoutines = async () => {
+    try {
+      setLoading(true);
+      const data = await routineService.getRoutines();
+      setRoutines(data);
+    } catch (error) {
+      console.error('Error al cargar rutinas:', error);
+      Alert.alert('Error', 'Error al cargar rutinas');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadRoutines();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadRoutines();
+  }, []);
+
+  // Efecto adicional para actualizar cuando volvamos de la pantalla de creación
+  useEffect(() => {
+    if (route.params?.refresh) {
+      loadRoutines();
+    }
+  }, [route.params?.refresh]);
+
+  const getDifficultyColor = (difficulty: string): string => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
+      case 'principiante':
+        return '#4CAF50'; // Verde
+      case 'intermediate':
+      case 'intermedio':
+        return '#FF9800'; // Naranja
+      case 'advanced':
+      case 'avanzado':
+        return '#F44336'; // Rojo
+      default:
+        return '#2196F3'; // Azul
+    }
+  };
+  
+  // Traducir nivel de dificultad
+  const translateDifficulty = (difficulty: string): string => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
+        return 'Principiante';
+      case 'intermediate':
+        return 'Intermedio';
+      case 'advanced':
+        return 'Avanzado';
+      default:
+        return difficulty;
+    }
+  };
+
+  const getExerciseCount = (routine: Routine): number => {
+    return routine.routine_exercises.length;
+  };
+
+  // Explicitly type the renderItem function parameter to fix TypeScript error
+  const renderRoutineItem = ({ item }: { item: Routine }) => (
+    <TouchableOpacity
+      style={styles.routineItem}
+      onPress={() => navigation.navigate('WorkoutTracker', { routineId: item.id })}
+    >
+      <View style={styles.routineHeader}>
+        <Text style={styles.routineName}>{item.name}</Text>
+        <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
+          <Text style={styles.difficultyText}>{translateDifficulty(item.difficulty)}</Text>
+        </View>
+      </View>
+
+      <Text style={styles.routineDescription} numberOfLines={2}>
+        {item.description}
+      </Text>
+
+      <View style={styles.routineStats}>
+        <View style={styles.statItem}>
+          <FontAwesome5 name="dumbbell" size={14} color="#666" />
+          <Text style={styles.statText}>{getExerciseCount(item)} ejercicios</Text>
+        </View>
+        <View style={styles.statItem}>
+          <AntDesign name="clockcircle" size={14} color="#666" />
+          <Text style={styles.statText}>{item.duration} min</Text>
+        </View>
+        <Text style={styles.statText}>
+          Creada: {item.formatted_created_at.split(' ')[0]}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => {
+            // Usar reset para limpiar la pila de navegación y evitar volver atrás a la pantalla de creación
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "UserHome" }]
+            });
+          }}
+        >
+          <AntDesign name="arrowleft" size={24} color="#333" />
+        </TouchableOpacity>
+        
+        <Text style={styles.title}>Tus Rutinas</Text>
+        
+        <TouchableOpacity 
+          style={styles.addButton} 
+          onPress={() => navigation.navigate('RoutineCreate')}
+        >
+          <AntDesign name="plus" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0066CC" />
+          <Text style={styles.loadingText}>Cargando rutinas...</Text>
+        </View>
+      ) : (
+        <>
+          {routines.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialCommunityIcons name="dumbbell" size={64} color="#ccc" />
+              <Text style={styles.emptyText}>No se encontraron rutinas</Text>
+              <Text style={styles.emptySubText}>Crea una rutina para comenzar</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={routines}
+              renderItem={renderRoutineItem}
+              keyExtractor={(item: Routine) => item.id.toString()}
+              contentContainerStyle={styles.listContainer}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  colors={["#0066CC"]}
+                />
+              }
+            />
+          )}
+
+          <TouchableOpacity
+            style={styles.workoutHistoryButton}
+            onPress={() => Alert.alert('Información', '¡El historial de entrenamientos estará disponible próximamente!')}
+          >
+            <Text style={styles.workoutHistoryText}>Ver Historial de Entrenamientos</Text>
+            <FontAwesome5 name="history" size={16} color="#0066CC" />
+          </TouchableOpacity>
+        </>
+      )}
+    </View>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    paddingTop: StatusBar.currentHeight || 0,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    paddingTop: 8,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 8,
+  },
+  backButton: {
+    padding: 8,
+    width: 40,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    flex: 1,
+  },
+  addButton: {
+    backgroundColor: '#0066CC',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 20,
+    color: '#666',
+    marginTop: 16,
+    fontWeight: '600',
+  },
+  emptySubText: {
+    fontSize: 16,
+    color: '#999',
+    marginTop: 8,
+  },
+  listContainer: {
+    paddingBottom: 80,
+  },
+  routineItem: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  routineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  routineName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  difficultyText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  routineDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+  },
+  routineStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: 12,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statText: {
+    fontSize: 13,
+    color: '#666',
+    marginLeft: 4,
+  },
+  workoutHistoryButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: 'white',
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  workoutHistoryText: {
+    color: '#0066CC',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+});
+
+export default RoutineListScreen;

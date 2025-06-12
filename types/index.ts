@@ -1,3 +1,5 @@
+import { RoutineFormData } from '../services/routineService';
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -5,6 +7,17 @@ export type RootStackParamList = {
   CoachHome: undefined;
   BasicProfile: undefined;
   StatsProfile: { fromRedirect?: boolean };
+  RoutineList: { refresh?: boolean };
+  RoutineCreate: undefined;
+  ExerciseSelect: { 
+    routineData: {
+      name: string;
+      description: string;
+      difficulty: 'beginner' | 'intermediate' | 'advanced';
+      duration: number;
+    } 
+  };
+  WorkoutTracker: { routineId: number };
 };
 
 export interface User {

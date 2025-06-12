@@ -129,36 +129,29 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
           <Text className="text-gray-600 mb-4">
             Edita tu perfil y actualiza tus datos personales.
           </Text>
-          <View className="flex-row justify-between">
-            <TouchableOpacity 
-              className="bg-indigo-100 p-3 rounded-lg flex-1 mr-1"
-              onPress={() => navigation.navigate("BasicProfile")}
-            >
-              <Text className="text-indigo-800 font-medium text-center">
-                Mi Cuenta
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              className="bg-indigo-100 p-3 rounded-lg flex-1 ml-1"
-              onPress={() => navigation.navigate("StatsProfile", { fromRedirect: false })}
-            >
-              <Text className="text-indigo-800 font-medium text-center">
-                Mi Perfil Fitness
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            className="bg-indigo-100 p-3 rounded-lg"
+            onPress={() => navigation.navigate("StatsProfile", { fromRedirect: false })}
+          >
+            <Text className="text-indigo-800 font-medium text-center">
+              Mi Perfil Fitness
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
           <Text className="text-lg font-semibold text-indigo-800 mb-2">
-            Mis Rutinas
+            Mis Rutinas y Entrenamientos
           </Text>
           <Text className="text-gray-600 mb-4">
-            Accede a las rutinas personalizadas creadas por tu entrenador.
+            Accede a las rutinas personalizadas y registra tus entrenamientos.
           </Text>
-          <TouchableOpacity className="bg-indigo-100 p-3 rounded-lg">
+          <TouchableOpacity 
+            className="bg-indigo-100 p-3 rounded-lg"
+            onPress={() => navigation.navigate("RoutineList")}
+          >
             <Text className="text-indigo-800 font-medium text-center">
-              Ver rutinas
+              Ver mis rutinas
             </Text>
           </TouchableOpacity>
         </View>
