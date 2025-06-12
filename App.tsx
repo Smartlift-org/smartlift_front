@@ -14,6 +14,10 @@ import UserHomeScreen from "./screens/UserHomeScreen";
 import CoachHomeScreen from "./screens/CoachHomeScreen";
 import BasicProfileScreen from "./screens/BasicProfileScreen";
 import StatsProfileScreen from "./screens/StatsProfileScreen";
+import RoutineListScreen from "./screens/RoutineListScreen";
+import RoutineCreateScreen from "./screens/RoutineCreateScreen";
+import ExerciseSelectScreen from "./screens/ExerciseSelectScreen";
+import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types";
@@ -74,6 +78,10 @@ export default function App(): React.ReactElement {
           <Stack.Screen name="CoachHome" component={CoachHomeScreen} />
           <Stack.Screen name="BasicProfile" component={BasicProfileScreen} />
           <Stack.Screen name="StatsProfile" component={StatsProfileScreen} />
+          <Stack.Screen name="RoutineList" component={RoutineListScreen} />
+          <Stack.Screen name="RoutineCreate" component={RoutineCreateScreen} />
+          <Stack.Screen name="ExerciseSelect" component={ExerciseSelectScreen} />
+          <Stack.Screen name="WorkoutTracker" component={WorkoutTrackerScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
