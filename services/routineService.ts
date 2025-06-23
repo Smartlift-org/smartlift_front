@@ -76,9 +76,15 @@ export interface WorkoutExercise {
 
 // Data structure for a completed workout session
 export interface WorkoutSession {
+  id?: number;
   routine_id: number;
   routine_name: string;
   date: string;
+  start_time: string;
+  end_time?: string;
+  total_duration?: number; // in seconds
+  effective_duration?: number; // in seconds (excluding pauses)
+  status: 'in_progress' | 'paused' | 'completed' | 'abandoned';
   exercises: WorkoutExercise[];
   notes?: string;
 }
@@ -120,7 +126,7 @@ const routineService = {
   // Update an existing routine
   updateRoutine: async (id: number, routineData: RoutineFormData): Promise<Routine> => {
     try {
-      const response = await apiClient.patch(`/routines/${id}`, { routine: routineData });
+      const response = await apiClient.put(`/routines/${id}`, { routine: routineData });
       return response.data;
     } catch (error) {
       console.error("Update routine error:", (error as AxiosError).response?.data || (error as Error).message);
@@ -161,6 +167,60 @@ const routineService = {
       await apiClient.delete(`/routines/${routineId}/exercises/${exerciseId}`);
     } catch (error) {
       console.error("Remove exercise error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+  // Create a new workout session
+  createWorkout: async (workoutData: WorkoutSession): Promise<WorkoutSession> => {
+    try {
+      const response = await apiClient.post('/workouts', { workout: workoutData });
+      return response.data;
+    } catch (error) {
+      console.error("Create workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Update an existing workout session
+  updateWorkout: async (id: number, workoutData: Partial<WorkoutSession>): Promise<WorkoutSession> => {
+    try {
+      const response = await apiClient.put(`/workouts/${id}`, { workout: workoutData });
+      return response.data;
+    } catch (error) {
+      console.error("Update workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Get all workouts for the current user
+  getWorkouts: async (): Promise<WorkoutSession[]> => {
+    try {
+      const response = await apiClient.get('/workouts');
+      return response.data;
+    } catch (error) {
+      console.error("Get workouts error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Get a specific workout by ID
+  getWorkout: async (id: number): Promise<WorkoutSession> => {
+    try {
+      const response = await apiClient.get(`/workouts/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Get workout history for a specific routine
+  getWorkoutsByRoutine: async (routineId: number): Promise<WorkoutSession[]> => {
+    try {
+      const response = await apiClient.get(`/routines/${routineId}/workouts`);
+      return response.data;
+    } catch (error) {
+      console.error("Get workouts by routine error:", (error as AxiosError).response?.data || (error as Error).message);
       throw error;
     }
   },
