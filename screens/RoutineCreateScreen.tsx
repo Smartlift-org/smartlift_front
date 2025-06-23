@@ -50,6 +50,16 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation })
       return false;
     }
     
+    // Validación de la longitud del nombre
+    if (name.trim().length > 50) {
+      showAlert({
+        title: "Error", 
+        message: "El nombre no puede exceder los 50 caracteres.",
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
+    
     // Validación de la descripción
     if (!description.trim()) {
       showAlert({
@@ -60,7 +70,7 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation })
       return false;
     }
     
-    // Validación de longitud de descripción (min 10, max 1000 caracteres)
+    // Validación de longitud de descripción (min 10, max 500 caracteres)
     if (description.trim().length < 10) {
       showAlert({
         title: "Error", 
@@ -70,17 +80,28 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation })
       return false;
     }
     
-    if (description.trim().length > 1000) {
+    if (description.trim().length > 500) {
       showAlert({
         title: "Error", 
-        message: "La descripción no puede exceder los 1000 caracteres.",
+        message: "La descripción no puede exceder los 500 caracteres.",
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
+    
+    // Validación de la dificultad
+    if (!['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
+      showAlert({
+        title: "Error", 
+        message: "La dificultad seleccionada no es válida.",
         primaryButtonText: "Aceptar"
       });
       return false;
     }
     
     // Validación de la duración
-    if (isNaN(Number(duration)) || Number(duration) <= 0) {
+    const durationNum = Number(duration);
+    if (isNaN(durationNum) || durationNum <= 0) {
       showAlert({
         title: "Error", 
         message: "La duración debe ser un número positivo.",
@@ -90,7 +111,7 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation })
     }
     
     // Validación del límite superior de duración (máximo 180 minutos)
-    if (Number(duration) > 180) {
+    if (durationNum > 180) {
       showAlert({
         title: "Error", 
         message: "La duración no puede exceder los 180 minutos.",
