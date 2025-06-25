@@ -18,6 +18,7 @@ export type RootStackParamList = {
     } 
   };
   WorkoutTracker: { routineId: number };
+  WorkoutStats: undefined;
 };
 
 export interface User {
