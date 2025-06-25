@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, User } from "../types";
 import authService from "../services/authService";
 import useCustomAlert from "../components/useCustomAlert";
+import ScreenHeader from "../components/ScreenHeader";
 
 type BasicProfileScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "BasicProfile">;
@@ -206,22 +207,22 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
       <SafeAreaView className="flex-1 bg-gray-100" style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
         <View className="flex-1">
           {/* Header */}
-          <View className="flex-row justify-between items-center p-4 bg-white border-b border-gray-200">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text className="text-indigo-600 font-semibold">← Volver</Text>
-            </TouchableOpacity>
-            
-            {!isEditing && (
-              <TouchableOpacity 
-                className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
-                onPress={() => setIsEditing(true)}
-              >
-                <Text className="text-white text-center font-medium">
-                  Editar Perfil
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <ScreenHeader
+            title="Perfil Personal"
+            onBack={() => navigation.goBack()}
+            rightComponent={
+              !isEditing ? (
+                <TouchableOpacity 
+                  className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
+                  onPress={() => setIsEditing(true)}
+                >
+                  <Text className="text-white text-center font-medium">
+                    Editar Perfil
+                  </Text>
+                </TouchableOpacity>
+              ) : null
+            }
+          />
 
           <ScrollView className="flex-1 p-4">
             <Text className="text-2xl font-bold text-indigo-900 mb-6">Información Personal</Text>
