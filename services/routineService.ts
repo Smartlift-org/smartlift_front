@@ -120,7 +120,7 @@ const routineService = {
   // Update an existing routine
   updateRoutine: async (id: number, routineData: RoutineFormData): Promise<Routine> => {
     try {
-      const response = await apiClient.patch(`/routines/${id}`, { routine: routineData });
+      const response = await apiClient.put(`/routines/${id}`, { routine: routineData });
       return response.data;
     } catch (error) {
       console.error("Update routine error:", (error as AxiosError).response?.data || (error as Error).message);
