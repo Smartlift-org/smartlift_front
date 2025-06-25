@@ -201,10 +201,51 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
   };
   
   const handleSaveFullRoutine = async () => {
+    // Validar que haya al menos un ejercicio seleccionado
     if (selectedExercises.length === 0) {
       showAlert({
         title: "Error",
         message: "Debes añadir al menos un ejercicio a la rutina",
+        primaryButtonText: "Aceptar"
+      });
+      return;
+    }
+    
+    // Validar el número máximo de ejercicios (por limitación del backend o experiencia de usuario)
+    if (selectedExercises.length > 20) {
+      showAlert({
+        title: "Error",
+        message: "La rutina no puede contener más de 20 ejercicios para mantener un entrenamiento efectivo",
+        primaryButtonText: "Aceptar"
+      });
+      return;
+    }
+
+    // Verificar que no hay órdenes duplicados
+    const orderNumbers = selectedExercises.map(ex => ex.order);
+    const uniqueOrders = new Set(orderNumbers);
+    if (uniqueOrders.size !== selectedExercises.length) {
+      showAlert({
+        title: "Error",
+        message: "Hay ejercicios con el mismo número de orden. Por favor, corrige los valores para asegurar un orden correcto.",
+        primaryButtonText: "Aceptar"
+      });
+      return;
+    }
+    
+    // Verificar que no hay valores inválidos en los ejercicios seleccionados
+    const invalidExercise = selectedExercises.find(ex => 
+      !ex.exercise_id || 
+      ex.sets <= 0 || ex.sets > 20 || 
+      ex.reps <= 0 || ex.reps > 100 || 
+      ex.rest_time < 0 || ex.rest_time > 300 || 
+      ex.order <= 0
+    );
+    
+    if (invalidExercise) {
+      showAlert({
+        title: "Error",
+        message: "Hay ejercicios con valores inválidos. Por favor revisa las series, repeticiones, tiempos de descanso y orden.",
         primaryButtonText: "Aceptar"
       });
       return;
@@ -259,6 +300,7 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
   };
 
   const validateForm = (): boolean => {
+    // Validación del número de series
     if (!sets || isNaN(Number(sets)) || Number(sets) <= 0) {
       showAlert({
         title: "Error",
@@ -267,7 +309,18 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
       });
       return false;
     }
+    
+    // Limitar las series a un máximo razonable (20)
+    if (Number(sets) > 20) {
+      showAlert({
+        title: "Error",
+        message: "El número de series no puede exceder de 20",
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
 
+    // Validación del número de repeticiones
     if (!reps || isNaN(Number(reps)) || Number(reps) <= 0) {
       showAlert({
         title: "Error",
@@ -276,7 +329,18 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
       });
       return false;
     }
+    
+    // Limitar las repeticiones a un máximo razonable (100)
+    if (Number(reps) > 100) {
+      showAlert({
+        title: "Error",
+        message: "El número de repeticiones no puede exceder de 100",
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
 
+    // Validación del tiempo de descanso
     if (!restTime || isNaN(Number(restTime)) || Number(restTime) < 0) {
       showAlert({
         title: "Error",
@@ -285,11 +349,44 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
       });
       return false;
     }
+    
+    // Limitar el tiempo de descanso a un máximo razonable (5 minutos = 300 segundos)
+    if (Number(restTime) > 300) {
+      showAlert({
+        title: "Error",
+        message: "El tiempo de descanso no puede exceder los 5 minutos (300 segundos)",
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
 
+    // Validación del orden
     if (!order || isNaN(Number(order)) || Number(order) <= 0) {
       showAlert({
         title: "Error",
         message: "El orden debe ser un número positivo",
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
+    
+    // Validación para evitar órdenes duplicados
+    const orderNum = Number(order);
+    const duplicateOrder = selectedExercises.some(ex => ex.order === orderNum);
+    if (duplicateOrder) {
+      showAlert({
+        title: "Error",
+        message: `Ya existe un ejercicio con el orden ${orderNum}. Por favor, elige un número de orden diferente.`,
+        primaryButtonText: "Aceptar"
+      });
+      return false;
+    }
+
+    // Validar que se ha seleccionado un ejercicio
+    if (!selectedExercise) {
+      showAlert({
+        title: "Error",
+        message: "Debes seleccionar un ejercicio",
         primaryButtonText: "Aceptar"
       });
       return false;

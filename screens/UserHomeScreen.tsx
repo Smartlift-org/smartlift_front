@@ -113,11 +113,14 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             Mi Progreso
           </Text>
           <Text className="text-gray-600 mb-4">
-            Aquí verás tu progreso en los ejercicios y rutinas.
+            Aquí verás tu progreso y estadísticas de entrenamientos.
           </Text>
-          <TouchableOpacity className="bg-indigo-100 p-3 rounded-lg">
+          <TouchableOpacity 
+            className="bg-indigo-100 p-3 rounded-lg mb-2"
+            onPress={() => navigation.navigate("WorkoutStats")}
+          >
             <Text className="text-indigo-800 font-medium text-center">
-              Ver detalles
+              Ver estadísticas
             </Text>
           </TouchableOpacity>
         </View>

@@ -18,6 +18,7 @@ import RoutineListScreen from "./screens/RoutineListScreen";
 import RoutineCreateScreen from "./screens/RoutineCreateScreen";
 import ExerciseSelectScreen from "./screens/ExerciseSelectScreen";
 import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
+import WorkoutStatsScreen from "./screens/WorkoutStatsScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types";
@@ -82,6 +83,7 @@ export default function App(): React.ReactElement {
           <Stack.Screen name="RoutineCreate" component={RoutineCreateScreen} />
           <Stack.Screen name="ExerciseSelect" component={ExerciseSelectScreen} />
           <Stack.Screen name="WorkoutTracker" component={WorkoutTrackerScreen} />
+          <Stack.Screen name="WorkoutStats" component={WorkoutStatsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
