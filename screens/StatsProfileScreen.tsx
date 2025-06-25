@@ -15,7 +15,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 import userStatsService from "../services/userStatsService";
 
 type StatsProfileScreenProps = {
@@ -59,8 +59,6 @@ const DAYS_OF_WEEK = [
 
 const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, route }) => {
   const fromRedirect = route.params?.fromRedirect || false;
-  const { showAlert, AlertComponent } = useCustomAlert();
-
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(fromRedirect);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -115,20 +113,12 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
         initializeSelectedDays(stats.available_days?.toString() || "");
       } else if (!fromRedirect) {
         // Only show error if not coming from a redirect (initial setup)
-        showAlert({
-          title: "Información no encontrada",
-          message: "No se encontró información de perfil. Por favor completa tu perfil.",
-          primaryButtonText: "Entendido"
-        });
+        AppAlert.info("Información no encontrada", "No se encontró información de perfil. Por favor completa tu perfil.");
         setIsEditing(true);
       }
     } catch (error) {
       console.error("Error loading user stats:", error);
-      showAlert({
-        title: "Error",
-        message: "Ocurrió un error al cargar tu información.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
     } finally {
       setIsLoading(false);
     }
@@ -184,11 +174,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
     }
     
     if (missingFields.length > 0) {
-      showAlert({
-        title: "Campos obligatorios",
-        message: `Por favor complete los siguientes campos: \n${missingFields.join("\n")}.`,
-        primaryButtonText: "Entendido"
-      });
+      AppAlert.error("Campos requeridos", `Por favor completa los siguientes campos: ${missingFields.join(", ")}`);
       return;
     }
 
@@ -223,11 +209,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
       
       // Show different messages based on whether this was an initial profile completion or update
       if (fromRedirect) {
-        showAlert({
-          title: "¡Perfil Completado!",
-          message: "Gracias por completar tu perfil. Ahora puedes comenzar a utilizar todas las funciones de la aplicación.",
-          primaryButtonText: "¡Vamos!"
-        });
+        AppAlert.info("¡Perfil Completado!", "Gracias por completar tu perfil. Ahora puedes comenzar a utilizar todas las funciones de la aplicación.");
         
         // Return to home screen if this was called during first login profile completion
         navigation.reset({
@@ -235,19 +217,11 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
           routes: [{ name: "UserHome" }],
         });
       } else {
-        showAlert({
-          title: "¡Actualizado!",
-          message: "Tus estadísticas han sido actualizadas correctamente.",
-          primaryButtonText: "Aceptar"
-        });
+        AppAlert.info("¡Actualizado!", "Tus estadísticas han sido actualizadas correctamente.");
       }
     } catch (error) {
       console.error("Error saving stats:", error);
-      showAlert({
-        title: "Error",
-        message: "No se pudo actualizar tu información. Intenta más tarde.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "No se pudo actualizar tu información. Intenta más tarde.");
     } finally {
       setIsSaving(false);
     }
@@ -289,8 +263,6 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
           {/* Main Content */}
           <ScrollView className="flex-1 p-4">
             <Text className="text-2xl font-bold text-indigo-900 mb-6">Mi Información Fitness</Text>
-            
-            <AlertComponent />
             
             {/* Basic Measurements */}
             <View className="mb-6">
@@ -541,7 +513,6 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
           )}
         </View>
       </SafeAreaView>
-      <AlertComponent />
     </>
   );
 };

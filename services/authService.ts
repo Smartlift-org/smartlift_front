@@ -51,7 +51,7 @@ const authService = {
 
   register: async (userData: RegisterData): Promise<any> => {
     try {
-      const response = await apiClient.post("/users", userData);
+      const response = await apiClient.post("/users", { user: userData });
       return response.data;
     } catch (error) {
       console.error(

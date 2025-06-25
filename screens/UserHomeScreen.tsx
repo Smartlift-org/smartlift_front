@@ -9,7 +9,7 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 import type { RootStackParamList, User } from "../types";
@@ -39,7 +39,7 @@ const getRandomQuote = (): string => {
 };
 
 const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
-  const { showAlert, AlertComponent } = useCustomAlert();
+  // AppAlert usado para mensajes y confirmaciones
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [quote, setQuote] = useState<string>(getRandomQuote());
   
@@ -65,11 +65,7 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
         routes: [{ name: "Login" }],
       });
     } catch (error) {
-      showAlert({
-        title: "Error",
-        message: "No se pudo cerrar la sesión. Inténtalo de nuevo.",
-        primaryButtonText: "Aceptar",
-      });
+      AppAlert.error("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
     }
   };
 
@@ -173,7 +169,6 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <AlertComponent />
     </SafeAreaView>
     </>
   );

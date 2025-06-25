@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   StatusBar
 } from "react-native";
@@ -16,6 +15,7 @@ import { RootStackParamList } from "../types";
 import routineService, { Routine } from "../services/routineService";
 import { AntDesign, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import ScreenHeader from "../components/ScreenHeader";
+import AppAlert from "../components/AppAlert";
 
 // Define simple props interface to avoid ESM/CommonJS compatibility issues
 type Props = {
@@ -35,7 +35,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
       setRoutines(data);
     } catch (error) {
       console.error('Error al cargar rutinas:', error);
-      Alert.alert('Error', 'Error al cargar rutinas');
+      AppAlert.error('Error', 'Error al cargar rutinas');
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,9 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.workoutHistoryButton}
-            onPress={() => Alert.alert('Información', '¡El historial de entrenamientos estará disponible próximamente!')}
+            onPress={() => AppAlert.info('Información', '¡El historial de entrenamientos estará disponible próximamente!', [
+              { text: 'Entendido', style: 'default' }
+            ])}
           >
             <Text style={styles.workoutHistoryText}>Ver Historial de Entrenamientos</Text>
             <FontAwesome5 name="history" size={16} color="#0066CC" />

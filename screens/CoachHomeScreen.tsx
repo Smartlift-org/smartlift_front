@@ -10,10 +10,10 @@ import {
   FlatList,
   Platform,
 } from "react-native";
-import useCustomAlert from "../components/useCustomAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 import type { RootStackParamList, User } from "../types";
+import AppAlert from "../components/AppAlert";
 
 type CoachHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "CoachHome">;
@@ -35,7 +35,6 @@ const mockUsers: MockUser[] = [
 ];
 
 const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
-  const { showAlert, AlertComponent } = useCustomAlert();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
   useEffect(() => {
@@ -60,11 +59,10 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
         routes: [{ name: "Login" }],
       });
     } catch (error) {
-      showAlert({
-        title: "Error",
-        message: "No se pudo cerrar la sesión. Inténtalo de nuevo.",
-        primaryButtonText: "Aceptar",
-      });
+      AppAlert.error(
+        "Error",
+        "No se pudo cerrar la sesión. Inténtalo de nuevo."
+      );
     }
   };
 
@@ -73,11 +71,10 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
     <TouchableOpacity 
       className="bg-white p-4 rounded-lg mb-3 shadow-sm"
       onPress={() => {
-        showAlert({
-          title: "Detalles del Usuario",
-          message: `Ver detalles completos de ${item.name}`,
-          primaryButtonText: "OK",
-        });
+        AppAlert.info(
+          "Detalles del Usuario",
+          `Ver detalles completos de ${item.name}`
+        );
       }}
     >
       <View className="flex-row justify-between items-center">
@@ -162,11 +159,10 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           <TouchableOpacity 
             className="bg-indigo-600 py-2 px-4 rounded-lg"
             onPress={() => {
-              showAlert({
-                title: "Añadir Usuario",
-                message: "Aquí podrás añadir un nuevo usuario a tu lista",
-                primaryButtonText: "OK",
-              });
+              AppAlert.info(
+                "Añadir Usuario",
+                "Aquí podrás añadir un nuevo usuario a tu lista"
+              );
             }}
           >
             <Text className="text-white font-semibold">+ Añadir Usuario</Text>
@@ -184,11 +180,10 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           <TouchableOpacity 
             className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 mr-2"
             onPress={() => {
-              showAlert({
-                title: "Gestionar Rutinas",
-                message: "Aquí podrás crear y editar rutinas para tus usuarios",
-                primaryButtonText: "OK",
-              });
+              AppAlert.info(
+                "Gestionar Rutinas",
+                "Aquí podrás crear y editar rutinas para tus usuarios"
+              );
             }}
           >
             <Text className="text-indigo-800 font-medium text-center">
@@ -199,11 +194,10 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           <TouchableOpacity 
             className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 ml-2"
             onPress={() => {
-              showAlert({
-                title: "Estadísticas",
-                message: "Aquí podrás ver estadísticas detalladas de tus usuarios",
-                primaryButtonText: "OK",
-              });
+              AppAlert.info(
+                "Estadísticas",
+                "Aquí podrás ver estadísticas detalladas de tus usuarios"
+              );
             }}
           >
             <Text className="text-indigo-800 font-medium text-center">
@@ -212,7 +206,7 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         </View>
-        <AlertComponent />
+  
       </SafeAreaView>
     </>
   );

@@ -14,7 +14,7 @@ import {
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, User } from "../types";
 import authService from "../services/authService";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
 
 type BasicProfileScreenProps = {
@@ -37,8 +37,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
   const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
-  
-  const { showAlert, AlertComponent } = useCustomAlert();
 
   useEffect(() => {
     loadUserProfile();
@@ -54,19 +52,17 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
         setLastName(user.last_name || "");
         setEmail(user.email || "");
       } else {
-        showAlert({
-          title: "Error",
-          message: "No se pudo cargar la información del usuario.",
-          primaryButtonText: "Aceptar"
-        });
+        AppAlert.error(
+          "Error",
+          "No se pudo cargar la información del usuario."
+        );
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
-      showAlert({
-        title: "Error",
-        message: "Ocurrió un error al cargar tu información.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error(
+        "Error",
+        "Ocurrió un error al cargar tu información."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -85,51 +81,46 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
   const validateForm = (): boolean => {
     // Basic validation for user info
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      showAlert({
-        title: "Error de validación",
-        message: "Nombre, apellido y correo son campos requeridos.",
-        primaryButtonText: "Entendido"
-      });
+      AppAlert.error(
+        "Error de validación",
+        "Nombre, apellido y correo son campos requeridos."
+      );
       return false;
     }
 
     // Email validation
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
     if (!emailRegex.test(email)) {
-      showAlert({
-        title: "Error de validación",
-        message: "El formato del correo electrónico es inválido.",
-        primaryButtonText: "Entendido"
-      });
+      AppAlert.error(
+        "Error de validación",
+        "El formato del correo electrónico es inválido."
+      );
       return false;
     }
 
     // Password validation if changing password
     if (showPasswordFields) {
       if (!currentPassword) {
-        showAlert({
-          title: "Error de validación",
-          message: "Debe ingresar su contraseña actual.",
-          primaryButtonText: "Entendido"
-        });
+        AppAlert.error(
+          "Error de validación",
+          "Debes introducir tu contraseña actual para poder cambiarla."
+        );
         return false;
       }
 
       if (!newPassword || newPassword.length < 6) {
-        showAlert({
-          title: "Error de validación",
-          message: "La nueva contraseña debe tener al menos 6 caracteres.",
-          primaryButtonText: "Entendido"
-        });
+        AppAlert.error(
+          "Error de validación",
+          "La nueva contraseña debe tener al menos 6 caracteres."
+        );
         return false;
       }
 
       if (newPassword !== confirmPassword) {
-        showAlert({
-          title: "Error de validación",
-          message: "La confirmación de contraseña no coincide con la nueva contraseña.",
-          primaryButtonText: "Entendido"
-        });
+        AppAlert.error(
+          "Error de validación",
+          "La confirmación de contraseña no coincide con la nueva contraseña."
+        );
         return false;
       }
     }
@@ -157,14 +148,13 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Update password if needed
-        if (showPasswordFields) {
+        if (showPasswordFields && newPassword && currentPassword) {
           // This is where you would call the API to update the password
           // authService.updatePassword(currentPassword, newPassword);
-          showAlert({
-            title: "Contraseña actualizada",
-            message: "La contraseña ha sido actualizada correctamente.",
-            primaryButtonText: "Aceptar"
-          });
+          AppAlert.info(
+            "Contraseña actualizada",
+            "La contraseña ha sido actualizada correctamente."
+          );
           setShowPasswordFields(false);
           setCurrentPassword("");
           setNewPassword("");
@@ -174,19 +164,17 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
         setCurrentUser(updatedUser);
         setIsEditing(false);
         
-        showAlert({
-          title: "¡Actualizado!",
-          message: "Tu información personal ha sido actualizada correctamente.",
-          primaryButtonText: "Aceptar"
-        });
+        AppAlert.info(
+          "¡Actualizado!",
+          "Tu información personal ha sido actualizada correctamente."
+        );
       }
     } catch (error) {
       console.error("Error saving profile:", error);
-      showAlert({
-        title: "Error",
-        message: "No se pudo actualizar tu información. Inténtalo más tarde.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error(
+        "Error",
+        "No se pudo actualizar tu información. Inténtalo más tarde."
+      );
     } finally {
       setIsSaving(false);
     }
@@ -336,28 +324,19 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
             {/* Logout Button - Only displayed when not in editing mode */}
             {!isEditing && (
               <TouchableOpacity
-                className="bg-red-100 rounded-xl shadow-sm p-4 mb-5"
-                onPress={async () => {
-                  showAlert({
-                    title: "Cerrar Sesión",
-                    message: "¿Estás seguro de que deseas cerrar la sesión?",
-                    buttons: [
-                      {
-                        text: "Cancelar",
-                        style: "cancel",
-                      },
-                      {
-                        text: "Cerrar Sesión",
-                        onPress: async () => {
-                          await authService.logout();
-                          navigation.reset({
-                            index: 0,
-                            routes: [{ name: "Login" }],
-                          });
-                        },
-                      },
-                    ],
-                  });
+                className="bg-red-500 py-3 px-5 rounded-lg"
+                onPress={() => {
+                  AppAlert.confirm(
+                    "Cerrar sesión",
+                    "¿Estás seguro que deseas cerrar sesión?",
+                    async () => {
+                      await authService.logout();
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: "Login" }],
+                      });
+                    }
+                  );
                 }}
               >
                 <Text className="text-center text-red-600 font-semibold">
@@ -399,7 +378,7 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
           )}
         </View>
       </SafeAreaView>
-      <AlertComponent />
+
     </>
   );
 };
