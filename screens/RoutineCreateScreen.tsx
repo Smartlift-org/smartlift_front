@@ -17,7 +17,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import { RoutineFormData } from "../services/routineService";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 
 type RoutineCreateScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "RoutineCreate">;
@@ -30,7 +30,6 @@ const DIFFICULTY_LEVELS = [
 ];
 
 const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation }) => {
-  const { showAlert, hideAlert, AlertComponent } = useCustomAlert();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Form states
@@ -42,81 +41,49 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation })
   const validateForm = (): boolean => {
     // Validación del nombre
     if (!name.trim()) {
-      showAlert({
-        title: "Error", 
-        message: "El nombre de la rutina es obligatorio.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El nombre de la rutina es obligatorio.");
       return false;
     }
     
     // Validación de la longitud del nombre
     if (name.trim().length > 50) {
-      showAlert({
-        title: "Error", 
-        message: "El nombre no puede exceder los 50 caracteres.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El nombre no puede exceder los 50 caracteres.");
       return false;
     }
     
     // Validación de la descripción
     if (!description.trim()) {
-      showAlert({
-        title: "Error", 
-        message: "La descripción de la rutina es obligatoria.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La descripción de la rutina es obligatoria.");
       return false;
     }
     
     // Validación de longitud de descripción (min 10, max 500 caracteres)
     if (description.trim().length < 10) {
-      showAlert({
-        title: "Error", 
-        message: "La descripción debe tener al menos 10 caracteres.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La descripción debe tener al menos 10 caracteres.");
       return false;
     }
     
     if (description.trim().length > 500) {
-      showAlert({
-        title: "Error", 
-        message: "La descripción no puede exceder los 500 caracteres.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La descripción no puede exceder los 500 caracteres.");
       return false;
     }
     
     // Validación de la dificultad
     if (!['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
-      showAlert({
-        title: "Error", 
-        message: "La dificultad seleccionada no es válida.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La dificultad seleccionada no es válida.");
       return false;
     }
     
     // Validación de la duración
     const durationNum = Number(duration);
     if (isNaN(durationNum) || durationNum <= 0) {
-      showAlert({
-        title: "Error", 
-        message: "La duración debe ser un número positivo.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La duración debe ser un número positivo.");
       return false;
     }
     
     // Validación del límite superior de duración (máximo 180 minutos)
     if (durationNum > 180) {
-      showAlert({
-        title: "Error", 
-        message: "La duración no puede exceder los 180 minutos.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La duración no puede exceder los 180 minutos.");
       return false;
     }
     
@@ -229,7 +196,6 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({ navigation })
           </View>
         </View>
       </SafeAreaView>
-      <AlertComponent />
     </>
   );
 };

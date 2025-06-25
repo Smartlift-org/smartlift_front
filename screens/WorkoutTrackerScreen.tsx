@@ -7,7 +7,6 @@ import {
   TextInput, 
   ActivityIndicator, 
   StyleSheet,
-  Alert,
   SafeAreaView,
   StatusBar,
   BackHandler,
@@ -17,6 +16,7 @@ import {
 // Using basic types to avoid React Navigation import issues
 import { RootStackParamList } from '../types';
 import routineService, { Routine, WorkoutSet, WorkoutExercise, WorkoutSession } from '../services/routineService';
+import AppAlert from '../components/AppAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign, MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 
@@ -80,11 +80,11 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
           setWorkoutExercises(exercises);
         } else {
           // Handle case when no routine is selected
-          Alert.alert('Error', 'No se ha seleccionado una rutina');
+          AppAlert.error('Error', 'No se ha seleccionado una rutina');
           navigation.goBack();
         }
       } catch (error) {
-        Alert.alert('Error', 'Error al cargar la rutina');
+        AppAlert.error('Error', 'Error al cargar la rutina');
         console.error('Error al cargar la rutina:', error);
       } finally {
         setLoading(false);
@@ -240,8 +240,12 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
   // Iniciar proceso de abandonar el workout
   const handleAbandonWorkout = () => {
     if (workoutStatus === 'in_progress' || workoutStatus === 'paused') {
-      setConfirmAction('abandon');
-      setShowConfirmModal(true);
+      AppAlert.confirm(
+        "Abandonar entrenamiento",
+        "¿Estás seguro que deseas abandonar este entrenamiento? El progreso será guardado como 'abandonado'.",
+        confirmAbandonWorkout,
+        () => console.log("Cancelado")
+      );
     }
   };
 
@@ -287,8 +291,12 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
   // Iniciar proceso de completar el workout
   const handleCompleteWorkout = () => {
     if (workoutStatus === 'in_progress' || workoutStatus === 'paused') {
-      setConfirmAction('complete');
-      setShowConfirmModal(true);
+      AppAlert.confirm(
+        "Completar entrenamiento", 
+        "¿Estás seguro que deseas finalizar este entrenamiento?", 
+        saveWorkout,
+        () => console.log("Completar cancelado")
+      );
     }
   };
 
@@ -365,7 +373,7 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
 
     } catch (error) {
       console.error('Error al guardar el workout:', error);
-      Alert.alert('Error', 'No se pudo guardar el entrenamiento');
+      AppAlert.error('Error', 'No se pudo guardar el entrenamiento');
     } finally {
       setSaving(false);
     }

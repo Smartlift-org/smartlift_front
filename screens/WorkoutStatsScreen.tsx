@@ -12,6 +12,9 @@ import {
 import { AntDesign, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import workoutStatsService, { WorkoutStatsGeneral } from '../services/workoutStatsService';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types';
+import ScreenHeader from '../components/ScreenHeader';
 
 // Para formatear el tiempo total
 const formatTotalTime = (seconds: number): string => {
@@ -23,7 +26,11 @@ const formatTotalTime = (seconds: number): string => {
   return `${hours}h ${minutes}m`;
 };
 
-const WorkoutStatsScreen: React.FC = () => {
+type WorkoutStatsScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "WorkoutStats">;
+};
+
+const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({ navigation }) => {
   const [stats, setStats] = useState<WorkoutStatsGeneral | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,7 +69,11 @@ const WorkoutStatsScreen: React.FC = () => {
   if (!stats || (stats.totalWorkouts === 0)) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.title}>Estadísticas de Entrenamiento</Text>
+        <ScreenHeader
+          title="Estadísticas de Entrenamiento"
+          onBack={() => navigation.goBack()}
+        />
+        
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="weight-lifter" size={80} color="#cccccc" />
           <Text style={styles.emptyText}>Aún no tienes entrenamientos registrados</Text>
@@ -76,7 +87,10 @@ const WorkoutStatsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Estadísticas de Entrenamiento</Text>
+      <ScreenHeader
+        title="Estadísticas de Entrenamiento"
+        onBack={() => navigation.goBack()}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -185,7 +199,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginVertical: 16,
     color: '#333',
   },
   loadingContainer: {
@@ -288,16 +301,18 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#666',
-    marginTop: 16,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 8,
+    marginTop: 20,
     textAlign: 'center',
   },
+  emptySubText: {
+    fontSize: 16,
+    color: '#999',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+
 });
 
 export default WorkoutStatsScreen;

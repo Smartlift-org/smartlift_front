@@ -17,7 +17,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import exerciseService from "../services/exerciseService";
 import routineService, { Exercise, RoutineExerciseFormData, RoutineFormData } from "../services/routineService";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 
 type ExerciseSelectScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "ExerciseSelect">;
@@ -37,7 +37,6 @@ type CategoryFilter = string | null;
 
 const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation, route }) => {
   const { routineData } = route.params;
-  const { showAlert, hideAlert, AlertComponent } = useCustomAlert();
   
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
@@ -96,11 +95,7 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
       }
     } catch (error) {
       console.error("Error al cargar ejercicios:", error);
-      showAlert({
-        title: "Error", 
-        message: "No se pudieron cargar los ejercicios. Verifica la conexión con el servidor.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "No se pudieron cargar los ejercicios. Verifica la conexión con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -165,11 +160,7 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
 
   const handleAddExerciseToSelection = () => {
     if (!selectedExercise) {
-      showAlert({
-        title: "Error",
-        message: "Por favor selecciona un ejercicio primero",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "Por favor selecciona un ejercicio primero");
       return;
     }
 
@@ -193,31 +184,19 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
     setRestTime("60");
     setOrder((parseInt(order) + 1).toString());
     
-    showAlert({
-      title: "¡Ejercicio añadido!",
-      message: `${selectedExercise.name} ha sido añadido a la rutina. Puedes seguir añadiendo más ejercicios.`,
-      primaryButtonText: "Aceptar"
-    });
+    AppAlert.info("¡Ejercicio añadido!", `${selectedExercise.name} ha sido añadido a la rutina. Puedes seguir añadiendo más ejercicios.`);
   };
   
   const handleSaveFullRoutine = async () => {
     // Validar que haya al menos un ejercicio seleccionado
     if (selectedExercises.length === 0) {
-      showAlert({
-        title: "Error",
-        message: "Debes añadir al menos un ejercicio a la rutina",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "Debes añadir al menos un ejercicio a la rutina");
       return;
     }
     
     // Validar el número máximo de ejercicios (por limitación del backend o experiencia de usuario)
     if (selectedExercises.length > 20) {
-      showAlert({
-        title: "Error",
-        message: "La rutina no puede contener más de 20 ejercicios para mantener un entrenamiento efectivo",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "La rutina no puede contener más de 20 ejercicios para mantener un entrenamiento efectivo");
       return;
     }
 
@@ -225,11 +204,7 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
     const orderNumbers = selectedExercises.map(ex => ex.order);
     const uniqueOrders = new Set(orderNumbers);
     if (uniqueOrders.size !== selectedExercises.length) {
-      showAlert({
-        title: "Error",
-        message: "Hay ejercicios con el mismo número de orden. Por favor, corrige los valores para asegurar un orden correcto.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "Hay ejercicios con el mismo número de orden. Por favor, corrige los valores para asegurar un orden correcto.");
       return;
     }
     
@@ -243,11 +218,7 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
     );
     
     if (invalidExercise) {
-      showAlert({
-        title: "Error",
-        message: "Hay ejercicios con valores inválidos. Por favor revisa las series, repeticiones, tiempos de descanso y orden.",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "Hay ejercicios con valores inválidos. Por favor revisa las series, repeticiones, tiempos de descanso y orden.");
       return;
     }
     
@@ -261,12 +232,12 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
     try {
       await routineService.createRoutine(routineFormData);
       
-      showAlert({
-        title: "¡Rutina creada!",
-        message: `La rutina "${routineData.name}" ha sido creada exitosamente con ${selectedExercises.length} ejercicios`,
-        buttons: [
+      AppAlert.info(
+        "¡Rutina creada!", 
+        "Tu nueva rutina se ha creado con éxito. ¿Qué deseas hacer?",
+        [
           {
-            text: "Ir al Home",
+            text: "Volver al inicio",
             onPress: () => {
               // Usar reset para limpiar la pila de navegación y evitar volver atrás
               navigation.reset({
@@ -286,14 +257,10 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
             }
           }
         ]
-      });
+      );
     } catch (error) {
       console.error("Error al crear rutina:", error);
-      showAlert({
-        title: "Error",
-        message: "No se pudo crear la rutina",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "No se pudo crear la rutina");
     } finally {
       setCreatingRoutine(false);
     }
@@ -302,71 +269,43 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
   const validateForm = (): boolean => {
     // Validación del número de series
     if (!sets || isNaN(Number(sets)) || Number(sets) <= 0) {
-      showAlert({
-        title: "Error",
-        message: "El número de series debe ser un número positivo",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El número de series debe ser un número positivo");
       return false;
     }
     
     // Limitar las series a un máximo razonable (20)
     if (Number(sets) > 20) {
-      showAlert({
-        title: "Error",
-        message: "El número de series no puede exceder de 20",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El número de series no puede exceder de 20");
       return false;
     }
 
     // Validación del número de repeticiones
     if (!reps || isNaN(Number(reps)) || Number(reps) <= 0) {
-      showAlert({
-        title: "Error",
-        message: "El número de repeticiones debe ser un número positivo",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El número de repeticiones debe ser un número positivo");
       return false;
     }
     
     // Limitar las repeticiones a un máximo razonable (100)
     if (Number(reps) > 100) {
-      showAlert({
-        title: "Error",
-        message: "El número de repeticiones no puede exceder de 100",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El número de repeticiones no puede exceder de 100");
       return false;
     }
 
     // Validación del tiempo de descanso
     if (!restTime || isNaN(Number(restTime)) || Number(restTime) < 0) {
-      showAlert({
-        title: "Error",
-        message: "El tiempo de descanso debe ser un número positivo",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El tiempo de descanso debe ser un número positivo");
       return false;
     }
     
     // Limitar el tiempo de descanso a un máximo razonable (5 minutos = 300 segundos)
     if (Number(restTime) > 300) {
-      showAlert({
-        title: "Error",
-        message: "El tiempo de descanso no puede exceder los 5 minutos (300 segundos)",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El tiempo de descanso no puede exceder de 300 segundos (5 minutos)");
       return false;
     }
 
     // Validación del orden
     if (!order || isNaN(Number(order)) || Number(order) <= 0) {
-      showAlert({
-        title: "Error",
-        message: "El orden debe ser un número positivo",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "El orden debe ser un número positivo");
       return false;
     }
     
@@ -374,21 +313,13 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
     const orderNum = Number(order);
     const duplicateOrder = selectedExercises.some(ex => ex.order === orderNum);
     if (duplicateOrder) {
-      showAlert({
-        title: "Error",
-        message: `Ya existe un ejercicio con el orden ${orderNum}. Por favor, elige un número de orden diferente.`,
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", `Ya existe un ejercicio con el orden ${orderNum}. Por favor, elige un número de orden diferente.`);
       return false;
     }
 
     // Validar que se ha seleccionado un ejercicio
     if (!selectedExercise) {
-      showAlert({
-        title: "Error",
-        message: "Debes seleccionar un ejercicio",
-        primaryButtonText: "Aceptar"
-      });
+      AppAlert.error("Error", "Debes seleccionar un ejercicio");
       return false;
     }
 
@@ -688,7 +619,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
           </View>
         </View>
       </SafeAreaView>
-      <AlertComponent />
     </>
   );
 };

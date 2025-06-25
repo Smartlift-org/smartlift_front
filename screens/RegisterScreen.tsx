@@ -13,13 +13,14 @@ import {
   ScrollView,
   StatusBar,
 } from "react-native";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 import PrivacyPolicyModal from "../components/PrivacyPolicyModal";
 import TermsOfServiceModal from "../components/TermsOfServiceModal";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList, RegisterData } from "../types";
 import authService from "../services/authService";
+import userStatsService from "../services/userStatsService";
 
 type RegisterScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Register">;
@@ -28,7 +29,6 @@ type RegisterScreenProps = {
 const RegisterScreen: React.FC<RegisterScreenProps> = ({
   navigation,
 }: RegisterScreenProps) => {
-  const { showAlert, AlertComponent } = useCustomAlert();
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -51,49 +51,31 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
 
   const handleRegister = async (): Promise<void> => {
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      showAlert({
-        title: "Error",
-        message: "Por favor complete todos los campos"
-      });
+      AppAlert.error("Error", "Por favor complete todos los campos");
       return;
     }
 
     if (isOnlyWhitespace(firstName) || isOnlyWhitespace(lastName)) {
-      showAlert({
-        title: "Error",
-        message: "El nombre y apellido no pueden estar vacíos"
-      });
+      AppAlert.error("Error", "El nombre y apellido no pueden estar vacíos");
       return;
     }
 
     if (!isValidEmail(email)) {
-      showAlert({
-        title: "Error",
-        message: "Por favor ingrese una dirección de correo válida"
-      });
+      AppAlert.error("Error", "Por favor ingrese una dirección de correo válida");
       return;
     }
     if (password.length < 6) {
-      showAlert({
-        title: "Error",
-        message: "La contraseña debe tener al menos 6 caracteres"
-      });
+      AppAlert.error("Error", "La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     if (password !== confirmPassword) {
-      showAlert({
-        title: "Error",
-        message: "Las contraseñas no coinciden"
-      });
+      AppAlert.error("Error", "Las contraseñas no coinciden");
       return;
     }
 
     if (!acceptedTerms) {
-      showAlert({
-        title: "Términos no aceptados",
-        message: "Debes aceptar los Términos de Servicio y la Política de Privacidad para continuar"
-      });
+      AppAlert.error("Términos no aceptados", "Debes aceptar los Términos de Servicio y la Política de Privacidad para continuar");
       return;
     }
 
@@ -125,22 +107,46 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             routes: [{ name: "CoachHome" }]
           });
         } else {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "UserHome" }]
-          });
+          // For regular users, check if they've completed their profile
+          try {
+            const hasCompletedProfile = await userStatsService.hasCompletedProfile();
+            
+            if (!hasCompletedProfile) {
+              // User hasn't completed their profile, redirect to stats profile screen
+              navigation.reset({
+                index: 0,
+                routes: [{ 
+                  name: "StatsProfile",
+                  params: { fromRedirect: true }
+                }],
+              });
+              
+              AppAlert.info("Perfil incompleto", "Por favor complete su perfil para continuar.", [{ text: "Entendido" }]);
+            } else {
+              // User has completed their profile, proceed to home screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "UserHome" }],
+              });
+            }
+          } catch (error) {
+            console.error("Error checking profile completion:", error);
+            
+            // Default to user home if there's an error checking profile
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "UserHome" }],
+            });
+          }
         }
       } catch (loginError) {
         // If auto-login fails, still show success but redirect to login screen
         setIsLoading(false);
-        showAlert({
-          title: "Registro Exitoso",
-          message: "Tu cuenta ha sido creada correctamente, pero no pudimos iniciar sesión automáticamente. Por favor inicia sesión manualmente.",
-          buttons: [{
-            text: "Ir a Login",
-            onPress: () => navigation.navigate("Login")
-          }]
-        });
+        AppAlert.info(
+          "Registro Exitoso",
+          "Tu cuenta ha sido creada correctamente, pero no pudimos iniciar sesión automáticamente. Por favor inicia sesión manualmente.",
+          [{ text: "Ir a Login", onPress: () => navigation.navigate("Login") }]
+        );
       }
     } catch (error: any) {
       setIsLoading(false);
@@ -150,10 +156,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         error.message ||
         "Error en el registro. Por favor intente nuevamente.";
 
-      showAlert({
-        title: "Error de Registro",
-        message: errorMessage
-      });
+      AppAlert.error("Error de Registro", errorMessage);
     }
   };
 
@@ -163,7 +166,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         className="flex-1 bg-background"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <AlertComponent />
         <PrivacyPolicyModal 
           visible={privacyPolicyVisible} 
           onClose={() => setPrivacyPolicyVisible(false)} 

@@ -12,7 +12,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
-import useCustomAlert from "../components/useCustomAlert";
+import AppAlert from "../components/AppAlert";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
@@ -27,14 +27,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { showAlert, AlertComponent } = useCustomAlert();
 
   const handleLogin = async (): Promise<void> => {
     if (!email || !password) {
-      showAlert({
-        title: "Error",
-        message: "Por favor complete todos los campos"
-      });
+      AppAlert.error("Error", "Por favor complete todos los campos");
       return;
     }
 
@@ -71,11 +67,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 }],
               });
               
-              showAlert({
-                title: "Perfil incompleto",
-                message: "Por favor complete su perfil para continuar.",
-                primaryButtonText: "Entendido"
-              });
+              AppAlert.info("Perfil incompleto", "Por favor complete su perfil para continuar.", [{ text: "Entendido" }]);
             } else {
               // User has completed their profile, proceed to home screen
               navigation.reset({
@@ -96,11 +88,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         }
       } else {
         setIsLoading(false);
-        showAlert({
-          title: "Error",
-          message: "No se pudo obtener la información del usuario",
-          primaryButtonText: "Aceptar"
-        });
+        AppAlert.error("Error", "No se pudo obtener la información del usuario");
       }
     } catch (error: any) {
       setIsLoading(false);
@@ -110,10 +98,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         error.message ||
         "Error al iniciar sesión. Por favor intente nuevamente.";
 
-      showAlert({
-        title: "Error de Inicio de Sesión",
-        message: errorMessage
-      });
+      AppAlert.error("Error de Inicio de Sesión", errorMessage);
     }
   };
 
@@ -121,9 +106,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
         className="flex-1 bg-background"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <AlertComponent />
         <StatusBar barStyle="dark-content" />
 
         <View className="items-center mt-15 bg-background">
