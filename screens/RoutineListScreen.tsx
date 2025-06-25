@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,14 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
-  SafeAreaView,
   StatusBar
-} from 'react-native';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 // Using basic types to avoid React Navigation import issues
-import { RootStackParamList } from '../types';
-import routineService, { Routine } from '../services/routineService';
-import { AntDesign, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { RootStackParamList } from "../types";
+import routineService, { Routine } from "../services/routineService";
+import { AntDesign, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import ScreenHeader from "../components/ScreenHeader";
 
 // Define simple props interface to avoid ESM/CommonJS compatibility issues
 type Props = {
@@ -125,33 +126,28 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => {
-            // Usar reset para limpiar la pila de navegación y evitar volver atrás a la pantalla de creación
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "UserHome" }]
-            });
-          }}
-        >
-          <AntDesign name="arrowleft" size={24} color="#333" />
-        </TouchableOpacity>
-        
-        <Text style={styles.title}>Tus Rutinas</Text>
-        
-        <TouchableOpacity 
-          style={styles.addButton} 
-          onPress={() => navigation.navigate('RoutineCreate')}
-        >
-          <AntDesign name="plus" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {loading && !refreshing ? (
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <ScreenHeader
+        title="Tus Rutinas"
+        onBack={() => {
+          // Usar reset para limpiar la pila de navegación y evitar volver atrás a la pantalla de creación
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "UserHome" }]
+          });
+        }}
+        rightComponent={
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={() => navigation.navigate("RoutineCreate")}
+          >
+            <AntDesign name="plus" size={24} color="white" />
+          </TouchableOpacity>
+        }
+      />
+      
+      <View style={styles.contentContainer}>
+        {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0066CC" />
           <Text style={styles.loadingText}>Cargando rutinas...</Text>
@@ -190,7 +186,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
         </>
       )}
-    </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -198,32 +194,12 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-    paddingTop: StatusBar.currentHeight || 0,
+    backgroundColor: "#f8f9fa",
   },
-  container: {
+  contentContainer: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-    padding: 16,
-    paddingTop: 8,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 8,
-  },
-  backButton: {
-    padding: 8,
-    width: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   addButton: {
     backgroundColor: '#0066CC',
