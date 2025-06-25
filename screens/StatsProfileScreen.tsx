@@ -10,6 +10,8 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import ScreenHeader from "../components/ScreenHeader";
+import { AntDesign } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
@@ -267,22 +269,22 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
       <SafeAreaView className="flex-1 bg-gray-100" style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
         <View className="flex-1">
           {/* Header */}
-          <View className="flex-row justify-between items-center p-4 bg-white border-b border-gray-200">
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text className="text-indigo-600 font-semibold">← Volver</Text>
-            </TouchableOpacity>
-            
-            {!isEditing && (
-              <TouchableOpacity 
-                className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
-                onPress={() => setIsEditing(true)}
-              >
-                <Text className="text-white text-center font-medium">
-                  {fromRedirect ? "Completar Perfil" : "Editar Estadísticas"}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <ScreenHeader
+            title="Perfil de Estadísticas"
+            onBack={() => navigation.goBack()}
+            rightComponent={
+              !isEditing ? (
+                <TouchableOpacity 
+                  className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
+                  onPress={() => setIsEditing(true)}
+                >
+                  <Text className="text-white text-center font-medium">
+                    {fromRedirect ? "Completar Perfil" : "Editar Estadísticas"}
+                  </Text>
+                </TouchableOpacity>
+              ) : null
+            }
+          />
 
           {/* Main Content */}
           <ScrollView className="flex-1 p-4">
