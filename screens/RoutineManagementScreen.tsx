@@ -261,14 +261,7 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
             
-            {/* Botón para iniciar entrenamiento */}
-            <TouchableOpacity
-              style={styles.startWorkoutButton}
-              onPress={() => navigation.navigate("ActiveWorkouts")}
-            >
-              <Text style={styles.startWorkoutText}>Ir a Iniciar Entrenamiento</Text>
-              <FontAwesome5 name="play-circle" size={18} color="white" />
-            </TouchableOpacity>
+
           </>
         )}
       </View>
@@ -423,30 +416,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  startWorkoutButton: {
-    position: "absolute",
-    bottom: 16,
-    left: 16,
-    right: 16,
-    backgroundColor: "#10B981",
-    borderRadius: 25,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  startWorkoutText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-    marginRight: 8,
-  },
+
   inUseIndicator: {
     position: 'absolute',
     top: 8,

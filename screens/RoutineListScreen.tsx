@@ -22,8 +22,8 @@ type Props = {
 };
 
 const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
-  // Determinar si estamos en modo de inicio de entrenamiento
-  const startWorkoutMode = route.params?.startWorkout || false;
+  // Ya no usamos el modo de inicio de entrenamiento, pero mantenemos la referencia para compatibilidad
+  const startWorkoutMode = false;
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -58,16 +58,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [route.params?.refresh]);
 
-  // Mostrar mensaje si estamos iniciando un workout
-  useEffect(() => {
-    if (route.params?.startWorkout) {
-      AppAlert.info(
-        "Iniciar entrenamiento", 
-        "Selecciona una rutina para comenzar tu entrenamiento", 
-        [{ text: "Entendido", style: "default" }]
-      );
-    }
-  }, [route.params?.startWorkout]);
+
 
   const getDifficultyColor = (difficulty: string): string => {
     switch (difficulty.toLowerCase()) {
@@ -106,15 +97,10 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   // Explicitly type the renderItem function parameter to fix TypeScript error
   const renderRoutineItem = ({ item }: { item: Routine }) => (
     <TouchableOpacity
-      style={[styles.routineItem, startWorkoutMode && styles.routineItemHighlight]}
+      style={styles.routineItem}
       onPress={() => {
-        if (startWorkoutMode) {
-          // Usar el nuevo flujo de entrenamiento
-          navigation.navigate("RoutineSelect", { routineId: item.id })
-        } else {
-          // Mantener el comportamiento original para visualización/edición de rutina
-          navigation.navigate("WorkoutTracker", { routineId: item.id })
-        }
+        // Navegación al detalle de la rutina
+        navigation.navigate("WorkoutTracker", { routineId: item.id, viewMode: true })
       }}
     >
       <View style={styles.routineHeader}>
@@ -191,7 +177,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             onPress={() => navigation.navigate("RoutineManagement")}
           >
             <Text style={styles.managementButtonText}>
-              {startWorkoutMode ? "Gestionar mis rutinas" : "Crear o editar rutinas"}
+              Crear o editar rutinas
             </Text>
             <AntDesign name="appstore-o" size={16} color="#0066CC" />
           </TouchableOpacity>

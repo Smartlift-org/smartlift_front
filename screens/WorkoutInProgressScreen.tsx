@@ -59,7 +59,7 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({ navig
         "Entrenamiento pausado", 
         "Tu entrenamiento ha sido pausado. Puedes continuarlo más tarde desde la pantalla de entrenamientos activos."
       );
-      navigation.navigate("ActiveWorkouts");
+      navigation.navigate("Home");
     } catch (error) {
       console.error(`Error al pausar entrenamiento ${workout.id}:`, error);
       AppAlert.error("Error", "No se pudo pausar el entrenamiento. Inténtalo de nuevo.");
@@ -89,7 +89,7 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({ navig
                 "¡Entrenamiento completado!", 
                 "Tu entrenamiento ha sido marcado como completado."
               );
-              navigation.navigate("UserHome");
+              navigation.navigate("Home");
             } catch (error) {
               console.error(`Error al completar entrenamiento ${workout.id}:`, error);
               AppAlert.error("Error", "No se pudo completar el entrenamiento. Inténtalo de nuevo.");

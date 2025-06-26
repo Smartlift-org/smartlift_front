@@ -32,10 +32,8 @@ const EXPERIENCE_LEVELS = [
 
 const ACTIVITY_LEVELS = [
   { label: "Sedentario", value: "sedentary" },
-  { label: "Ligeramente activo", value: "lightly_active" },
-  { label: "Moderadamente activo", value: "moderately_active" },
-  { label: "Muy activo", value: "very_active" },
-  { label: "Extremadamente activo", value: "extremely_active" },
+  { label: "Moderado", value: "moderate" },
+  { label: "Activo", value: "active" },
 ];
 
 const FITNESS_GOALS = [
