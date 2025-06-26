@@ -264,7 +264,7 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
             {/* Botón para iniciar entrenamiento */}
             <TouchableOpacity
               style={styles.startWorkoutButton}
-              onPress={() => navigation.navigate("RoutineList", { startWorkout: true })}
+              onPress={() => navigation.navigate("ActiveWorkouts")}
             >
               <Text style={styles.startWorkoutText}>Ir a Iniciar Entrenamiento</Text>
               <FontAwesome5 name="play-circle" size={18} color="white" />

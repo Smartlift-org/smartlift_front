@@ -28,7 +28,9 @@ type ExerciseSelectScreenProps = {
         description: string;
         difficulty: 'beginner' | 'intermediate' | 'advanced';
         duration: number;
-      } 
+      },
+      isEditing?: boolean, // Indica si estamos editando una rutina existente
+      routineId?: number    // ID de la rutina si estamos editando
     } 
   };
 };
@@ -36,7 +38,7 @@ type ExerciseSelectScreenProps = {
 type CategoryFilter = string | null;
 
 const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation, route }) => {
-  const { routineData } = route.params;
+  const { routineData, isEditing = false, routineId } = route.params;
   
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
@@ -230,34 +232,52 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
     };
     
     try {
-      await routineService.createRoutine(routineFormData);
-      
-      AppAlert.info(
-        "¡Rutina creada!", 
-        "Tu nueva rutina se ha creado con éxito. ¿Qué deseas hacer?",
-        [
-          {
-            text: "Volver al inicio",
-            onPress: () => {
-              // Usar reset para limpiar la pila de navegación y evitar volver atrás
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "UserHome" }]
-              });
+      if (isEditing && routineId && routineFormData.routine_exercises_attributes) {
+        // Si estamos editando, actualizamos los ejercicios de la rutina existente
+        await Promise.all(
+          routineFormData.routine_exercises_attributes.map(exercise => 
+            routineService.addExerciseToRoutine(routineId, exercise)
+          )
+        );
+        
+        AppAlert.success(
+          "Ejercicios actualizados", 
+          "Los ejercicios se han añadido correctamente a la rutina"
+        );
+        
+        // Volvemos a la pantalla de edición
+        navigation.navigate("RoutineEdit", { routineId, refresh: true });
+      } else {
+        // Si estamos creando una nueva rutina
+        await routineService.createRoutine(routineFormData);
+        
+        AppAlert.info(
+          "¡Rutina creada!", 
+          "Tu nueva rutina se ha creado con éxito. ¿Qué deseas hacer?",
+          [
+            {
+              text: "Volver al inicio",
+              onPress: () => {
+                // Usar reset para limpiar la pila de navegación y evitar volver atrás
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "UserHome" }]
+                });
+              }
+            },
+            {
+              text: "Ver mis rutinas",
+              onPress: () => {
+                // Usar reset para limpiar la pila y navegar directamente a RoutineList
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "RoutineList", params: { refresh: true } }]
+                });
+              }
             }
-          },
-          {
-            text: "Ver mis rutinas",
-            onPress: () => {
-              // Usar reset para limpiar la pila y navegar directamente a RoutineList
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "RoutineList", params: { refresh: true } }]
-              });
-            }
-          }
-        ]
-      );
+          ]
+        );
+      }
     } catch (error) {
       console.error("Error al crear rutina:", error);
       AppAlert.error("Error", "No se pudo crear la rutina");
@@ -398,11 +418,13 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
             <TouchableOpacity 
               style={{ width: 40 }}
               onPress={() => {
-                // Usar reset para limpiar la pila de navegación y evitar volver atrás
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "UserHome" }]
-                });
+                if (isEditing && routineId) {
+                  // Si estamos editando, volvemos a la pantalla de edición
+                  navigation.navigate("RoutineEdit", { routineId });
+                } else {
+                  // Si estamos creando una nueva rutina
+                  navigation.goBack();
+                }
               }}
             >
               <AntDesign name="arrowleft" size={24} color="#333" />

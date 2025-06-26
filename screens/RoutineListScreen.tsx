@@ -107,7 +107,15 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   const renderRoutineItem = ({ item }: { item: Routine }) => (
     <TouchableOpacity
       style={[styles.routineItem, startWorkoutMode && styles.routineItemHighlight]}
-      onPress={() => navigation.navigate("WorkoutTracker", { routineId: item.id })}
+      onPress={() => {
+        if (startWorkoutMode) {
+          // Usar el nuevo flujo de entrenamiento
+          navigation.navigate("RoutineSelect", { routineId: item.id })
+        } else {
+          // Mantener el comportamiento original para visualización/edición de rutina
+          navigation.navigate("WorkoutTracker", { routineId: item.id })
+        }
+      }}
     >
       <View style={styles.routineHeader}>
         <Text style={styles.routineName}>{item.name}</Text>
