@@ -16,6 +16,7 @@ import {
 // Using basic types to avoid React Navigation import issues
 import { RootStackParamList } from '../types';
 import routineService, { Routine, WorkoutSet, WorkoutExercise, WorkoutSession } from '../services/routineService';
+import { apiClient } from '../services/apiClient';
 import AppAlert from '../components/AppAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign, MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
@@ -50,6 +51,25 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
   const [endTime, setEndTime] = useState<string>('');
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [confirmAction, setConfirmAction] = useState<'abandon' | 'complete' | null>(null);
+  const [showPauseReasonModal, setShowPauseReasonModal] = useState<boolean>(false);
+  const [pauseReason, setPauseReason] = useState<string>('');
+  const [showCustomReasonInput, setShowCustomReasonInput] = useState<boolean>(false);
+  
+  // Opciones predefinidas para razones de pausa
+  const pauseReasonOptions = [
+    "Descanso",
+    "Hidratación",
+    "Ir al baño",
+    "Atender llamada",
+    "Fatiga muscular",
+    "Otro"
+  ];
+  
+  // Estados para el modal de completar entrenamiento
+  const [showCompleteWorkoutModal, setShowCompleteWorkoutModal] = useState<boolean>(false);
+  const [perceivedIntensity, setPerceivedIntensity] = useState<number>(5);
+  const [energyLevel, setEnergyLevel] = useState<number>(5);
+  const [mood, setMood] = useState<string>('neutral');
   
   // Refs for timer
   const timerInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -64,10 +84,18 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
       try {
         if (routineId) {
           const routineData = await routineService.getRoutine(routineId);
+          // Log de diagnóstico para ver la estructura completa de los datos recibidos
+          console.log('Datos de rutina recibidos:', JSON.stringify(routineData));
+          console.log('Ejercicios en la rutina:', 
+            routineData.routine_exercises ? 
+            `${routineData.routine_exercises.length} ejercicios encontrados` : 
+            'No se encontraron ejercicios');
+          
           setRoutine(routineData);
           
           // Initialize workout exercises from routine
-          const exercises: WorkoutExercise[] = routineData.routine_exercises.map(re => ({
+          // Verificamos que routine_exercises exista antes de intentar usar map
+          const exercises: WorkoutExercise[] = routineData.routine_exercises ? routineData.routine_exercises.map(re => ({
             routine_exercise_id: re.id,
             exercise: re.exercise,
             planned_sets: re.sets,
@@ -78,7 +106,7 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
               reps: re.reps,
               completed: false
             }))
-          }));
+          })) : [];
           
           setWorkoutExercises(exercises);
         } else {
@@ -100,27 +128,21 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
   // Efecto para manejar el botón de retroceso del dispositivo y limpiar recursos
   useEffect(() => {
     const handleBackButton = () => {
-      // Si el entrenamiento está en progreso, mostrar diálogo de confirmación para abandonar
-      if (workoutStatus === 'in_progress' || workoutStatus === 'paused') {
-        handleAbandonWorkout();
-        return true; // Prevenir el comportamiento por defecto
+      // Si estamos en modo visualización o no hemos iniciado entrenamiento, permitir volver
+      if (viewMode || workoutStatus === 'not_started') {
+        navigation.goBack();
+        return true; 
       }
-      return false; // Permitir el comportamiento por defecto de retroceso
+      // Evitar salir mientras hay un entrenamiento en progreso
+      return true; // Bloqueamos el comportamiento por defecto
     };
 
-    // Añadir event listener para el botón de retroceso
-    const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackButton);
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButton);
 
-    // Limpiar al desmontar
     return () => {
-      subscription.remove();
-      // Limpiar temporizador al desmontar componente
-      if (timerInterval.current) {
-        clearInterval(timerInterval.current);
-        timerInterval.current = null;
-      }
+      backHandler.remove();
     };
-  }, [workoutStatus]);
+  }, [workoutStatus, navigation]); // Permitir el comportamiento por defecto de retroceso
 
   // Formatear el tiempo en formato mm:ss
   const formatTime = (timeInSeconds: number): string => {
@@ -138,6 +160,22 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
 
     // Crear registro inicial de workout en el backend
     try {
+      // El controlador Rails espera exactamente estos campos en esta estructura
+      // routine_id debe ser un número, no una cadena
+      const workoutParams = {
+        routine_id: Number(routine!.id),
+        name: routine!.name, // nombre del workout (usando el nombre de la rutina)
+        workout_type: 'routine_based' // tipo de workout (basado en rutina según el backend)
+      };
+      
+      // Verificamos que los datos sean válidos
+      if (!workoutParams.routine_id || isNaN(workoutParams.routine_id)) {
+        throw new Error('ID de rutina inválido');
+      }
+      
+      console.log('Parámetros del workout a enviar:', workoutParams);
+      
+      // Datos completos para nuestro estado local
       const workoutData: WorkoutSession = {
         routine_id: routine!.id,
         routine_name: routine!.name,
@@ -148,17 +186,27 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
         notes: ''
       };
 
-      const response = await routineService.createWorkout(workoutData);
-      if (response && response.id) {
-        workoutId.current = response.id;
+      // Vamos a enviar directamente una estructura con el objeto workout anidado
+      // para asegurarnos de que llegue correctamente al backend
+      const response = await apiClient.post('/workouts', { 
+        workout: workoutParams
+      });
+      console.log('Respuesta al crear workout:', response.data);
+      
+      if (response.data && response.data.id) {
+        workoutId.current = response.data.id;
+        // Iniciar el temporizador
+        startTimer();
+      } else {
+        throw new Error('La respuesta del servidor no incluye un ID de workout');
       }
     } catch (error) {
-      console.error('Error al crear el registro de workout:', error);
-      // Continuar de todos modos para no interrumpir la experiencia del usuario
+      console.error('Error al iniciar entrenamiento:', error);
+      AppAlert.error('Error', 'No se pudo iniciar el entrenamiento');
+      // Revertir el estado del entrenamiento si falla la creación
+      setWorkoutStatus('not_started');
+      return; // Salir del método sin iniciar el timer
     }
-
-    // Iniciar el temporizador
-    startTimer();
   };
 
   // Iniciar el temporizador
@@ -182,8 +230,17 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
   };
 
   // Pausar el workout
-  const pauseWorkout = async () => {
+  const pauseWorkout = () => {
     if (workoutStatus !== 'in_progress') return;
+    
+    // Mostrar modal para pedir razón de pausa
+    setShowPauseReasonModal(true);
+  };
+
+  // Confirmar pausa con razón
+  const confirmPause = async () => {
+    // Cerrar modal
+    setShowPauseReasonModal(false);
     
     // Limpiar el temporizador
     if (timerInterval.current) {
@@ -200,21 +257,25 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
     try {
       // Actualizar en el backend
       if (workoutId.current) {
-        await routineService.updateWorkout(workoutId.current, {
-          status: 'paused',
-          total_duration: elapsedTime,
-          effective_duration: effectiveTime,
-        });
+        await routineService.pauseWorkout(workoutId.current, pauseReason);
+        console.log('Workout pausado con razón:', pauseReason);
       }
     } catch (error) {
       console.error('Error al pausar el workout:', error);
     }
   };
 
+  // Cancelar pausa
+  const cancelPause = () => {
+    setShowPauseReasonModal(false);
+    setPauseReason('');
+    setShowCustomReasonInput(false);
+  };
+
   // Continuar el workout
   const resumeWorkout = async () => {
     if (workoutStatus !== 'paused') return;
-      
+    
     // Calcular el tiempo de pausa
     let pauseDuration = 0;
     if (pauseStartTime.current) {
@@ -226,14 +287,13 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
     startTimer();
     setWorkoutStatus('in_progress');
     
+    // Limpiar la razón de pausa para la próxima vez
+    setPauseReason('');
+    
     // Actualizar en el backend
     try {
       if (workoutId.current) {
-        await routineService.updateWorkout(workoutId.current, {
-          status: 'in_progress',
-          total_duration: elapsedTime,
-          effective_duration: effectiveTime,
-        });
+        await routineService.resumeWorkout(workoutId.current);
       }
     } catch (error) {
       console.error('Error al reanudar el workout:', error);
@@ -275,32 +335,32 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
     try {
       // Guardar el workout como abandonado en el backend
       if (workoutId.current) {
-        await routineService.updateWorkout(workoutId.current, {
-          status: 'abandoned',
-          end_time: endTimeISO,
-          total_duration: elapsedTime,
-          effective_duration: effectiveTime,
-        });
+        await routineService.abandonWorkout(workoutId.current);
       }
       
-      // Navegar a la pantalla de resumen o rutinas
-      navigation.navigate('Routines');
+      // Navegar a la pantalla de resumen o rutinas con mensaje de confirmación
+      navigation.navigate('Routines', {
+        message: 'Entrenamiento abandonado',
+        onPress: () => {}
+      });
       
     } catch (error) {
       console.error('Error al abandonar el workout:', error);
+      AppAlert.error('Error', 'No se pudo abandonar el entrenamiento');
     }
   };
 
   // Iniciar proceso de completar el workout
   const handleCompleteWorkout = () => {
     if (workoutStatus === 'in_progress' || workoutStatus === 'paused') {
-      AppAlert.confirm(
-        "Completar entrenamiento", 
-        "¿Estás seguro que deseas finalizar este entrenamiento?", 
-        saveWorkout,
-        () => console.log("Completar cancelado")
-      );
+      // Mostrar modal para datos adicionales
+      setShowCompleteWorkoutModal(true);
     }
+  };
+  
+  // Cancelar completar workout
+  const cancelCompleteWorkout = () => {
+    setShowCompleteWorkoutModal(false);
   };
 
   // Actualizar el dialog de confirmación
@@ -326,6 +386,8 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
 
   const saveWorkout = async () => {
     try {
+      // Cerrar modal
+      setShowCompleteWorkoutModal(false);
       setSaving(true);
       
       // Detener el temporizador si está activo
@@ -354,12 +416,20 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
           planned_reps: exercise.planned_reps,
           sets: exercise.sets
         })),
+        perceived_intensity: perceivedIntensity,
+        energy_level: energyLevel,
+        mood: mood,
         notes: notes
       };
 
       // If there's an existing workout ID, update it; otherwise create a new one
       if (workoutId.current) {
-        await routineService.updateWorkout(workoutId.current, workoutData);
+        await routineService.completeWorkout(workoutId.current, {
+          perceived_intensity: perceivedIntensity,
+          energy_level: energyLevel,
+          mood: mood,
+          notes: notes
+        });
       } else {
         const result = await routineService.createWorkout(workoutData as WorkoutSession);
         workoutId.current = result.id || null;
@@ -368,10 +438,10 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
       // Actualizar estado
       setWorkoutStatus('completed');
 
-      // Navigate back to routines screen with success message
-      navigation.navigate('Routines', {
-        message: 'Entrenamiento guardado correctamente',
-        onPress: () => {}
+      // Navegar a la pantalla de estadísticas del workout para mostrar los resultados
+      navigation.navigate('WorkoutStats', {
+        workoutId: workoutId.current,
+        message: 'Entrenamiento guardado correctamente'
       });
 
     } catch (error) {
@@ -399,41 +469,57 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
             <Text style={styles.setText}>{set.set_number}</Text>
             
             <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={set.weight.toString()}
-                onChangeText={(text: string) => {
-                  const value = text ? parseInt(text) : 0;
-                  updateSetDetails(exerciseIndex, setIndex, 'weight', value);
-                }}
-              />
-              <Text style={styles.unit}>kg</Text>
+              {viewMode ? (
+                <Text style={styles.readOnlyText}>{set.weight}<Text style={styles.unit}> kg</Text></Text>
+              ) : (
+                <>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={set.weight.toString()}
+                    onChangeText={(text: string) => {
+                      const value = text ? parseInt(text) : 0;
+                      updateSetDetails(exerciseIndex, setIndex, 'weight', value);
+                    }}
+                  />
+                  <Text style={styles.unit}>kg</Text>
+                </>
+              )}
             </View>
             
             <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={set.reps.toString()}
-                onChangeText={(text: string) => {
-                  const value = text ? parseInt(text) : 0;
-                  updateSetDetails(exerciseIndex, setIndex, 'reps', value);
-                }}
-              />
+              {viewMode ? (
+                <Text style={styles.readOnlyText}>{set.reps}</Text>
+              ) : (
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={set.reps.toString()}
+                  onChangeText={(text: string) => {
+                    const value = text ? parseInt(text) : 0;
+                    updateSetDetails(exerciseIndex, setIndex, 'reps', value);
+                  }}
+                />
+              )}
             </View>
             
-            <TouchableOpacity
-              style={[
-                styles.checkBox,
-                set.completed && styles.checkBoxChecked
-              ]}
-              onPress={() => toggleSetCompletion(exerciseIndex, setIndex)}
-            >
-              {set.completed && (
-                <AntDesign name="check" size={16} color="white" />
-              )}
-            </TouchableOpacity>
+            {viewMode ? (
+              <View style={[styles.checkBox, set.completed && styles.checkBoxChecked, viewMode && styles.checkBoxReadOnly]}>
+                {set.completed && (
+                  <AntDesign name="check" size={16} color="white" />
+                )}
+              </View>
+            ) : (
+              <TouchableOpacity 
+                style={[styles.checkBox, set.completed && styles.checkBoxChecked]} 
+                onPress={() => toggleSetCompletion(exerciseIndex, setIndex)}
+                activeOpacity={0.8}
+              >
+                {set.completed && (
+                  <AntDesign name="check" size={16} color="white" />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         ))}
       </View>
@@ -442,21 +528,8 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
 
   const renderWorkoutControls = () => {
     if (viewMode) {
-      // En modo visualización, mostrar solo el botón para iniciar entrenamiento
-      return (
-        <View style={styles.workoutControlsContainer}>
-          <TouchableOpacity 
-            style={styles.startButton}
-            onPress={() => {
-              // Navigate to routine select screen to start workout with this routine
-              navigation.navigate('RoutineSelect', { routineId: routineId });
-            }}
-          >
-            <Text style={styles.startButtonText}>Iniciar Entrenamiento</Text>
-            <FontAwesome5 name="play" size={16} color="white" />
-          </TouchableOpacity>
-        </View>
-      );
+      // En modo visualización, no mostramos ningún botón adicional para volver
+      return null;
     }
     
     // En modo entrenamiento, mostrar controles según el estado actual
@@ -577,7 +650,7 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
               ? 'Si abandonas, se guardará tu progreso actual pero el entrenamiento se marcará como incompleto.' 
               : '¿Estás seguro de que quieres finalizar este entrenamiento?'}
           </Text>
-          <View style={styles.modalButtons}>
+          <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.modalButton, styles.modalCancelButton]} 
               onPress={closeConfirmModal}
@@ -598,6 +671,179 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
     </Modal>
   );
 
+  const renderPauseReasonModal = () => (
+    <Modal
+      visible={showPauseReasonModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={cancelPause}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>¿Por qué pausas?</Text>
+          
+          <View style={styles.reasonOptionsContainer}>
+            {pauseReasonOptions.map((reason) => (
+              <TouchableOpacity 
+                key={reason}
+                style={[styles.reasonOptionButton, (pauseReason === reason || (reason === "Otro" && showCustomReasonInput)) && styles.selectedReasonOption]}
+                onPress={() => {
+                  setPauseReason(reason !== "Otro" ? reason : "");
+                  setShowCustomReasonInput(reason === "Otro");
+                }}
+              >
+                <Text style={[styles.reasonOptionText, (pauseReason === reason || (reason === "Otro" && showCustomReasonInput)) && styles.selectedReasonOptionText]}>
+                  {reason}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          {/* Campo de texto personalizado si se selecciona "Otro" */}
+          {showCustomReasonInput && (
+            <TextInput
+              style={styles.pauseReasonInput}
+              placeholder="Ingresa tu razón personalizada"
+              value={pauseReason}
+              onChangeText={setPauseReason}
+              multiline={true}
+              maxLength={100}
+              autoFocus
+            />
+          )}
+          
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.modalCancelButton]}
+              onPress={cancelPause}
+            >
+              <Text style={styles.modalButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.modalConfirmButton, (showCustomReasonInput && !pauseReason) && styles.disabledButton]}
+              onPress={confirmPause}
+              disabled={showCustomReasonInput && !pauseReason}
+            >
+              <Text style={[styles.modalButtonText, styles.modalConfirmButtonText, (showCustomReasonInput && !pauseReason) && styles.disabledButtonText]}>
+                Confirmar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Modal para completar entrenamiento con datos adicionales
+  const renderCompleteWorkoutModal = () => (
+    <Modal
+      visible={showCompleteWorkoutModal}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={cancelCompleteWorkout}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Completa tu entrenamiento</Text>
+          
+          <Text style={styles.modalSubtitle}>Intensidad percibida (1-10)</Text>
+          <View style={styles.ratingContainer}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => (
+              <TouchableOpacity
+                key={`intensity-${value}`}
+                style={[styles.ratingButton, perceivedIntensity === value && styles.selectedRating]}
+                onPress={() => setPerceivedIntensity(value)}
+              >
+                <Text style={[styles.ratingText, perceivedIntensity === value && styles.selectedRatingText]}>{value}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          <Text style={styles.modalSubtitle}>Nivel de energía (1-10)</Text>
+          <View style={styles.ratingContainer}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => (
+              <TouchableOpacity
+                key={`energy-${value}`}
+                style={[styles.ratingButton, energyLevel === value && styles.selectedRating]}
+                onPress={() => setEnergyLevel(value)}
+              >
+                <Text style={[styles.ratingText, energyLevel === value && styles.selectedRatingText]}>{value}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          
+          <Text style={styles.modalSubtitle}>¿Cómo te sientes?</Text>
+          <View style={styles.moodContainer}>
+            <TouchableOpacity
+              style={[styles.moodButton, mood === 'great' && styles.selectedMood]}
+              onPress={() => setMood('great')}
+            >
+              <FontAwesome5 name="grin-beam" size={24} color={mood === 'great' ? "#fff" : "#333"} />
+              <Text style={[styles.moodText, mood === 'great' && styles.selectedMoodText]}>Genial</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.moodButton, mood === 'good' && styles.selectedMood]}
+              onPress={() => setMood('good')}
+            >
+              <FontAwesome5 name="smile" size={24} color={mood === 'good' ? "#fff" : "#333"} />
+              <Text style={[styles.moodText, mood === 'good' && styles.selectedMoodText]}>Bien</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.moodButton, mood === 'neutral' && styles.selectedMood]}
+              onPress={() => setMood('neutral')}
+            >
+              <FontAwesome5 name="meh" size={24} color={mood === 'neutral' ? "#fff" : "#333"} />
+              <Text style={[styles.moodText, mood === 'neutral' && styles.selectedMoodText]}>Normal</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.moodButton, mood === 'tired' && styles.selectedMood]}
+              onPress={() => setMood('tired')}
+            >
+              <FontAwesome5 name="tired" size={24} color={mood === 'tired' ? "#fff" : "#333"} />
+              <Text style={[styles.moodText, mood === 'tired' && styles.selectedMoodText]}>Cansado</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.moodButton, mood === 'exhausted' && styles.selectedMood]}
+              onPress={() => setMood('exhausted')}
+            >
+              <FontAwesome5 name="dizzy" size={24} color={mood === 'exhausted' ? "#fff" : "#333"} />
+              <Text style={[styles.moodText, mood === 'exhausted' && styles.selectedMoodText]}>Agotado</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.modalSubtitle}>Notas</Text>
+          <TextInput
+            style={styles.completeWorkoutNotes}
+            placeholder="Añade notas sobre este entrenamiento"
+            value={notes}
+            onChangeText={setNotes}
+            multiline={true}
+            maxLength={200}
+          />
+          
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.modalCancelButton]}
+              onPress={cancelCompleteWorkout}
+            >
+              <Text style={styles.modalButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.modalConfirmButton]}
+              onPress={saveWorkout}
+            >
+              <Text style={[styles.modalButtonText, styles.modalConfirmButtonText]}>Guardar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -606,10 +852,12 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
       </View>
     );
   }
-
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       {renderConfirmModal()}
+      {renderPauseReasonModal()}
+      {renderCompleteWorkoutModal()}
       <View style={styles.container}>
         {routine && (
           <>
@@ -641,31 +889,26 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.Rea
             
             <View style={styles.notesContainer}>
               <Text style={styles.notesLabel}>Notas del entrenamiento:</Text>
-              <TextInput
-                style={styles.notesInput}
-                multiline
-                placeholder="Agregar notas sobre tu entrenamiento (opcional)"
-                value={notes}
-                onChangeText={setNotes}
-                textAlignVertical="top"
-              />
+              {viewMode ? (
+                <Text style={[styles.notesInput, {color: '#555'}]}>
+                  {notes || 'Sin notas'}
+                </Text>
+              ) : (
+                <TextInput
+                  style={styles.notesInput}
+                  multiline
+                  placeholder="Agregar notas sobre tu entrenamiento (opcional)"
+                  value={notes}
+                  onChangeText={setNotes}
+                  textAlignVertical="top"
+                />
+              )}
             </View>
             
             {/* Workout Controls */}
             {renderWorkoutControls()}
             
-            {/* Mostrar el botón de volver si está en modo visualización o si no ha iniciado workout */}
-            {(viewMode || workoutStatus === 'not_started') && (
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity 
-                  style={styles.finishButton}
-                  onPress={() => navigation.goBack()}
-                >
-                  <Text style={styles.finishButtonText}>Volver</Text>
-                  <AntDesign name="arrowleft" size={20} color="white" />
-                </TouchableOpacity>
-              </View>
-            )}
+
           </>
         )}
       </View>
@@ -698,6 +941,8 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '100%',
     alignItems: 'center',
+    maxHeight: '85%',
+    maxWidth: 500,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -717,7 +962,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  modalButtons: {
+  buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
@@ -841,7 +1086,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff',
     paddingTop: StatusBar.currentHeight || 0,
   },
   container: {
@@ -958,7 +1203,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkBoxChecked: {
-    backgroundColor: '#0066CC',
+    backgroundColor: '#4f46e5',
+    borderColor: '#4f46e5',
+  },
+  checkBoxReadOnly: {
+    opacity: 0.7,
+    pointerEvents: 'none',
+  },
+  readOnlyText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#555',
+    fontWeight: '500',
   },
   notesContainer: {
     marginBottom: 16,
@@ -978,7 +1234,72 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     fontSize: 16,
   },
-  buttonContainer: {
+  completeWorkoutNotes: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  ratingButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedRating: {
+    backgroundColor: '#0066CC',
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  selectedRatingText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  moodContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  moodButton: {
+    flex: 1,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    marginHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedMood: {
+    backgroundColor: '#0066CC',
+  },
+  moodText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#333',
+  },
+  selectedMoodText: {
+    color: '#fff',
+  },
+  finishButtonContainer: {
     marginTop: 'auto',
     paddingTop: 16,
   },
@@ -996,6 +1317,49 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginRight: 8,
   },
+  pauseReasonInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  reasonOptionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  reasonOptionButton: {
+    width: '48%',
+    backgroundColor: '#f0f0f0',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  selectedReasonOption: {
+    backgroundColor: '#0066CC',
+  },
+  reasonOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+  },
+  selectedReasonOptionText: {
+    color: '#ffffff',
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
+  },
+  disabledButtonText: {
+    color: '#888888',
+  },
+
+
 });
 
 export default WorkoutTrackerScreen;

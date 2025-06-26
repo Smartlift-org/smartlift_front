@@ -97,7 +97,7 @@ const WorkoutHistoryScreen: React.FC<WorkoutHistoryScreenProps> = ({ navigation 
         <View style={styles.detailItem}>
           <MaterialCommunityIcons name="weight-lifter" size={18} color="#0066CC" style={styles.detailIcon} />
           <Text style={styles.detailText}>
-            {item.completed_exercises || 0}/{item.routine?.exercises?.length || 0} ejercicios
+            {item.exercises?.filter(ex => ex.sets?.some(set => set.completed))?.length || 0}/{item.routine?.exercises?.length || item.exercises?.length || 0} ejercicios
           </Text>
         </View>
       </View>
@@ -138,7 +138,7 @@ const WorkoutHistoryScreen: React.FC<WorkoutHistoryScreenProps> = ({ navigation 
         <FlatList
           data={workouts}
           renderItem={renderWorkoutItem}
-          keyExtractor={item => `workout-${item.id}`}
+          keyExtractor={(item: Workout) => `workout-${item.id}`}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
