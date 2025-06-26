@@ -7,7 +7,7 @@ export type RootStackParamList = {
   CoachHome: undefined;
   BasicProfile: undefined;
   StatsProfile: { fromRedirect?: boolean };
-  RoutineList: { refresh?: boolean };
+  RoutineList: { refresh?: boolean; startWorkout?: boolean };
   RoutineCreate: undefined;
   ExerciseSelect: { 
     routineData: {

@@ -11,7 +11,7 @@ export interface UserStats {
   gender?: string;
   fitness_goal?: string;
   experience_level: string;  // Required field
-  available_days?: string;
+  available_days?: number;
   equipment_available?: boolean;
   activity_level: string;    // Required field
   physical_limitations: string; // Required field

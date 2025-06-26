@@ -145,14 +145,41 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
           <Text className="text-gray-600 mb-4">
             Accede a las rutinas personalizadas y registra tus entrenamientos.
           </Text>
+          
+          {/* Botón principal: Iniciar Entrenamiento */}
           <TouchableOpacity 
-            className="bg-indigo-100 p-3 rounded-lg"
-            onPress={() => navigation.navigate("RoutineList")}
+            className="bg-indigo-600 p-3 rounded-lg mb-3"
+            onPress={() => {
+              // Se puede mostrar un modal para elegir entre entrenamiento libre o basado en rutina
+              // Por ahora navegamos a la lista de rutinas para elegir una
+              navigation.navigate("RoutineList", { startWorkout: true })
+            }}
           >
-            <Text className="text-indigo-800 font-medium text-center">
-              Ver mis rutinas
+            <Text className="text-white font-medium text-center">
+              ⚡ Iniciar Entrenamiento
             </Text>
           </TouchableOpacity>
+          
+          {/* Botones secundarios */}
+          <View className="flex-row justify-between">
+            <TouchableOpacity 
+              className="bg-indigo-100 p-3 rounded-lg flex-1 mr-2"
+              onPress={() => navigation.navigate("RoutineList")}
+            >
+              <Text className="text-indigo-800 font-medium text-center">
+                Ver mis rutinas
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              className="bg-indigo-100 p-3 rounded-lg flex-1 ml-2"
+              onPress={() => navigation.navigate("WorkoutStats")}
+            >
+              <Text className="text-indigo-800 font-medium text-center">
+                Historial
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View className="bg-white rounded-xl shadow-sm p-5 mb-5">

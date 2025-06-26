@@ -47,15 +47,9 @@ const FITNESS_GOALS = [
   { label: "Mantenimiento", value: "maintenance" },
 ];
 
-const DAYS_OF_WEEK = [
-  { key: "monday", label: "Lunes", value: "1" },
-  { key: "tuesday", label: "Martes", value: "2" },
-  { key: "wednesday", label: "Miércoles", value: "3" },
-  { key: "thursday", label: "Jueves", value: "4" },
-  { key: "friday", label: "Viernes", value: "5" },
-  { key: "saturday", label: "Sábado", value: "6" },
-  { key: "sunday", label: "Domingo", value: "7" },
-];
+// Rango válido para el número de días disponibles
+const MIN_AVAILABLE_DAYS = 1;
+const MAX_AVAILABLE_DAYS = 7;
 
 const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, route }) => {
   const fromRedirect = route.params?.fromRedirect || false;
@@ -75,15 +69,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
   const [equipmentAvailable, setEquipmentAvailable] = useState<boolean>(false);
   const [hasPhysicalLimitations, setHasPhysicalLimitations] = useState<boolean>(false);
   const [physicalLimitations, setPhysicalLimitations] = useState<string>("");
-  const [selectedDays, setSelectedDays] = useState<Record<string, boolean>>({
-    monday: false,
-    tuesday: false,
-    wednesday: false,
-    thursday: false,
-    friday: false,
-    saturday: false,
-    sunday: false,
-  });
+  const [availableDaysCount, setAvailableDaysCount] = useState<string>("");
 
   useEffect(() => {
     loadUserStats();
@@ -106,11 +92,17 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
         
         // Initialize physical limitations
         const hasLimits = stats.physical_limitations && stats.physical_limitations !== "Ninguna";
-        setHasPhysicalLimitations(Boolean(hasLimits));
-        setPhysicalLimitations(hasLimits ? stats.physical_limitations : "");
+        setPhysicalLimitations(stats.physical_limitations || "");
+        setHasPhysicalLimitations(stats.physical_limitations !== "Ninguna");
         
-        // Initialize selected days from the numerical value
-        initializeSelectedDays(stats.available_days?.toString() || "");
+        // Initialize available days count
+        if (stats.available_days) {
+          setAvailableDaysCount(stats.available_days.toString());
+        } else if (!fromRedirect) {
+          // Only show error if not coming from a redirect (initial setup)
+          AppAlert.info("Información no encontrada", "No se encontró información de perfil. Por favor completa tu perfil.");
+          setIsEditing(true);
+        }
       } else if (!fromRedirect) {
         // Only show error if not coming from a redirect (initial setup)
         AppAlert.info("Información no encontrada", "No se encontró información de perfil. Por favor completa tu perfil.");
@@ -124,34 +116,23 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
     }
   };
 
-  const initializeSelectedDays = (daysValue: string): void => {
-    const newSelectedDays = { ...selectedDays };
-    const dayValues = daysValue.split(',');
-    
-    for (const day of DAYS_OF_WEEK) {
-      newSelectedDays[day.key] = dayValues.includes(day.value.toString());
+  // Validate that the available days count is within range
+  const validateAvailableDays = (): boolean => {
+    const daysCount = parseInt(availableDaysCount);
+    return !isNaN(daysCount) && 
+           daysCount >= MIN_AVAILABLE_DAYS && 
+           daysCount <= MAX_AVAILABLE_DAYS;
+  };
+
+  // Handle changes to the available days input, ensuring only valid numbers
+  const handleAvailableDaysChange = (value: string): void => {
+    // Only allow numbers
+    if (value === "" || /^[0-9]+$/.test(value)) {
+      // Limit to single digit
+      if (value === "" || value.length <= 1) {
+        setAvailableDaysCount(value);
+      }
     }
-    setSelectedDays(newSelectedDays);
-  };
-
-  // Calculate the number of available days for the backend
-  const calculateAvailableDaysNumber = (): string => {
-    // Collect all selected days and join them with commas
-    const selectedDayValues = DAYS_OF_WEEK
-      .filter(day => selectedDays[day.key])
-      .map(day => day.value.toString());
-    
-    return selectedDayValues.join(',');  // Return comma-separated list of days
-  };
-
-  // Toggle selection of a day
-  const toggleDaySelection = (day: string): void => {
-    const newSelectedDays = { ...selectedDays };
-    
-    // Toggle the selected day
-    newSelectedDays[day] = !newSelectedDays[day];
-    
-    setSelectedDays(newSelectedDays);
   };
 
   const handleSaveProfile = async (): Promise<void> => {
@@ -164,13 +145,14 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
     if (!gender) missingFields.push("Género");
     if (!fitnessGoal) missingFields.push("Objetivo fitness");
     if (!experienceLevel) missingFields.push("Nivel de experiencia");
-    if (calculateAvailableDaysNumber() === '') missingFields.push("Días disponibles");
+    if (!availableDaysCount) missingFields.push("Días disponibles");
     if (!activityLevel) missingFields.push("Nivel de actividad");
     if (hasPhysicalLimitations && !physicalLimitations.trim()) missingFields.push("Descripción de limitaciones físicas");
     
-    // Check if any days are selected
-    if (Object.values(selectedDays).every(day => !day)) {
-      missingFields.push("Al menos un día disponible");
+    // Validate available days range
+    if (availableDaysCount && !validateAvailableDays()) {
+      AppAlert.error("Valor inválido", `Los días disponibles deben ser un número entre ${MIN_AVAILABLE_DAYS} y ${MAX_AVAILABLE_DAYS}`);
+      return;
     }
     
     if (missingFields.length > 0) {
@@ -189,7 +171,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
         gender,
         fitness_goal: fitnessGoal,
         experience_level: experienceLevel,
-        available_days: calculateAvailableDaysNumber(),
+        available_days: availableDaysCount ? parseInt(availableDaysCount) : undefined,
         equipment_available: equipmentAvailable,
         activity_level: activityLevel,
         physical_limitations: hasPhysicalLimitations ? physicalLimitations : "Ninguna",
@@ -452,33 +434,32 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({ navigation, rou
             <View className="mb-6">
               <Text className="text-lg font-semibold text-gray-800 mb-4">Días Disponibles para Entrenar</Text>
               
-              {isEditing ? (
-                <View>
-                  <Text className="text-sm text-gray-600 mb-2">
-                    Selecciona los días de la semana que entrenas:
-                  </Text>
-                  {DAYS_OF_WEEK.map((day) => (
-                    <TouchableOpacity 
-                      key={day.key}
-                      onPress={() => toggleDaySelection(day.key)}
-                      className={`p-3 mb-2 rounded-lg flex-row items-center ${selectedDays[day.key] ? 'bg-indigo-600' : 'bg-white border border-gray-300'}`}
-                    >
-                      <Text className={`${selectedDays[day.key] ? 'text-white' : 'text-gray-800'}`}>
-                        {day.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : (
-                <View>
-                  <Text className="text-sm text-gray-600 mb-1">Días seleccionados:</Text>
+              <View className="mb-2">
+                <Text className="text-sm text-gray-600 mb-1">
+                  Cantidad de días disponibles para entrenar (1-7):
+                </Text>
+                
+                {isEditing ? (
+                  <TextInput
+                    className="bg-white border border-gray-300 rounded-lg p-3 text-base"
+                    placeholder="Cantidad de días (1-7)"
+                    value={availableDaysCount}
+                    onChangeText={handleAvailableDaysChange}
+                    keyboardType="numeric"
+                    maxLength={1}
+                  />
+                ) : (
                   <Text className="bg-white border border-gray-300 rounded-lg p-3 text-base">
-                    {DAYS_OF_WEEK.filter(day => selectedDays[day.key])
-                      .map(day => day.label)
-                      .join(', ') || "Ninguno seleccionado"}
+                    {availableDaysCount || "No especificado"}
                   </Text>
-                </View>
-              )}
+                )}
+                
+                {isEditing && (
+                  <Text className="text-xs text-gray-500 mt-1">
+                    Ingresa un número entre 1 y 7 que represente cuántos días a la semana puedes entrenar.
+                  </Text>
+                )}
+              </View>
             </View>
           </ScrollView>
           
