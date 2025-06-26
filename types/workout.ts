@@ -1,6 +1,21 @@
 import { Exercise } from "./exercise";
 
 // Tipos para el seguimiento de entrenamientos activos
+export interface WorkoutSet {
+  set_number: number;
+  weight: number;
+  reps: number;
+  completed: boolean;
+}
+
+export interface WorkoutExercise {
+  routine_exercise_id: number;
+  exercise: Exercise;
+  planned_sets: number;
+  planned_reps: number;
+  sets: WorkoutSet[];
+}
+
 export interface Workout {
   id: number;
   user_id: number;
@@ -9,6 +24,12 @@ export interface Workout {
   created_at: string;
   updated_at: string;
   completed_exercises?: number;
+  perceived_intensity?: number;
+  energy_level?: number;
+  mood?: string;
+  notes?: string;
+  // Datos de los ejercicios completados
+  exercises?: WorkoutExercise[];
   // Relación con la rutina asociada (puede venir del backend)
   routine?: {
     id: number;
