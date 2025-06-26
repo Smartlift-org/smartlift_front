@@ -58,6 +58,17 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [route.params?.refresh]);
 
+  // Mostrar mensaje si estamos iniciando un workout
+  useEffect(() => {
+    if (route.params?.startWorkout) {
+      AppAlert.info(
+        "Iniciar entrenamiento", 
+        "Selecciona una rutina para comenzar tu entrenamiento", 
+        [{ text: "Entendido", style: "default" }]
+      );
+    }
+  }, [route.params?.startWorkout]);
+
   const getDifficultyColor = (difficulty: string): string => {
     switch (difficulty.toLowerCase()) {
       case 'beginner':
@@ -96,7 +107,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   const renderRoutineItem = ({ item }: { item: Routine }) => (
     <TouchableOpacity
       style={styles.routineItem}
-      onPress={() => navigation.navigate('WorkoutTracker', { routineId: item.id })}
+      onPress={() => navigation.navigate("WorkoutTracker", { routineId: item.id })}
     >
       <View style={styles.routineHeader}>
         <Text style={styles.routineName}>{item.name}</Text>
@@ -179,9 +190,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <TouchableOpacity
             style={styles.workoutHistoryButton}
-            onPress={() => AppAlert.info('Información', '¡El historial de entrenamientos estará disponible próximamente!', [
-              { text: 'Entendido', style: 'default' }
-            ])}
+            onPress={() => navigation.navigate("WorkoutStats")}
           >
             <Text style={styles.workoutHistoryText}>Ver Historial de Entrenamientos</Text>
             <FontAwesome5 name="history" size={16} color="#0066CC" />
