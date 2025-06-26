@@ -21,6 +21,7 @@ import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
 import WorkoutStatsScreen from "./screens/WorkoutStatsScreen";
 import AIRoutineGeneratorScreen from "./screens/AIRoutineGeneratorScreen";
 import ReviewRoutinesScreen from "./screens/ReviewRoutinesScreen";
+import RoutineManagementScreen from "./screens/RoutineManagementScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types";
@@ -88,6 +89,7 @@ export default function App(): React.ReactElement {
           <Stack.Screen name="WorkoutStats" component={WorkoutStatsScreen} />
           <Stack.Screen name="AIRoutineGenerator" component={AIRoutineGeneratorScreen} />
           <Stack.Screen name="ReviewRoutines" component={ReviewRoutinesScreen} />
+          <Stack.Screen name="RoutineManagement" component={RoutineManagementScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
