@@ -173,7 +173,8 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
       sets: parseInt(sets),
       reps: parseInt(reps),
       rest_time: parseInt(restTime),
-      order: parseInt(order)
+      order: parseInt(order),
+      group_type: 'regular' // Valor predeterminado requerido por el backend
     };
     
     // Añadir a la lista de ejercicios seleccionados
@@ -268,10 +269,14 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
             {
               text: "Ver mis rutinas",
               onPress: () => {
-                // Usar reset para limpiar la pila y navegar directamente a RoutineList
+                // Reset de navegación con la página principal como base y luego RoutineList
+                // así al volver desde RoutineList irá a la página principal
                 navigation.reset({
-                  index: 0,
-                  routes: [{ name: "RoutineList", params: { refresh: true } }]
+                  index: 1,
+                  routes: [
+                    { name: "UserHome" },
+                    { name: "RoutineList", params: { refresh: true } }
+                  ]
                 });
               }
             }
@@ -450,9 +455,9 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({ navigation,
                 Ejercicios seleccionados: {selectedExercises.length}
               </Text>
               <TouchableOpacity 
-                className="bg-indigo-600 p-3 rounded-lg"
+                className={`p-3 rounded-lg ${selectedExercises.length === 0 ? 'bg-gray-400' : 'bg-indigo-600'}`}
                 onPress={handleSaveFullRoutine}
-                disabled={creatingRoutine}
+                disabled={creatingRoutine || selectedExercises.length === 0}
               >
                 {creatingRoutine ? (
                   <ActivityIndicator color="#ffffff" />

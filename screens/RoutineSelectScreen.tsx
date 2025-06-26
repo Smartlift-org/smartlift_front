@@ -14,7 +14,7 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 import routineService from '../services/routineService';
-import workoutService from '../services/workoutService';
+
 import { RootStackParamList } from '../types';
 import { Routine } from '../types/routine';
 import AppAlert from '../components/AppAlert';
@@ -32,8 +32,6 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({ navigation, r
   const { fromActiveWorkouts = false } = route.params || {};
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [startingWorkout, setStartingWorkout] = useState<boolean>(false);
-  const [selectedRoutineId, setSelectedRoutineId] = useState<number | null>(null);
 
   useEffect(() => {
     loadRoutines();
@@ -52,33 +50,59 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({ navigation, r
     }
   };
 
-  const handleStartWorkout = async (routineId: number) => {
-    setSelectedRoutineId(routineId);
-    setStartingWorkout(true);
-    
+  // Función para verificar si hay entrenamientos activos
+  const checkActiveWorkoutsAndProceed = async (routineId: number) => {
     try {
-      const workout = await workoutService.createWorkout({ routine_id: routineId });
-      setStartingWorkout(false);
+      // Intentamos obtener workouts activos del usuario
+      const activeWorkouts = await routineService.getActiveWorkouts();
       
-      AppAlert.success(
-        "¡Entrenamiento iniciado!", 
-        "Tu entrenamiento ha sido iniciado. ¡A ejercitarse!"
-      );
-      
-      // Navegar a la pantalla de entrenamiento en progreso
-      navigation.navigate("WorkoutInProgress", { workoutId: workout.id });
+      if (activeWorkouts && activeWorkouts.length > 0) {
+        // Hay entrenamientos activos, preguntamos qué hacer
+        AppAlert.confirm(
+          "Entrenamiento en curso",
+          "Ya tienes un entrenamiento activo. ¿Deseas abandonarlo y comenzar uno nuevo?",
+          // Callback de confirmación
+          async () => {
+            try {
+              // Abandonamos todos los entrenamientos activos
+              for (const workout of activeWorkouts) {
+                await routineService.abandonWorkout(workout.id as number);
+              }
+              // Ahora navegamos al nuevo entrenamiento
+              navigation.navigate("WorkoutTracker", { 
+                routineId: routineId,
+                viewMode: false 
+              });
+            } catch (error) {
+              console.error("Error al abandonar workout:", error);
+              AppAlert.error("Error", "No se pudo abandonar el entrenamiento actual.");
+            }
+          },
+          // Callback de cancelación
+          () => console.log("Acción cancelada")
+        );
+      } else {
+        // No hay entrenamientos activos, procedemos normalmente
+        navigation.navigate("WorkoutTracker", { 
+          routineId: routineId,
+          viewMode: false // Modo entrenamiento activo
+        });
+      }
     } catch (error) {
-      console.error("Error al iniciar entrenamiento:", error);
-      AppAlert.error("Error", "No se pudo iniciar el entrenamiento. Inténtalo de nuevo.");
-      setStartingWorkout(false);
+      console.error("Error al verificar entrenamientos activos:", error);
+      AppAlert.error("Error", "Ocurrió un problema al iniciar el entrenamiento.");
     }
+  };
+  
+  // Navegar a la pantalla de detalle de rutina
+  const navigateToRoutineDetail = (routineId: number) => {
+    checkActiveWorkoutsAndProceed(routineId);
   };
 
   const renderRoutineItem = ({ item }: { item: Routine }) => (
     <TouchableOpacity 
       className="bg-white mb-4 rounded-lg overflow-hidden shadow-sm"
-      onPress={() => handleStartWorkout(item.id)}
-      disabled={startingWorkout && selectedRoutineId === item.id}
+      onPress={() => navigateToRoutineDetail(item.id)}
     >
       {/* Imagen o placeholder */}
       {item.image_url ? (
@@ -111,7 +135,8 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({ navigation, r
           
           <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
             <Text className="text-xs text-gray-700">
-              {item.exercises ? item.exercises.length : 0} ejercicios
+              {(item.routine_exercises && item.routine_exercises.length) || 
+               (item.exercises && item.exercises.length) || 0} ejercicios
             </Text>
           </View>
         </View>
@@ -120,17 +145,12 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({ navigation, r
           {item.description}
         </Text>
         
-        {/* Botón para iniciar entrenamiento */}
+        {/* Botón para ver detalle de rutina */}
         <TouchableOpacity
           className="mt-3 bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
-          onPress={() => handleStartWorkout(item.id)}
-          disabled={startingWorkout && selectedRoutineId === item.id}
+          onPress={() => navigateToRoutineDetail(item.id)}
         >
-          {(startingWorkout && selectedRoutineId === item.id) ? (
-            <ActivityIndicator color="#ffffff" size="small" />
-          ) : (
-            <Text className="text-white text-center font-semibold">Iniciar entrenamiento</Text>
-          )}
+          <Text className="text-white text-center font-semibold">Ver rutina</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
