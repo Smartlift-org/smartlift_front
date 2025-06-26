@@ -10,6 +10,7 @@ export type RootStackParamList = {
   RoutineList: { refresh?: boolean; startWorkout?: boolean };
   RoutineManagement: { refresh?: boolean };
   RoutineCreate: undefined;
+  RoutineEdit: { routineId: number; refresh?: boolean };
   ExerciseSelect: { 
     routineData: {
       name: string;

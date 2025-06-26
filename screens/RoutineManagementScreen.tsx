@@ -164,13 +164,6 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
 
       {/* Botones de acción para cada rutina */}
       <View style={styles.routineActions}>
-        <TouchableOpacity 
-          style={[styles.actionButton, { backgroundColor: "#4F46E5" }]}
-          onPress={() => navigation.navigate("WorkoutTracker", { routineId: item.id })}
-        >
-          <FontAwesome5 name="play" size={16} color="white" />
-        </TouchableOpacity>
-        
         {/* Botón de edición: desactivado si la rutina está en uso */}
         <TouchableOpacity 
           style={[styles.actionButton, { 
