@@ -6,11 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  RefreshControl,
-  StatusBar
+  RefreshControl
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// Using basic types to avoid React Navigation import issues
 import { RootStackParamList } from "../types";
 import routineService, { Routine } from "../services/routineService";
 import { AntDesign, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
@@ -24,6 +22,8 @@ type Props = {
 };
 
 const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
+  // Determinar si estamos en modo de inicio de entrenamiento
+  const startWorkoutMode = route.params?.startWorkout || false;
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -106,8 +106,16 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   // Explicitly type the renderItem function parameter to fix TypeScript error
   const renderRoutineItem = ({ item }: { item: Routine }) => (
     <TouchableOpacity
-      style={styles.routineItem}
-      onPress={() => navigation.navigate("WorkoutTracker", { routineId: item.id })}
+      style={[styles.routineItem, startWorkoutMode && styles.routineItemHighlight]}
+      onPress={() => {
+        if (startWorkoutMode) {
+          // Usar el nuevo flujo de entrenamiento
+          navigation.navigate("RoutineSelect", { routineId: item.id })
+        } else {
+          // Mantener el comportamiento original para visualización/edición de rutina
+          navigation.navigate("WorkoutTracker", { routineId: item.id })
+        }
+      }}
     >
       <View style={styles.routineHeader}>
         <Text style={styles.routineName}>{item.name}</Text>
@@ -139,13 +147,10 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScreenHeader
-        title="Tus Rutinas"
+        title={startWorkoutMode ? "Iniciar Entrenamiento" : "Tus Rutinas"}
         onBack={() => {
-          // Usar reset para limpiar la pila de navegación y evitar volver atrás a la pantalla de creación
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "UserHome" }]
-          });
+          // Si venimos desde UserHome, volver allí directamente
+          navigation.goBack();
         }}
       />
       
@@ -180,32 +185,16 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             />
           )}
 
+          {/* Botón para ir a gestión de rutinas */}
           <TouchableOpacity
-            style={styles.workoutHistoryButton}
-            onPress={() => navigation.navigate("WorkoutStats")}
+            style={styles.managementButton}
+            onPress={() => navigation.navigate("RoutineManagement")}
           >
-            <Text style={styles.workoutHistoryText}>Ver Historial de Entrenamientos</Text>
-            <FontAwesome5 name="history" size={16} color="#0066CC" />
+            <Text style={styles.managementButtonText}>
+              {startWorkoutMode ? "Gestionar mis rutinas" : "Crear o editar rutinas"}
+            </Text>
+            <AntDesign name="appstore-o" size={16} color="#0066CC" />
           </TouchableOpacity>
-
-          {/* Botones flotantes */}
-          <View style={{ position: "absolute", right: 16, bottom: 80 }}>
-            {/* Botón para generar rutinas con IA */}
-            <TouchableOpacity
-              style={[styles.floatingButton, { backgroundColor: "#5046e5", marginBottom: 12 }]}
-              onPress={() => navigation.navigate("AIRoutineGenerator")}
-            >
-              <FontAwesome5 name="magic" size={20} color="white" />
-            </TouchableOpacity>
-            
-            {/* Botón para añadir nueva rutina manualmente */}
-            <TouchableOpacity
-              style={[styles.floatingButton, { backgroundColor: "#0066CC" }]}
-              onPress={() => navigation.navigate("RoutineCreate")}
-            >
-              <AntDesign name="plus" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
         </>
       )}
       </View>
@@ -223,18 +212,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  floatingButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -318,7 +296,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 4,
   },
-  workoutHistoryButton: {
+  managementButton: {
     position: 'absolute',
     bottom: 20,
     left: 16,
@@ -336,11 +314,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  workoutHistoryText: {
+  managementButtonText: {
     color: '#0066CC',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
+  },
+  routineItemHighlight: {
+    borderWidth: 2,
+    borderColor: '#10B981',
   },
 });
 

@@ -8,7 +8,13 @@ export type RootStackParamList = {
   BasicProfile: undefined;
   StatsProfile: { fromRedirect?: boolean };
   RoutineList: { refresh?: boolean; startWorkout?: boolean };
+  RoutineManagement: { refresh?: boolean };
   RoutineCreate: undefined;
+  RoutineEdit: { routineId: number; refresh?: boolean };
+  ActiveWorkouts: undefined;
+  RoutineSelect: { fromActiveWorkouts?: boolean };
+  WorkoutInProgress: { workoutId: number };
+  
   ExerciseSelect: { 
     routineData: {
       name: string;
@@ -20,6 +26,7 @@ export type RootStackParamList = {
   WorkoutTracker: { routineId: number };
   WorkoutStats: undefined;
   AIRoutineGenerator: undefined;
+  WorkoutHistory: undefined;
   ReviewRoutines: { 
     routines: {
       descripcion: string;

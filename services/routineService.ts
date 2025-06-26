@@ -224,6 +224,19 @@ const routineService = {
       throw error;
     }
   },
+
+  // Verificar si una rutina está siendo utilizada en algún entrenamiento
+  isRoutineInUse: async (routineId: number): Promise<boolean> => {
+    try {
+      const workouts = await routineService.getWorkoutsByRoutine(routineId);
+      // Una rutina está en uso si tiene entrenamientos activos (en progreso o pausados)
+      return workouts.some(workout => ['in_progress', 'paused'].includes(workout.status));
+    } catch (error) {
+      console.error("Check routine in use error:", (error as AxiosError).response?.data || (error as Error).message);
+      // En caso de error, asumimos que no está en uso para evitar bloquear la funcionalidad
+      return false;
+    }
+  },
 };
 
 export default routineService;

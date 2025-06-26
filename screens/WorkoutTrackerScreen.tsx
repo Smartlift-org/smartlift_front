@@ -26,12 +26,15 @@ type Props = {
   route: {
     params: {
       routineId: number;
+      viewMode?: boolean; // true si solo queremos ver detalles, false/undefined para modo entrenamiento
     };
   };
 };
 
-const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
+const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }): React.ReactElement => {
   const routineId = route.params?.routineId;
+  // Determina si estamos en modo visualización (solo ver detalles) o modo entrenamiento
+  const viewMode = route.params?.viewMode === true;
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
@@ -437,6 +440,100 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   };
 
+  const renderWorkoutControls = () => {
+    if (viewMode) {
+      // En modo visualización, mostrar solo el botón para iniciar entrenamiento
+      return (
+        <View style={styles.workoutControlsContainer}>
+          <TouchableOpacity 
+            style={styles.startButton}
+            onPress={() => {
+              // Navigate to routine select screen to start workout with this routine
+              navigation.navigate('RoutineSelect', { routineId: routineId });
+            }}
+          >
+            <Text style={styles.startButtonText}>Iniciar Entrenamiento</Text>
+            <FontAwesome5 name="play" size={16} color="white" />
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
+    // En modo entrenamiento, mostrar controles según el estado actual
+    return (
+      <View style={styles.workoutControlsContainer}>
+        <View style={styles.timerContainer}>
+          <Text style={styles.timerLabel}>Tiempo total:</Text>
+          <Text style={styles.timerValue}>{formatTime(elapsedTime)}</Text>
+        </View>
+        
+        <View style={styles.controlsRow}>
+          {workoutStatus === 'not_started' ? (
+            <TouchableOpacity 
+              style={styles.startButton}
+              onPress={startWorkout}
+            >
+              <Text style={styles.startButtonText}>Iniciar Entrenamiento</Text>
+              <FontAwesome5 name="play" size={16} color="white" />
+            </TouchableOpacity>
+          ) : workoutStatus === 'in_progress' ? (
+            <>
+              <TouchableOpacity 
+                style={styles.controlButton}
+                onPress={pauseWorkout}
+              >
+                <FontAwesome5 name="pause" size={18} color="white" />
+                <Text style={styles.controlButtonText}>Pausar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.controlButton, styles.completeButton]}
+                onPress={handleCompleteWorkout}
+              >
+                <FontAwesome5 name="check" size={18} color="white" />
+                <Text style={styles.controlButtonText}>Completar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.controlButton, styles.abandonButton]}
+                onPress={handleAbandonWorkout}
+              >
+                <FontAwesome5 name="times" size={18} color="white" />
+                <Text style={styles.controlButtonText}>Abandonar</Text>
+              </TouchableOpacity>
+            </>
+          ) : workoutStatus === 'paused' ? (
+            <>
+              <TouchableOpacity 
+                style={styles.controlButton}
+                onPress={resumeWorkout}
+              >
+                <FontAwesome5 name="play" size={18} color="white" />
+                <Text style={styles.controlButtonText}>Continuar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.controlButton, styles.completeButton]}
+                onPress={handleCompleteWorkout}
+              >
+                <FontAwesome5 name="check" size={18} color="white" />
+                <Text style={styles.controlButtonText}>Completar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.controlButton, styles.abandonButton]}
+                onPress={handleAbandonWorkout}
+              >
+                <FontAwesome5 name="times" size={18} color="white" />
+                <Text style={styles.controlButtonText}>Abandonar</Text>
+              </TouchableOpacity>
+            </>
+          ) : null}
+        </View>
+      </View>
+    );
+  };
+  
   const renderExerciseSelector = () => {
     return (
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.exerciseTabs}>
@@ -452,6 +549,7 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text 
               style={[
                 styles.exerciseTabText,
+                activeExerciseIndex === index && styles.activeExerciseTabText
               ]}
             >
               {exercise.exercise.name}
@@ -461,81 +559,7 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
       </ScrollView>
     );
   };
-
-  // Renderizar los controles del workout (temporizador y botones)
-  const renderWorkoutControls = () => (
-    <View style={styles.workoutControlsContainer}>
-      <View style={styles.timerContainer}>
-        <Text style={styles.timerLabel}>Tiempo</Text>
-        <Text style={styles.timerValue}>{formatTime(elapsedTime)}</Text>
-      </View>
-      
-      <View style={styles.controlsRow}>
-        {workoutStatus === 'not_started' ? (
-          <TouchableOpacity 
-            style={styles.startButton}
-            onPress={startWorkout}
-          >
-            <Text style={styles.startButtonText}>Iniciar Entrenamiento</Text>
-            <FontAwesome5 name="play" size={16} color="white" />
-          </TouchableOpacity>
-        ) : workoutStatus === 'in_progress' ? (
-          <>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={pauseWorkout}
-            >
-              <FontAwesome5 name="pause" size={18} color="white" />
-              <Text style={styles.controlButtonText}>Pausar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.controlButton, styles.completeButton]}
-              onPress={handleCompleteWorkout}
-            >
-              <FontAwesome5 name="check" size={18} color="white" />
-              <Text style={styles.controlButtonText}>Completar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.controlButton, styles.abandonButton]}
-              onPress={handleAbandonWorkout}
-            >
-              <FontAwesome5 name="times" size={18} color="white" />
-              <Text style={styles.controlButtonText}>Abandonar</Text>
-            </TouchableOpacity>
-          </>
-        ) : workoutStatus === 'paused' ? (
-          <>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={resumeWorkout}
-            >
-              <FontAwesome5 name="play" size={18} color="white" />
-              <Text style={styles.controlButtonText}>Continuar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.controlButton, styles.completeButton]}
-              onPress={handleCompleteWorkout}
-            >
-              <FontAwesome5 name="check" size={18} color="white" />
-              <Text style={styles.controlButtonText}>Completar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.controlButton, styles.abandonButton]}
-              onPress={handleAbandonWorkout}
-            >
-              <FontAwesome5 name="times" size={18} color="white" />
-              <Text style={styles.controlButtonText}>Abandonar</Text>
-            </TouchableOpacity>
-          </>
-        ) : null}
-      </View>
-    </View>
-  );
-
+  
   const renderConfirmModal = () => (
     <Modal
       visible={showConfirmModal}
@@ -594,8 +618,8 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
                 <AntDesign name="arrowleft" size={24} color="#333" />
               </TouchableOpacity>
               <View style={styles.header}>
-                <Text style={styles.routineTitle}>{routine.name}</Text>
-                <Text style={styles.routineDescription}>{routine.difficulty} • {routine.duration} min</Text>
+                <Text style={styles.routineTitle}>{routine?.name || 'Rutina'}</Text>
+                <Text style={styles.routineDescription}>{routine?.difficulty || 'N/A'} • {routine?.duration || 'N/A'} min</Text>
               </View>
             </View>
             
@@ -630,8 +654,8 @@ const WorkoutTrackerScreen: React.FC<Props> = ({ navigation, route }) => {
             {/* Workout Controls */}
             {renderWorkoutControls()}
             
-            {/* Solo mostrar el botón de guardar si no está en modo de workout */}
-            {workoutStatus === 'not_started' && (
+            {/* Mostrar el botón de volver si está en modo visualización o si no ha iniciado workout */}
+            {(viewMode || workoutStatus === 'not_started') && (
               <View style={styles.buttonContainer}>
                 <TouchableOpacity 
                   style={styles.finishButton}
