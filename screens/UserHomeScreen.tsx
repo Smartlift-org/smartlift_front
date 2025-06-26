@@ -150,9 +150,9 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
           <TouchableOpacity 
             className="bg-indigo-600 p-3 rounded-lg mb-3"
             onPress={() => {
-              // Se puede mostrar un modal para elegir entre entrenamiento libre o basado en rutina
-              // Por ahora navegamos a la lista de rutinas para elegir una
-              navigation.navigate("RoutineList", { startWorkout: true })
+              // Navegamos a la pantalla de entrenamientos activos
+              // Desde ahí se puede iniciar un nuevo entrenamiento o continuar uno pausado
+              navigation.navigate("ActiveWorkouts")
             }}
           >
             <Text className="text-white font-medium text-center">
@@ -173,7 +173,7 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             
             <TouchableOpacity 
               className="bg-indigo-100 p-3 rounded-lg flex-1 ml-2"
-              onPress={() => navigation.navigate("WorkoutStats")}
+              onPress={() => navigation.navigate("WorkoutHistory")}
             >
               <Text className="text-indigo-800 font-medium text-center">
                 Historial

@@ -19,10 +19,14 @@ import RoutineCreateScreen from "./screens/RoutineCreateScreen";
 import ExerciseSelectScreen from "./screens/ExerciseSelectScreen";
 import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
 import WorkoutStatsScreen from "./screens/WorkoutStatsScreen";
+import WorkoutHistoryScreen from "./screens/WorkoutHistoryScreen";
 import AIRoutineGeneratorScreen from "./screens/AIRoutineGeneratorScreen";
 import ReviewRoutinesScreen from "./screens/ReviewRoutinesScreen";
 import RoutineManagementScreen from "./screens/RoutineManagementScreen";
 import RoutineEditScreen from "./screens/RoutineEditScreen";
+import ActiveWorkoutsScreen from "./screens/ActiveWorkoutsScreen";
+import RoutineSelectScreen from "./screens/RoutineSelectScreen";
+import WorkoutInProgressScreen from "./screens/WorkoutInProgressScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types";
@@ -88,10 +92,14 @@ export default function App(): React.ReactElement {
           <Stack.Screen name="ExerciseSelect" component={ExerciseSelectScreen} />
           <Stack.Screen name="WorkoutTracker" component={WorkoutTrackerScreen} />
           <Stack.Screen name="WorkoutStats" component={WorkoutStatsScreen} />
+          <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} />
           <Stack.Screen name="AIRoutineGenerator" component={AIRoutineGeneratorScreen} />
           <Stack.Screen name="ReviewRoutines" component={ReviewRoutinesScreen} />
           <Stack.Screen name="RoutineManagement" component={RoutineManagementScreen} />
           <Stack.Screen name="RoutineEdit" component={RoutineEditScreen} />
+          <Stack.Screen name="ActiveWorkouts" component={ActiveWorkoutsScreen} />
+          <Stack.Screen name="RoutineSelect" component={RoutineSelectScreen} />
+          <Stack.Screen name="WorkoutInProgress" component={WorkoutInProgressScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>
