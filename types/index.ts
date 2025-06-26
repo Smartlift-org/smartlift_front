@@ -19,6 +19,25 @@ export type RootStackParamList = {
   };
   WorkoutTracker: { routineId: number };
   WorkoutStats: undefined;
+  AIRoutineGenerator: undefined;
+  ReviewRoutines: { 
+    routines: {
+      descripcion: string;
+      routine: {
+        name: string;
+        description: string;
+        difficulty: 'beginner' | 'intermediate' | 'advanced';
+        duration: number;
+        routine_exercises_attributes: {
+          exercise_id: number;
+          sets: number;
+          reps: number;
+          rest_time: number;
+          order: number;
+        }[];
+      };
+    }[];
+  };
 };
 
 export interface User {

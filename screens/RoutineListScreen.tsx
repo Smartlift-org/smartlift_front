@@ -147,14 +147,6 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             routes: [{ name: "UserHome" }]
           });
         }}
-        rightComponent={
-          <TouchableOpacity 
-            style={styles.addButton} 
-            onPress={() => navigation.navigate("RoutineCreate")}
-          >
-            <AntDesign name="plus" size={24} color="white" />
-          </TouchableOpacity>
-        }
       />
       
       <View style={styles.contentContainer}>
@@ -195,6 +187,25 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.workoutHistoryText}>Ver Historial de Entrenamientos</Text>
             <FontAwesome5 name="history" size={16} color="#0066CC" />
           </TouchableOpacity>
+
+          {/* Botones flotantes */}
+          <View style={{ position: "absolute", right: 16, bottom: 80 }}>
+            {/* Botón para generar rutinas con IA */}
+            <TouchableOpacity
+              style={[styles.floatingButton, { backgroundColor: "#5046e5", marginBottom: 12 }]}
+              onPress={() => navigation.navigate("AIRoutineGenerator")}
+            >
+              <FontAwesome5 name="magic" size={20} color="white" />
+            </TouchableOpacity>
+            
+            {/* Botón para añadir nueva rutina manualmente */}
+            <TouchableOpacity
+              style={[styles.floatingButton, { backgroundColor: "#0066CC" }]}
+              onPress={() => navigation.navigate("RoutineCreate")}
+            >
+              <AntDesign name="plus" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
         </>
       )}
       </View>
@@ -212,14 +223,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  addButton: {
-    backgroundColor: '#0066CC',
+  floatingButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   loadingContainer: {
     flex: 1,
