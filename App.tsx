@@ -19,6 +19,8 @@ import RoutineCreateScreen from "./screens/RoutineCreateScreen";
 import ExerciseSelectScreen from "./screens/ExerciseSelectScreen";
 import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
 import WorkoutStatsScreen from "./screens/WorkoutStatsScreen";
+import AIRoutineGeneratorScreen from "./screens/AIRoutineGeneratorScreen";
+import ReviewRoutinesScreen from "./screens/ReviewRoutinesScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types";
@@ -84,6 +86,8 @@ export default function App(): React.ReactElement {
           <Stack.Screen name="ExerciseSelect" component={ExerciseSelectScreen} />
           <Stack.Screen name="WorkoutTracker" component={WorkoutTrackerScreen} />
           <Stack.Screen name="WorkoutStats" component={WorkoutStatsScreen} />
+          <Stack.Screen name="AIRoutineGenerator" component={AIRoutineGeneratorScreen} />
+          <Stack.Screen name="ReviewRoutines" component={ReviewRoutinesScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaView>

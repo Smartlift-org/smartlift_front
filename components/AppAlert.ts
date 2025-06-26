@@ -69,5 +69,23 @@ export default {
         }
       ]
     );
+  },
+
+  /**
+   * Muestra una alerta de éxito con botones personalizados
+   * @param title Título de la alerta
+   * @param message Mensaje de la alerta
+   * @param buttons Botones personalizados (opcional)
+   */
+  success: (
+    title: string, 
+    message: string, 
+    buttons?: AlertButton[]
+  ): void => {
+    Alert.alert(
+      title, 
+      message, 
+      buttons || [{ text: "Aceptar", style: "default" }]
+    );
   }
 };
