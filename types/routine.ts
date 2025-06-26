@@ -7,15 +7,23 @@ export interface Routine {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   duration: number;
   user_id?: number;
+  user?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
   created_at?: string;
   updated_at?: string;
+  formatted_created_at?: string;
+  formatted_updated_at?: string;
   image_url?: string;
-  exercises?: RoutineExercise[];
+  exercises?: RoutineExercise[]; // Campo antiguo para compatibilidad
+  routine_exercises?: RoutineExercise[]; // Campo actual del backend
 }
 
 export interface RoutineExercise {
   id: number;
-  routine_id: number;
+  routine_id?: number; // Hacemos este campo opcional para compatibilidad
   exercise_id: number;
   sets: number;
   reps: number;

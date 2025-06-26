@@ -47,6 +47,8 @@ export interface RoutineExerciseFormData {
   reps: number;
   rest_time: number;
   order: number;
+  group_type?: string;
+  group_order?: number;
 }
 
 export interface RoutineFormData {
@@ -171,19 +173,92 @@ const routineService = {
     }
   },
   // Create a new workout session
-  createWorkout: async (workoutData: WorkoutSession): Promise<WorkoutSession> => {
+  createWorkout: async (workoutData: any): Promise<WorkoutSession> => {
     try {
-      const response = await apiClient.post('/workouts', { workout: workoutData });
+      // Aseguramos que los datos tienen la estructura correcta que espera el backend
+      const payload = { workout: workoutData };
+      
+      // Log de depuración para ver exactamente qué se está enviando
+      console.log('Enviando payload al backend:', JSON.stringify(payload));
+      
+      const response = await apiClient.post('/workouts', payload);
+      console.log('Respuesta del backend:', response.data);
       return response.data;
     } catch (error) {
-      console.error("Create workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      // Log más detallado del error para diagnóstico
+      if ((error as AxiosError).response) {
+        const axiosError = error as AxiosError;
+        console.error("Create workout error status:", axiosError.response?.status);
+        console.error("Create workout error data:", JSON.stringify(axiosError.response?.data));
+        // No podemos acceder directamente a config.data como está tipado
+        console.error("Request failed with error");
+      } else {
+        console.error("Create workout non-response error:", (error as Error).message);
+      }
       throw error;
     }
   },
 
-  // Update an existing workout session
-  updateWorkout: async (id: number, workoutData: Partial<WorkoutSession>): Promise<WorkoutSession> => {
+  // Pausar un workout
+  pauseWorkout: async (id: number, reason?: string): Promise<WorkoutSession> => {
     try {
+      const response = await apiClient.put(`/workouts/${id}/pause`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error("Pause workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Reanudar un workout pausado
+  resumeWorkout: async (id: number): Promise<WorkoutSession> => {
+    try {
+      const response = await apiClient.put(`/workouts/${id}/resume`, {});
+      return response.data;
+    } catch (error) {
+      console.error("Resume workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Completar un workout
+  completeWorkout: async (id: number, data: { perceived_intensity?: number, energy_level?: number, mood?: string, notes?: string }): Promise<WorkoutSession> => {
+    try {
+      const response = await apiClient.put(`/workouts/${id}/complete`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Complete workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Abandonar un workout
+  abandonWorkout: async (id: number): Promise<WorkoutSession> => {
+    try {
+      const response = await apiClient.put(`/workouts/${id}/abandon`, {});
+      return response.data;
+    } catch (error) {
+      console.error("Abandon workout error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
+    }
+  },
+
+  // Update an existing workout session (obsoleto, mantener para compatibilidad)
+  updateWorkout: async (id: number, workoutData: Partial<WorkoutSession>): Promise<WorkoutSession> => {
+    console.warn('updateWorkout está obsoleto. Usar métodos específicos como pauseWorkout, resumeWorkout, etc.');
+    try {
+      // Determinar qué tipo de actualización es según el estado
+      if (workoutData.status === 'paused') {
+        return await routineService.pauseWorkout(id);
+      } else if (workoutData.status === 'in_progress') {
+        return await routineService.resumeWorkout(id);
+      } else if (workoutData.status === 'completed') {
+        return await routineService.completeWorkout(id, { notes: workoutData.notes });
+      } else if (workoutData.status === 'abandoned') {
+        return await routineService.abandonWorkout(id);
+      }
+      
+      // Fallback a la implementación original
       const response = await apiClient.put(`/workouts/${id}`, { workout: workoutData });
       return response.data;
     } catch (error) {
@@ -217,8 +292,11 @@ const routineService = {
   // Get workout history for a specific routine
   getWorkoutsByRoutine: async (routineId: number): Promise<WorkoutSession[]> => {
     try {
-      const response = await apiClient.get(`/routines/${routineId}/workouts`);
-      return response.data;
+      // En lugar de usar una ruta que no existe, obtenemos todos los workouts y filtramos
+      const response = await apiClient.get('/workouts');
+      // Filtramos los workouts que corresponden a la rutina específica
+      const workoutsForRoutine = response.data.filter((workout: any) => workout.routine_id === routineId);
+      return workoutsForRoutine;
     } catch (error) {
       console.error("Get workouts by routine error:", (error as AxiosError).response?.data || (error as Error).message);
       throw error;
@@ -235,6 +313,18 @@ const routineService = {
       console.error("Check routine in use error:", (error as AxiosError).response?.data || (error as Error).message);
       // En caso de error, asumimos que no está en uso para evitar bloquear la funcionalidad
       return false;
+    }
+  },
+
+  // Obtener todos los workouts activos del usuario actual
+  getActiveWorkouts: async (): Promise<WorkoutSession[]> => {
+    try {
+      // Obtener todos los workouts y filtrar los activos
+      const workouts = await routineService.getWorkouts();
+      return workouts.filter(workout => ['in_progress', 'paused'].includes(workout.status));
+    } catch (error) {
+      console.error("Get active workouts error:", (error as AxiosError).response?.data || (error as Error).message);
+      throw error;
     }
   },
 };
