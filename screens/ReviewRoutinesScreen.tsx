@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -13,7 +13,6 @@ import AppAlert from "../components/AppAlert";
 import aiRoutineService from "../services/aiRoutineService";
 import { AIRoutineResponse } from "../types/aiRoutines";
 
-// Define simple props interface para compatibilidad
 type Props = {
   navigation: any;
   route: any;
@@ -23,8 +22,7 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
   const { routines } = route.params as { routines: AIRoutineResponse[] };
   const [selectedRoutineIndex, setSelectedRoutineIndex] = useState(0);
   const [saving, setSaving] = useState(false);
-  
-  // Si no hay rutinas, mostrar un mensaje de error
+
   if (!routines || routines.length === 0) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
@@ -38,7 +36,8 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
             No se han generado rutinas
           </Text>
           <Text className="mt-2 text-center text-gray-600">
-            Hubo un problema al generar las rutinas. Por favor, intenta nuevamente.
+            Hubo un problema al generar las rutinas. Por favor, intenta
+            nuevamente.
           </Text>
           <TouchableOpacity
             className="mt-6 bg-indigo-600 py-3 px-6 rounded-lg"
@@ -52,8 +51,7 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
   }
 
   const selectedRoutine = routines[selectedRoutineIndex];
-  
-  // Función para guardar todas las rutinas
+
   const handleSaveAll = async () => {
     setSaving(true);
     try {
@@ -68,17 +66,16 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  // El sufijo para el título depende de si hay múltiples rutinas
-  const titleSuffix = routines.length > 1 ? " (Día " + (selectedRoutineIndex + 1) + ")" : "";
-  
+  const titleSuffix =
+    routines.length > 1 ? " (Día " + (selectedRoutineIndex + 1) + ")" : "";
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScreenHeader
         title={"Revisar Rutina" + titleSuffix}
         onBack={() => navigation.goBack()}
       />
-      
-      {/* Si hay múltiples rutinas, mostramos pestañas para cambiar entre ellas */}
+
       {routines.length > 1 && (
         <View className="flex-row flex-wrap p-3 bg-white">
           {routines.map((_, index) => (
@@ -91,7 +88,9 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <Text
                 className={`${
-                  index === selectedRoutineIndex ? "text-white" : "text-gray-700"
+                  index === selectedRoutineIndex
+                    ? "text-white"
+                    : "text-gray-700"
                 }`}
               >
                 Día {index + 1}
@@ -100,17 +99,20 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
           ))}
         </View>
       )}
-      
-      {/* Detalles de la rutina seleccionada */}
+
       <ScrollView className="flex-1 p-4">
-        {/* Información general de la rutina */}
         <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
-          <Text className="text-xl font-bold mb-2">{selectedRoutine.routine.name}</Text>
+          <Text className="text-xl font-bold mb-2">
+            {selectedRoutine.routine.name}
+          </Text>
           <View className="flex-row items-center mb-2">
             <View className="px-2 py-1 bg-indigo-100 rounded mr-2">
               <Text className="text-indigo-800 text-xs font-medium">
-                {selectedRoutine.routine.difficulty === "beginner" ? "Principiante" : 
-                 selectedRoutine.routine.difficulty === "intermediate" ? "Intermedio" : "Avanzado"}
+                {selectedRoutine.routine.difficulty === "beginner"
+                  ? "Principiante"
+                  : selectedRoutine.routine.difficulty === "intermediate"
+                  ? "Intermedio"
+                  : "Avanzado"}
               </Text>
             </View>
             <View className="flex-row items-center">
@@ -120,56 +122,71 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
               </Text>
             </View>
           </View>
-          
-          <Text className="text-gray-600 mb-4">{selectedRoutine.routine.description}</Text>
-          
+
+          <Text className="text-gray-600 mb-4">
+            {selectedRoutine.routine.description}
+          </Text>
+
           <View className="bg-indigo-50 p-3 rounded-lg">
             <Text className="text-indigo-800">
               {selectedRoutine.descripcion}
             </Text>
           </View>
         </View>
-        
-        {/* Lista de ejercicios */}
+
         <Text className="text-lg font-bold mb-2">Ejercicios:</Text>
-        {selectedRoutine.routine.routine_exercises_attributes.map((exercise, index) => (
-          <View key={index} className="bg-white rounded-lg shadow-sm p-4 mb-3">
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="font-medium text-base">Ejercicio ID: {exercise.exercise_id}</Text>
-              <View className="bg-gray-100 px-2 py-1 rounded">
-                <Text className="text-xs text-gray-600">Orden: {exercise.order}</Text>
+        {selectedRoutine.routine.routine_exercises_attributes.map(
+          (exercise, index) => (
+            <View
+              key={index}
+              className="bg-white rounded-lg shadow-sm p-4 mb-3"
+            >
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="font-medium text-base">
+                  Ejercicio ID: {exercise.exercise_id}
+                </Text>
+                <View className="bg-gray-100 px-2 py-1 rounded">
+                  <Text className="text-xs text-gray-600">
+                    Orden: {exercise.order}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="flex-row flex-wrap">
+                <View className="bg-gray-100 rounded-lg p-2 mr-2 mb-2">
+                  <Text className="text-gray-700">{exercise.sets} series</Text>
+                </View>
+
+                <View className="bg-gray-100 rounded-lg p-2 mr-2 mb-2">
+                  <Text className="text-gray-700">
+                    {exercise.reps} repeticiones
+                  </Text>
+                </View>
+
+                <View className="bg-gray-100 rounded-lg p-2 mb-2">
+                  <Text className="text-gray-700">
+                    {exercise.rest_time}s descanso
+                  </Text>
+                </View>
               </View>
             </View>
-            
-            <View className="flex-row flex-wrap">
-              <View className="bg-gray-100 rounded-lg p-2 mr-2 mb-2">
-                <Text className="text-gray-700">{exercise.sets} series</Text>
-              </View>
-              
-              <View className="bg-gray-100 rounded-lg p-2 mr-2 mb-2">
-                <Text className="text-gray-700">{exercise.reps} repeticiones</Text>
-              </View>
-              
-              <View className="bg-gray-100 rounded-lg p-2 mb-2">
-                <Text className="text-gray-700">{exercise.rest_time}s descanso</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-        
-        {/* Nota informativa */}
+          )
+        )}
+
         <View className="bg-yellow-50 p-4 rounded-lg mb-8">
           <Text className="text-yellow-800">
-            Nota: Los IDs de ejercicios se reemplazarán con los nombres reales cuando el backend esté completo.
+            Nota: Los IDs de ejercicios se reemplazarán con los nombres reales
+            cuando el backend esté completo.
           </Text>
         </View>
       </ScrollView>
-      
-      {/* Botón de guardado */}
+
       <View className="p-4 bg-white border-t border-gray-200">
         <TouchableOpacity
           disabled={saving}
-          className={`py-3 rounded-lg ${saving ? "bg-gray-400" : "bg-indigo-600"}`}
+          className={`py-3 rounded-lg ${
+            saving ? "bg-gray-400" : "bg-indigo-600"
+          }`}
           onPress={handleSaveAll}
         >
           {saving ? (

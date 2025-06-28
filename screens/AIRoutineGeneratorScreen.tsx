@@ -7,7 +7,6 @@ import {
   Switch,
   TextInput,
   ActivityIndicator,
-  StyleSheet
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
@@ -17,13 +16,11 @@ import aiRoutineService from "../services/aiRoutineService";
 import { AIRoutineRequest, AIRoutineResponse } from "../types/aiRoutines";
 import { FontAwesome5 } from "@expo/vector-icons";
 
-// Define simple props interface para compatibilidad
 type Props = {
   navigation: any;
   route: any;
 };
 
-// Opciones de áreas de enfoque
 const FOCUS_AREAS = [
   "Pecho",
   "Espalda",
@@ -32,7 +29,7 @@ const FOCUS_AREAS = [
   "Piernas",
   "Core",
   "Cardio",
-  "Funcional"
+  "Funcional",
 ];
 
 const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
@@ -43,7 +40,6 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [loadingUserData, setLoadingUserData] = useState(true);
 
-  // Cargar datos del usuario al iniciar la pantalla
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -51,25 +47,26 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
         setUserStats(stats);
       } catch (error) {
         console.error("Error al cargar datos del usuario:", error);
-        AppAlert.error("Error", "No se pudieron cargar tus datos. Verifica tu conexión.");
+        AppAlert.error(
+          "Error",
+          "No se pudieron cargar tus datos. Verifica tu conexión."
+        );
       } finally {
         setLoadingUserData(false);
       }
     };
-    
+
     loadUserData();
   }, []);
 
-  // Función para manejar selección de áreas de enfoque
   const toggleFocusArea = (area: string) => {
     if (focusAreas.includes(area)) {
-      setFocusAreas(focusAreas.filter(a => a !== area));
+      setFocusAreas(focusAreas.filter((a) => a !== area));
     } else {
       setFocusAreas([...focusAreas, area]);
     }
   };
 
-  // Función para generar rutinas
   const handleGenerate = async () => {
     if (!userStats) {
       AppAlert.error("Error", "No se pudo acceder a tus datos de perfil.");
@@ -83,20 +80,27 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
         generatePerDay,
         preferences: {
           focusAreas,
-          equipment: typeof userStats.equipment_available === 'boolean' 
-            ? userStats.equipment_available ? 'Sí' : 'No'
-            : (typeof userStats.equipment_available === 'string' ? userStats.equipment_available : ''),
-          additionalNotes
-        }
+          equipment:
+            typeof userStats.equipment_available === "boolean"
+              ? userStats.equipment_available
+                ? "Sí"
+                : "No"
+              : typeof userStats.equipment_available === "string"
+              ? userStats.equipment_available
+              : "",
+          additionalNotes,
+        },
       };
-      
+
       const result = await aiRoutineService.generateRoutines(request);
-      
-      // Navegar a la pantalla de revisión con los resultados
+
       navigation.navigate("ReviewRoutines", { routines: result });
     } catch (error) {
       console.error("Error generando rutinas:", error);
-      AppAlert.error("Error", "No se pudieron generar las rutinas. Intenta de nuevo más tarde.");
+      AppAlert.error(
+        "Error",
+        "No se pudieron generar las rutinas. Intenta de nuevo más tarde."
+      );
     } finally {
       setLoading(false);
     }
@@ -108,7 +112,7 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
         title="Generador IA de Rutinas"
         onBack={() => navigation.goBack()}
       />
-      
+
       {loadingUserData ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#0066CC" />
@@ -116,59 +120,64 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       ) : (
         <ScrollView className="flex-1 p-4">
-          {/* Banner informativo */}
           <View className="bg-indigo-100 p-4 rounded-lg mb-6">
             <Text className="text-indigo-800 text-base">
-              Nuestro asistente de IA creará rutinas personalizadas basadas en tu perfil, 
-              objetivos y preferencias.
+              Nuestro asistente de IA creará rutinas personalizadas basadas en
+              tu perfil, objetivos y preferencias.
             </Text>
           </View>
 
-          {/* Datos del usuario */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-6">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Tu perfil fitness
             </Text>
-            
+
             {userStats && (
               <>
                 <View className="flex-row justify-between mb-2">
                   <Text className="text-gray-600">Experiencia:</Text>
-                  <Text className="font-medium">{userStats.experience_level}</Text>
+                  <Text className="font-medium">
+                    {userStats.experience_level}
+                  </Text>
                 </View>
-                
+
                 <View className="flex-row justify-between mb-2">
                   <Text className="text-gray-600">Objetivo:</Text>
                   <Text className="font-medium">{userStats.fitness_goal}</Text>
                 </View>
-                
+
                 <View className="flex-row justify-between mb-2">
                   <Text className="text-gray-600">Días disponibles:</Text>
-                  <Text className="font-medium">{userStats.available_days} días/semana</Text>
+                  <Text className="font-medium">
+                    {userStats.available_days} días/semana
+                  </Text>
                 </View>
-                
+
                 <View className="flex-row justify-between mb-2">
                   <Text className="text-gray-600">Equipo disponible:</Text>
-                  <Text className="font-medium">{userStats.equipment_available || "No especificado"}</Text>
+                  <Text className="font-medium">
+                    {userStats.equipment_available || "No especificado"}
+                  </Text>
                 </View>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   className="mt-2 flex-row items-center"
                   onPress={() => navigation.navigate("StatsProfile")}
                 >
-                  <Text className="text-indigo-600 font-medium mr-1">Editar perfil</Text>
+                  <Text className="text-indigo-600 font-medium mr-1">
+                    Editar perfil
+                  </Text>
                   <FontAwesome5 name="edit" size={14} color="#4f46e5" />
                 </TouchableOpacity>
               </>
             )}
           </View>
 
-          {/* Opciones de generación */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-6">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Opciones de generación
             </Text>
-            
+
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-base text-gray-700">
                 Generar una rutina para cada día disponible
@@ -181,23 +190,23 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
                 value={generatePerDay}
               />
             </View>
-            
+
             <Text className="text-sm text-gray-500 mb-4">
-              {generatePerDay 
-                ? `Se generarán ${userStats?.available_days || 0} rutinas diferentes, una para cada día` 
-                : "Se generará una rutina completa para todos tus días de entrenamiento"
-              }
+              {generatePerDay
+                ? `Se generarán ${
+                    userStats?.available_days || 0
+                  } rutinas diferentes, una para cada día`
+                : "Se generará una rutina completa para todos tus días de entrenamiento"}
             </Text>
           </View>
 
-          {/* Áreas de enfoque */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-6">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Áreas de enfoque (opcional)
             </Text>
-            
+
             <View className="flex-row flex-wrap">
-              {FOCUS_AREAS.map(area => (
+              {FOCUS_AREAS.map((area) => (
                 <TouchableOpacity
                   key={area}
                   className={`px-3 py-2 rounded-lg mr-2 mb-2 ${
@@ -217,12 +226,11 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* Notas adicionales */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-8">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Notas adicionales (opcional)
             </Text>
-            
+
             <TextInput
               className="border border-gray-300 rounded-lg p-3 text-gray-700 min-h-[100px]"
               multiline
@@ -232,9 +240,10 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
             />
           </View>
 
-          {/* Botón de generar */}
           <TouchableOpacity
-            className={`py-4 rounded-lg mb-8 ${loading ? "bg-gray-400" : "bg-indigo-600"}`}
+            className={`py-4 rounded-lg mb-8 ${
+              loading ? "bg-gray-400" : "bg-indigo-600"
+            }`}
             disabled={loading}
             onPress={handleGenerate}
           >
@@ -242,7 +251,12 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
               <ActivityIndicator color="white" />
             ) : (
               <Text className="text-white font-medium text-center text-lg">
-                Generar Rutina{generatePerDay && userStats?.available_days && userStats.available_days > 1 ? "s" : ""}
+                Generar Rutina
+                {generatePerDay &&
+                userStats?.available_days &&
+                userStats.available_days > 1
+                  ? "s"
+                  : ""}
               </Text>
             )}
           </TouchableOpacity>
