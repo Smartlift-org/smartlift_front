@@ -4,10 +4,8 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Alert
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialCommunityIcons, FontAwesome5, Feather } from "@expo/vector-icons";
@@ -15,7 +13,6 @@ import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import routineService, { Routine } from "../services/routineService";
 
-// Define simple props interface
 type Props = {
   navigation: any;
   route: any;
@@ -33,7 +30,6 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
       const data = await routineService.getRoutines();
       setRoutines(data);
       
-      // Verificar cuáles rutinas están en uso
       const inUseMap: Record<number, boolean> = {};
       for (const routine of data) {
         inUseMap[routine.id] = await routineService.isRoutineInUse(routine.id);
@@ -58,16 +54,13 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
     loadRoutines();
   }, []);
 
-  // Efecto adicional para actualizar cuando volvamos de la pantalla de creación
   useEffect(() => {
     if (route.params?.refresh) {
       loadRoutines();
     }
   }, [route.params?.refresh]);
 
-  // Función para eliminar una rutina
   const handleDeleteRoutine = (routine: Routine) => {
-    // Verificar si la rutina está en uso antes de permitir su eliminación
     if (routinesInUse[routine.id]) {
       AppAlert.error(
         "No se puede eliminar", 
@@ -83,7 +76,7 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
         try {
           await routineService.deleteRoutine(routine.id);
           AppAlert.success("Éxito", "Rutina eliminada correctamente");
-          loadRoutines(); // Recargar la lista de rutinas
+          loadRoutines(); 
         } catch (error) {
           console.error("Error al eliminar rutina:", error);
           AppAlert.error("Error", "No se pudo eliminar la rutina");
@@ -96,19 +89,18 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
     switch (difficulty.toLowerCase()) {
       case "beginner":
       case "principiante":
-        return "#4CAF50"; // Verde
+        return "#4CAF50";
       case "intermediate":
       case "intermedio":
-        return "#FF9800"; // Naranja
+        return "#FF9800";
       case "advanced":
       case "avanzado":
-        return "#F44336"; // Rojo
+        return "#F44336";
       default:
-        return "#2196F3"; // Azul
+        return "#2196F3";
     }
   };
   
-  // Traducir nivel de dificultad
   const translateDifficulty = (difficulty: string): string => {
     switch (difficulty.toLowerCase()) {
       case "beginner":
@@ -127,48 +119,40 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const renderRoutineItem = ({ item }: { item: Routine }) => (
-    <View style={styles.routineItem}>
-      {/* Indicador de rutina en uso */}
+    <View className="bg-white rounded-xl mb-4 shadow flex-row">
       {routinesInUse[item.id] && (
-        <View style={styles.inUseIndicator}>
-          <Text style={styles.inUseText}>En uso</Text>
+        <View className="absolute top-2 right-20 bg-blue-500 px-2 py-1 rounded z-10">
+          <Text className="text-white text-xs font-medium">En uso</Text>
         </View>
       )}
-      {/* Información de la rutina */}
-      <View style={styles.routineContent}>
-        <View style={styles.routineHeader}>
-          <Text style={styles.routineName}>{item.name}</Text>
-          <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
-            <Text style={styles.difficultyText}>{translateDifficulty(item.difficulty)}</Text>
+      <View className="flex-1 p-4 relative">
+        <View className="flex-row justify-between items-center mb-2">
+          <Text className="text-lg font-bold text-gray-800 flex-1">{item.name}</Text>
+          <View className="px-2 py-1 rounded" style={{ backgroundColor: getDifficultyColor(item.difficulty) }}>
+            <Text className="text-white text-xs font-medium">{translateDifficulty(item.difficulty)}</Text>
           </View>
         </View>
 
-        <Text style={styles.routineDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
+        <Text className="text-sm text-gray-600 mb-3" numberOfLines={2}>{item.description}</Text>
 
-        <View style={styles.routineStats}>
-          <View style={styles.statItem}>
+        <View className="flex-row justify-between border-t border-gray-100 pt-3">
+          <View className="flex-row items-center">
             <FontAwesome5 name="dumbbell" size={14} color="#666" />
-            <Text style={styles.statText}>{getExerciseCount(item)} ejercicios</Text>
+            <Text className="text-xs text-gray-600 ml-1">{getExerciseCount(item)} ejercicios</Text>
           </View>
-          <View style={styles.statItem}>
+          <View className="flex-row items-center">
             <AntDesign name="clockcircle" size={14} color="#666" />
-            <Text style={styles.statText}>{item.duration} min</Text>
+            <Text className="text-xs text-gray-600 ml-1">{item.duration} min</Text>
           </View>
-          <Text style={styles.statText}>
+          <Text className="text-xs text-gray-600">
             Creada: {item.formatted_created_at.split(" ")[0]}
           </Text>
         </View>
       </View>
 
-      {/* Botones de acción para cada rutina */}
-      <View style={styles.routineActions}>
-        {/* Botón de edición: desactivado si la rutina está en uso */}
+      <View className="p-2 justify-center items-center border-l border-gray-100">
         <TouchableOpacity 
-          style={[styles.actionButton, { 
-            backgroundColor: routinesInUse[item.id] ? "#9CA3AF" : "#059669" 
-          }]}
+          className="w-8 h-8 rounded-full justify-center items-center mb-1 bg-blue-50"
           onPress={() => {
             if (routinesInUse[item.id]) {
               AppAlert.info(
@@ -180,48 +164,46 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
             navigation.navigate("RoutineEdit", { routineId: item.id });
           }}
         >
-          <AntDesign name="edit" size={16} color="white" />
+          <AntDesign name="edit" size={16} color="#2196F3" />
         </TouchableOpacity>
         
-        {/* Botón de eliminación: desactivado si la rutina está en uso */}
         <TouchableOpacity 
-          style={[styles.actionButton, { 
-            backgroundColor: routinesInUse[item.id] ? "#9CA3AF" : "#DC2626" 
-          }]}
+          className="w-8 h-8 rounded-full justify-center items-center bg-red-50"
           onPress={() => handleDeleteRoutine(item)}
+          disabled={routinesInUse[item.id]}
         >
-          <AntDesign name="delete" size={16} color="white" />
+          <Feather name="trash-2" size={16} color={routinesInUse[item.id] ? "#ccc" : "#F44336"} />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-[#f8f9fa]" edges={["top"]}>
       <ScreenHeader
         title="Gestión de Rutinas"
         onBack={() => navigation.goBack()}
       />
       
-      <View style={styles.contentContainer}>
+      <View className="flex-1 px-4 pb-4">
         {loading && !refreshing ? (
-          <View style={styles.loadingContainer}>
+          <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#0066CC" />
-            <Text style={styles.loadingText}>Cargando rutinas...</Text>
+            <Text className="mt-2.5 text-base text-gray-700">Cargando rutinas...</Text>
           </View>
         ) : (
           <>
             {routines.length === 0 ? (
-              <View style={styles.emptyContainer}>
+              <View className="flex-1 justify-center items-center pb-24">
                 <MaterialCommunityIcons name="dumbbell" size={64} color="#ccc" />
-                <Text style={styles.emptyText}>No se encontraron rutinas</Text>
-                <Text style={styles.emptySubText}>Crea una rutina para comenzar</Text>
+                <Text className="text-xl text-gray-600 mt-4 font-semibold">No tienes rutinas</Text>
+                <Text className="text-base text-gray-500 mt-2 mb-6">Crea tu primera rutina para comenzar</Text>
                 
-                <TouchableOpacity
-                  style={styles.createButton}
+                <TouchableOpacity 
+                  className="flex-row items-center bg-[#0066CC] px-6 py-3 rounded-full mt-4"
                   onPress={() => navigation.navigate("RoutineCreate")}
                 >
-                  <Text style={styles.createButtonText}>Crear rutina</Text>
+                  <Text className="text-white font-semibold mr-2 text-base">Crear rutina</Text>
                   <AntDesign name="plus" size={20} color="white" />
                 </TouchableOpacity>
               </View>
@@ -230,7 +212,7 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
                 data={routines}
                 renderItem={renderRoutineItem}
                 keyExtractor={(item: Routine) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
+                contentContainerClassName="py-5"
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                   <RefreshControl
@@ -242,26 +224,21 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
               />
             )}
 
-            {/* Botones flotantes */}
-            <View style={styles.floatingButtonsContainer}>
-              {/* Botón para generar rutinas con IA */}
+            <View className="absolute right-4 bottom-20">
               <TouchableOpacity
-                style={[styles.floatingButton, { backgroundColor: "#5046e5", marginBottom: 12 }]}
+                className="w-12 h-12 rounded-full justify-center items-center bg-purple-600 mb-2 shadow"
                 onPress={() => navigation.navigate("AIRoutineGenerator")}
               >
                 <FontAwesome5 name="magic" size={20} color="white" />
               </TouchableOpacity>
               
-              {/* Botón para añadir nueva rutina manualmente */}
               <TouchableOpacity
-                style={[styles.floatingButton, { backgroundColor: "#0066CC" }]}
+                className="w-12 h-12 rounded-full justify-center items-center bg-[#0066CC] shadow"
                 onPress={() => navigation.navigate("RoutineCreate")}
               >
                 <AntDesign name="plus" size={24} color="white" />
               </TouchableOpacity>
             </View>
-            
-
           </>
         )}
       </View>
@@ -269,169 +246,6 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#333",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingBottom: 100,
-  },
-  emptyText: {
-    fontSize: 20,
-    color: "#666",
-    marginTop: 16,
-    fontWeight: "600",
-  },
-  emptySubText: {
-    fontSize: 16,
-    color: "#999",
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  createButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0066CC",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 50,
-    marginTop: 16,
-  },
-  createButtonText: {
-    color: "white",
-    fontWeight: "600",
-    marginRight: 8,
-    fontSize: 16,
-  },
-  listContainer: {
-    paddingBottom: 80,
-  },
-  routineItem: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    flexDirection: "row",
-  },
-  routineContent: {
-    flex: 1,
-    padding: 16,
-    position: 'relative',
-  },
-  routineActions: {
-    padding: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderLeftWidth: 1,
-    borderLeftColor: "#f0f0f0",
-  },
-  actionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 4,
-  },
-  routineHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  routineName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    flex: 1,
-  },
-  difficultyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  difficultyText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  routineDescription: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 12,
-  },
-  routineStats: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    paddingTop: 12,
-  },
-  statItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  statText: {
-    fontSize: 13,
-    color: "#666",
-    marginLeft: 4,
-  },
-  floatingButtonsContainer: {
-    position: "absolute",
-    right: 16,
-    bottom: 80,
-  },
-  floatingButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
 
-  inUseIndicator: {
-    position: 'absolute',
-    top: 8,
-    right: 80,
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    zIndex: 10,
-  },
-  inUseText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-});
 
 export default RoutineManagementScreen;

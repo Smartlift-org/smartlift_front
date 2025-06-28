@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
@@ -35,10 +34,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [privacyPolicyVisible, setPrivacyPolicyVisible] = useState<boolean>(false);
-  const [termsOfServiceVisible, setTermsOfServiceVisible] = useState<boolean>(false);
+  const [privacyPolicyVisible, setPrivacyPolicyVisible] =
+    useState<boolean>(false);
+  const [termsOfServiceVisible, setTermsOfServiceVisible] =
+    useState<boolean>(false);
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
-  const [selectedRole, setSelectedRole] = useState<'user' | 'coach'>('user');
+  const [selectedRole, setSelectedRole] = useState<"user" | "coach">("user");
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
@@ -61,7 +62,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
     }
 
     if (!isValidEmail(email)) {
-      AppAlert.error("Error", "Por favor ingrese una dirección de correo válida");
+      AppAlert.error(
+        "Error",
+        "Por favor ingrese una dirección de correo válida"
+      );
       return;
     }
     if (password.length < 6) {
@@ -75,7 +79,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
     }
 
     if (!acceptedTerms) {
-      AppAlert.error("Términos no aceptados", "Debes aceptar los Términos de Servicio y la Política de Privacidad para continuar");
+      AppAlert.error(
+        "Términos no aceptados",
+        "Debes aceptar los Términos de Servicio y la Política de Privacidad para continuar"
+      );
       return;
     }
 
@@ -88,42 +95,46 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         email: email.trim().toLowerCase(),
         password: password,
         password_confirmation: confirmPassword,
-        role: selectedRole
+        role: selectedRole,
       };
 
-      // Register the user
       await authService.register(userData);
-      
-      // Auto-login after successful registration
+
       try {
-        const loginResponse = await authService.login(userData.email, userData.password);
-        
+        const loginResponse = await authService.login(
+          userData.email,
+          userData.password
+        );
+
         setIsLoading(false);
-        
-        // Navigate to the appropriate home screen based on role
-        if (loginResponse.user.role === 'coach') {
+
+        if (loginResponse.user.role === "coach") {
           navigation.reset({
             index: 0,
-            routes: [{ name: "CoachHome" }]
+            routes: [{ name: "CoachHome" }],
           });
         } else {
-          // For regular users, check if they've completed their profile
           try {
-            const hasCompletedProfile = await userStatsService.hasCompletedProfile();
-            
+            const hasCompletedProfile =
+              await userStatsService.hasCompletedProfile();
+
             if (!hasCompletedProfile) {
-              // User hasn't completed their profile, redirect to stats profile screen
               navigation.reset({
                 index: 0,
-                routes: [{ 
-                  name: "StatsProfile",
-                  params: { fromRedirect: true }
-                }],
+                routes: [
+                  {
+                    name: "StatsProfile",
+                    params: { fromRedirect: true },
+                  },
+                ],
               });
-              
-              AppAlert.info("Perfil incompleto", "Por favor complete su perfil para continuar.", [{ text: "Entendido" }]);
+
+              AppAlert.info(
+                "Perfil incompleto",
+                "Por favor complete su perfil para continuar.",
+                [{ text: "Entendido" }]
+              );
             } else {
-              // User has completed their profile, proceed to home screen
               navigation.reset({
                 index: 0,
                 routes: [{ name: "UserHome" }],
@@ -131,8 +142,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             }
           } catch (error) {
             console.error("Error checking profile completion:", error);
-            
-            // Default to user home if there's an error checking profile
+
             navigation.reset({
               index: 0,
               routes: [{ name: "UserHome" }],
@@ -140,7 +150,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
           }
         }
       } catch (loginError) {
-        // If auto-login fails, still show success but redirect to login screen
         setIsLoading(false);
         AppAlert.info(
           "Registro Exitoso",
@@ -166,25 +175,17 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         className="flex-1 bg-background"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <PrivacyPolicyModal 
-          visible={privacyPolicyVisible} 
-          onClose={() => setPrivacyPolicyVisible(false)} 
+        <PrivacyPolicyModal
+          visible={privacyPolicyVisible}
+          onClose={() => setPrivacyPolicyVisible(false)}
         />
-        <TermsOfServiceModal 
-          visible={termsOfServiceVisible} 
-          onClose={() => setTermsOfServiceVisible(false)} 
+        <TermsOfServiceModal
+          visible={termsOfServiceVisible}
+          onClose={() => setTermsOfServiceVisible(false)}
         />
         <StatusBar barStyle="dark-content" />
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="items-center mt-10">
-            <Image
-              source={require("../assets/smartlift_logo.png")}
-              className="w-36 h-36"
-              resizeMode="contain"
-            />
-          </View>
-
-          <View className="px-6 mt-5">
+          <View className="px-6 mt-20">
             <Text className="text-3xl font-bold text-text">Crear Cuenta</Text>
             <Text className="text-base text-textLight mt-1 mb-6">
               Regístrate para comenzar
@@ -213,7 +214,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">Correo Electrónico</Text>
+              <Text className="text-sm text-[#495057] mb-2">
+                Correo Electrónico
+              </Text>
               <TextInput
                 className="bg-white border border-border rounded-lg p-4 text-base"
                 placeholder="Ingresa tu correo electrónico"
@@ -225,19 +228,41 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">Tipo de Usuario</Text>
+              <Text className="text-sm text-[#495057] mb-2">
+                Tipo de Usuario
+              </Text>
               <View className="flex-row">
-                <TouchableOpacity 
-                  className={`flex-1 border ${selectedRole === 'user' ? 'bg-primary border-primary' : 'bg-white border-border'} rounded-lg p-4 mr-2 items-center`}
-                  onPress={() => setSelectedRole('user')}
+                <TouchableOpacity
+                  className={`flex-1 border ${
+                    selectedRole === "user"
+                      ? "bg-primary border-primary"
+                      : "bg-white border-border"
+                  } rounded-lg p-4 mr-2 items-center`}
+                  onPress={() => setSelectedRole("user")}
                 >
-                  <Text className={`text-base ${selectedRole === 'user' ? 'text-white' : 'text-textLight'}`}>Usuario</Text>
+                  <Text
+                    className={`text-base ${
+                      selectedRole === "user" ? "text-white" : "text-textLight"
+                    }`}
+                  >
+                    Usuario
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  className={`flex-1 border ${selectedRole === 'coach' ? 'bg-primary border-primary' : 'bg-white border-border'} rounded-lg p-4 ml-2 items-center`}
-                  onPress={() => setSelectedRole('coach')}
+                <TouchableOpacity
+                  className={`flex-1 border ${
+                    selectedRole === "coach"
+                      ? "bg-primary border-primary"
+                      : "bg-white border-border"
+                  } rounded-lg p-4 ml-2 items-center`}
+                  onPress={() => setSelectedRole("coach")}
                 >
-                  <Text className={`text-base ${selectedRole === 'coach' ? 'text-white' : 'text-textLight'}`}>Entrenador</Text>
+                  <Text
+                    className={`text-base ${
+                      selectedRole === "coach" ? "text-white" : "text-textLight"
+                    }`}
+                  >
+                    Entrenador
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -275,14 +300,14 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
               />
               <Text className="text-sm text-textLight flex-1 mt-2">
                 Acepto los{" "}
-                <Text 
+                <Text
                   className="text-primary font-bold"
                   onPress={() => setTermsOfServiceVisible(true)}
                 >
                   Términos de Servicio
                 </Text>{" "}
                 y la{" "}
-                <Text 
+                <Text
                   className="text-primary font-bold"
                   onPress={() => setPrivacyPolicyVisible(true)}
                 >
@@ -302,8 +327,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 {isLoading ? "Creando Cuenta..." : "Crear Cuenta"}
               </Text>
             </TouchableOpacity>
-
-
           </View>
 
           <View className="flex-row justify-center mb-8 mt-3">
@@ -311,7 +334,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
               ¿Ya tienes una cuenta?{" "}
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text className="text-primary text-sm font-bold">Iniciar Sesión</Text>
+              <Text className="text-primary text-sm font-bold">
+                Iniciar Sesión
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
