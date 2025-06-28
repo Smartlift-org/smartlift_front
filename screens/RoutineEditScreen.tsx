@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
@@ -12,7 +11,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
-import routineService, { Routine, RoutineExercise, RoutineFormData } from "../services/routineService";
+import routineService, {
+  Routine,
+  RoutineFormData,
+} from "../services/routineService";
 import { RootStackParamList } from "../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -27,7 +29,7 @@ type Props = {
 
 const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
   const { routineId } = route.params;
-  
+
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [routine, setRoutine] = useState<Routine | null>(null);
@@ -39,27 +41,27 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
     routine_exercises_attributes: [],
   });
 
-  // Cargar datos de la rutina
   useEffect(() => {
     const loadRoutine = async () => {
       try {
         setLoading(true);
         const data = await routineService.getRoutine(routineId);
         setRoutine(data);
-        
-        // Inicializar el formulario con los datos de la rutina
+
         setFormData({
           name: data.name,
           description: data.description,
           difficulty: data.difficulty,
           duration: data.duration,
-          routine_exercises_attributes: data.routine_exercises.map(exercise => ({
-            exercise_id: exercise.exercise_id,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            rest_time: exercise.rest_time,
-            order: exercise.order,
-          })),
+          routine_exercises_attributes: data.routine_exercises.map(
+            (exercise) => ({
+              exercise_id: exercise.exercise_id,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              rest_time: exercise.rest_time,
+              order: exercise.order,
+            })
+          ),
         });
       } catch (error) {
         console.error("Error al cargar la rutina:", error);
@@ -81,18 +83,23 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleSave = async () => {
-    // Validar formulario
     if (!formData.name.trim()) {
       AppAlert.error("Error", "Debes proporcionar un nombre para la rutina");
       return;
     }
 
     if (!formData.description.trim()) {
-      AppAlert.error("Error", "Debes proporcionar una descripción para la rutina");
+      AppAlert.error(
+        "Error",
+        "Debes proporcionar una descripción para la rutina"
+      );
       return;
     }
 
-    if (!formData.routine_exercises_attributes || formData.routine_exercises_attributes.length === 0) {
+    if (
+      !formData.routine_exercises_attributes ||
+      formData.routine_exercises_attributes.length === 0
+    ) {
       AppAlert.error("Error", "La rutina debe tener al menos un ejercicio");
       return;
     }
@@ -112,115 +119,140 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleRemoveExercise = async (exerciseId: number, index: number) => {
     try {
-      // Actualizar localmente primero para UI responsiva
-      const updatedExercises = formData.routine_exercises_attributes ? 
-        [...formData.routine_exercises_attributes] : [];
+      const updatedExercises = formData.routine_exercises_attributes
+        ? [...formData.routine_exercises_attributes]
+        : [];
       updatedExercises.splice(index, 1);
-      
-      // Actualizar orden de los ejercicios restantes
+
       updatedExercises.forEach((ex, idx) => {
         ex.order = idx + 1;
       });
-      
+
       setFormData({
         ...formData,
         routine_exercises_attributes: updatedExercises,
       });
-      
-      // Intentar eliminar en el backend solo si es un ejercicio existente
-      // Si es un ejercicio recién añadido, no tendrá ID en la base de datos
+
       if (routine && routine.routine_exercises[index]?.id) {
-        await routineService.removeExerciseFromRoutine(routineId, routine.routine_exercises[index].id);
+        await routineService.removeExerciseFromRoutine(
+          routineId,
+          routine.routine_exercises[index].id
+        );
       }
     } catch (error) {
       console.error("Error al eliminar ejercicio:", error);
       AppAlert.error("Error", "No se pudo eliminar el ejercicio");
-      // Si falla la eliminación, recargar la rutina
       navigation.replace("RoutineEdit", { routineId });
     }
   };
 
   const handleAddExercises = () => {
-    // Guardamos primero los cambios básicos de la rutina
-    routineService.updateRoutine(routineId, {
-      name: formData.name,
-      description: formData.description,
-      difficulty: formData.difficulty,
-      duration: formData.duration,
-    })
-    .then(() => {
-      // Navegamos a la pantalla de selección de ejercicios
-      navigation.navigate("ExerciseSelect", {
-        routineData: {
-          name: formData.name,
-          description: formData.description,
-          difficulty: formData.difficulty,
-          duration: formData.duration
-        }
+    routineService
+      .updateRoutine(routineId, {
+        name: formData.name,
+        description: formData.description,
+        difficulty: formData.difficulty,
+        duration: formData.duration,
+      })
+      .then(() => {
+        navigation.navigate("ExerciseSelect", {
+          routineData: {
+            name: formData.name,
+            description: formData.description,
+            difficulty: formData.difficulty,
+            duration: formData.duration,
+            // Enviamos los ejercicios existentes
+            routine_exercises_attributes: formData.routine_exercises_attributes,
+          },
+          isEditing: true,
+          routineId: routineId,
+        });
+      })
+      .catch((error) => {
+        console.error("Error al guardar cambios básicos:", error);
+        AppAlert.error(
+          "Error",
+          "No se pudieron guardar los cambios de la rutina"
+        );
       });
-    })
-    .catch(error => {
-      console.error("Error al guardar cambios básicos:", error);
-      AppAlert.error("Error", "No se pudieron guardar los cambios de la rutina");
-    });
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScreenHeader title="Editando Rutina" onBack={() => navigation.goBack()} />
-        <View style={styles.loadingContainer}>
+      <SafeAreaView className="flex-1 bg-gray-50">
+        <ScreenHeader
+          title="Editar Rutina"
+          onBack={() => navigation.goBack()}
+        />
+        <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#0066CC" />
-          <Text style={styles.loadingText}>Cargando rutina...</Text>
+          <Text className="mt-3 text-base text-gray-600">
+            Cargando rutina...
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScreenHeader title="Editando Rutina" onBack={() => navigation.goBack()} />
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Nombre de la Rutina</Text>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <ScreenHeader
+        title="Editando Rutina"
+        onBack={() => navigation.goBack()}
+      />
+
+      <ScrollView
+        className="flex-1 px-4 py-2"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mb-5">
+          <Text className="text-base font-semibold text-gray-800 mb-2">
+            Nombre de la Rutina
+          </Text>
           <TextInput
-            style={styles.input}
+            className="bg-white rounded-lg border border-gray-300 p-3 text-base"
             value={formData.name}
             onChangeText={(value: string) => handleChange("name", value)}
             placeholder="Ej. Rutina de Fuerza"
           />
         </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Descripción</Text>
+        <View className="mb-5">
+          <Text className="text-base font-semibold text-gray-800 mb-2">
+            Descripción
+          </Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            className="bg-white rounded-lg border border-gray-300 p-3 text-base min-h-[100px]"
             value={formData.description}
             onChangeText={(value: string) => handleChange("description", value)}
             placeholder="Describe brevemente esta rutina"
             multiline
             numberOfLines={4}
+            textAlignVertical="top"
           />
         </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Dificultad</Text>
-          <View style={styles.difficultySelector}>
+        <View className="mb-5">
+          <Text className="text-base font-semibold text-gray-800 mb-2">
+            Dificultad
+          </Text>
+          <View className="flex-row justify-between">
             {["beginner", "intermediate", "advanced"].map((level) => (
               <TouchableOpacity
                 key={level}
-                style={[
-                  styles.difficultyOption,
-                  formData.difficulty === level && styles.selectedDifficulty,
-                ]}
+                className={`flex-1 py-2 px-3 mx-1 rounded-lg border ${
+                  formData.difficulty === level
+                    ? "bg-blue-500 border-blue-600"
+                    : "bg-white border-gray-300"
+                }`}
                 onPress={() => handleChange("difficulty", level)}
               >
                 <Text
-                  style={[
-                    styles.difficultyText,
-                    formData.difficulty === level && styles.selectedDifficultyText,
-                  ]}
+                  className={`text-center font-medium ${
+                    formData.difficulty === level
+                      ? "text-white"
+                      : "text-gray-700"
+                  }`}
                 >
                   {level === "beginner"
                     ? "Principiante"
@@ -233,10 +265,12 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Duración Aproximada (minutos)</Text>
+        <View className="mb-5">
+          <Text className="text-base font-semibold text-gray-800 mb-2">
+            Duración Aproximada (minutos)
+          </Text>
           <TextInput
-            style={styles.input}
+            className="bg-white rounded-lg border border-gray-300 p-3 text-base"
             value={formData.duration.toString()}
             onChangeText={(value: string) => {
               const parsed = parseInt(value) || 0;
@@ -247,78 +281,91 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
           />
         </View>
 
-        <View style={styles.exercisesSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Ejercicios</Text>
+        <View className="mt-2 mb-4">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-gray-800">Ejercicios</Text>
             <TouchableOpacity
-              style={styles.addExerciseButton}
+              className="bg-blue-500 flex-row items-center py-2 px-3 rounded-lg"
               onPress={handleAddExercises}
             >
               <AntDesign name="plus" size={18} color="white" />
-              <Text style={styles.addExerciseText}>Agregar</Text>
+              <Text className="text-white font-medium ml-1">Agregar</Text>
             </TouchableOpacity>
           </View>
 
-          {!formData.routine_exercises_attributes || formData.routine_exercises_attributes.length === 0 ? (
-            <View style={styles.emptyExercises}>
+          {!formData.routine_exercises_attributes ||
+          formData.routine_exercises_attributes.length === 0 ? (
+            <View className="py-10 items-center justify-center bg-gray-100 rounded-lg">
               <FontAwesome5 name="dumbbell" size={40} color="#ddd" />
-              <Text style={styles.emptyText}>
+              <Text className="mt-4 text-lg font-medium text-gray-500">
                 No hay ejercicios en esta rutina
               </Text>
-              <Text style={styles.emptySubtext}>
+              <Text className="mt-2 text-sm text-gray-400">
                 Agrega ejercicios para completar tu rutina
               </Text>
             </View>
           ) : (
-            <View style={styles.exercisesList}>
-              {formData.routine_exercises_attributes && formData.routine_exercises_attributes.map((ex, index) => {
-                // Buscar el ejercicio completo en la rutina original
-                const exerciseData = routine?.routine_exercises.find(
-                  (e) => e.exercise_id === ex.exercise_id
-                );
-                if (!exerciseData) return null;
+            <View className="mb-4">
+              {formData.routine_exercises_attributes &&
+                formData.routine_exercises_attributes.map((ex, index) => {
+                  const exerciseData = routine?.routine_exercises.find(
+                    (e) => e.exercise_id === ex.exercise_id
+                  );
+                  if (!exerciseData) return null;
 
-                return (
-                  <View key={index} style={styles.exerciseItem}>
-                    <View style={styles.exerciseInfo}>
-                      <Text style={styles.exerciseName}>
-                        {exerciseData.exercise.name}
-                      </Text>
-                      <Text style={styles.exerciseDetails}>
-                        {ex.sets} series × {ex.reps} reps • {ex.rest_time}s descanso
-                      </Text>
-                      <View style={styles.exerciseTags}>
-                        <View style={styles.exerciseTag}>
-                          <Text style={styles.tagText}>
-                            {exerciseData.exercise.category}
-                          </Text>
-                        </View>
-                        {exerciseData.exercise.equipment && (
-                          <View style={styles.exerciseTag}>
-                            <Text style={styles.tagText}>
-                              {exerciseData.exercise.equipment}
+                  return (
+                    <View
+                      key={index}
+                      className="bg-white p-4 rounded-lg shadow-sm mb-3 flex-row justify-between"
+                    >
+                      <View className="flex-1 pr-2">
+                        <Text className="text-base font-bold text-gray-800">
+                          {exerciseData.exercise.name}
+                        </Text>
+                        <Text className="text-sm text-gray-600 my-1">
+                          {ex.sets} series × {ex.reps} reps • {ex.rest_time}s
+                          descanso
+                        </Text>
+                        <View className="flex-row flex-wrap mt-1">
+                          <View className="bg-gray-200 rounded-full mr-2 mb-1 px-2 py-1">
+                            <Text className="text-xs text-gray-700">
+                              {exerciseData.exercise.category}
                             </Text>
                           </View>
-                        )}
+                          {exerciseData.exercise.equipment && (
+                            <View className="bg-gray-200 rounded-full mr-2 mb-1 px-2 py-1">
+                              <Text className="text-xs text-gray-700">
+                                {exerciseData.exercise.equipment}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
+                      <TouchableOpacity
+                        className="justify-center items-center p-2"
+                        onPress={() =>
+                          handleRemoveExercise(ex.exercise_id, index)
+                        }
+                      >
+                        <MaterialIcons
+                          name="delete"
+                          size={24}
+                          color="#DC2626"
+                        />
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      style={styles.removeExerciseButton}
-                      onPress={() => handleRemoveExercise(ex.exercise_id, index)}
-                    >
-                      <MaterialIcons name="delete" size={24} color="#DC2626" />
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
+                  );
+                })}
             </View>
           )}
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View className="bg-white p-4 border-t border-gray-200">
         <TouchableOpacity
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+          className={`flex-row items-center justify-center bg-blue-600 ${
+            saving ? "opacity-70" : "opacity-100"
+          } rounded-lg py-3 px-4`}
           onPress={handleSave}
           disabled={saving}
         >
@@ -326,7 +373,9 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
             <ActivityIndicator size="small" color="white" />
           ) : (
             <>
-              <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+              <Text className="text-white font-bold text-base mr-2">
+                Guardar Cambios
+              </Text>
               <AntDesign name="save" size={20} color="white" />
             </>
           )}
@@ -335,194 +384,5 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#666",
-  },
-  formGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
-    fontSize: 16,
-  },
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  difficultySelector: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  difficultyOption: {
-    flex: 1,
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    alignItems: "center",
-    marginHorizontal: 4,
-  },
-  selectedDifficulty: {
-    backgroundColor: "#0066CC",
-    borderColor: "#0066CC",
-  },
-  difficultyText: {
-    fontWeight: "500",
-    color: "#666",
-  },
-  selectedDifficultyText: {
-    color: "white",
-  },
-  exercisesSection: {
-    marginTop: 16,
-    marginBottom: 100,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  addExerciseButton: {
-    flexDirection: "row",
-    backgroundColor: "#10B981",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    alignItems: "center",
-  },
-  addExerciseText: {
-    color: "white",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  emptyExercises: {
-    padding: 30,
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "#ddd",
-  },
-  emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#666",
-  },
-  emptySubtext: {
-    marginTop: 8,
-    color: "#999",
-    textAlign: "center",
-  },
-  exercisesList: {
-    marginBottom: 20,
-  },
-  exerciseItem: {
-    flexDirection: "row",
-    backgroundColor: "white",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2.5,
-    elevation: 2,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
-  },
-  exerciseDetails: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-  },
-  exerciseTags: {
-    flexDirection: "row",
-  },
-  exerciseTag: {
-    backgroundColor: "#f0f0f0",
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  tagText: {
-    fontSize: 12,
-    color: "#666",
-  },
-  removeExerciseButton: {
-    justifyContent: "center",
-    paddingLeft: 12,
-  },
-  footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "white",
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  saveButton: {
-    backgroundColor: "#0066CC",
-    borderRadius: 25,
-    paddingVertical: 14,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  saveButtonDisabled: {
-    backgroundColor: "#A3CFFF",
-  },
-  saveButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-    marginRight: 8,
-  },
-});
 
 export default RoutineEditScreen;
