@@ -5,12 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   StatusBar,
   ScrollView,
-  Alert,
-  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, User } from "../types";
 import authService from "../services/authService";
@@ -21,18 +19,18 @@ type BasicProfileScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "BasicProfile">;
 };
 
-const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) => {
+const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
+  navigation,
+}) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  
-  // Form fields
+
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  
-  // Password change fields
+
   const [showPasswordFields, setShowPasswordFields] = useState<boolean>(false);
   const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -59,10 +57,7 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
-      AppAlert.error(
-        "Error",
-        "Ocurrió un error al cargar tu información."
-      );
+      AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +65,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
 
   const togglePasswordChange = (): void => {
     setShowPasswordFields(!showPasswordFields);
-    // Reset password fields when toggling
     if (!showPasswordFields) {
       setCurrentPassword("");
       setNewPassword("");
@@ -79,7 +73,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
   };
 
   const validateForm = (): boolean => {
-    // Basic validation for user info
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       AppAlert.error(
         "Error de validación",
@@ -88,7 +81,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
       return false;
     }
 
-    // Email validation
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
     if (!emailRegex.test(email)) {
       AppAlert.error(
@@ -98,7 +90,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
       return false;
     }
 
-    // Password validation if changing password
     if (showPasswordFields) {
       if (!currentPassword) {
         AppAlert.error(
@@ -134,8 +125,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
     setIsSaving(true);
 
     try {
-      // In a real implementation, you would call the API here to update the user's profile
-      // For now, we'll just simulate the API call with a delay
       if (currentUser) {
         const updatedUser = {
           ...currentUser,
@@ -143,14 +132,10 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
           last_name: lastName.trim(),
           email: email.trim(),
         };
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Update password if needed
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         if (showPasswordFields && newPassword && currentPassword) {
-          // This is where you would call the API to update the password
-          // authService.updatePassword(currentPassword, newPassword);
           AppAlert.info(
             "Contraseña actualizada",
             "La contraseña ha sido actualizada correctamente."
@@ -160,10 +145,10 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
           setNewPassword("");
           setConfirmPassword("");
         }
-        
+
         setCurrentUser(updatedUser);
         setIsEditing(false);
-        
+
         AppAlert.info(
           "¡Actualizado!",
           "Tu información personal ha sido actualizada correctamente."
@@ -184,7 +169,9 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
         <ActivityIndicator size="large" color="#4f46e5" />
-        <Text className="mt-4 text-gray-600 font-medium">Cargando perfil...</Text>
+        <Text className="mt-4 text-gray-600 font-medium">
+          Cargando perfil...
+        </Text>
       </SafeAreaView>
     );
   }
@@ -192,15 +179,14 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
-      <SafeAreaView className="flex-1 bg-gray-100" style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+      <SafeAreaView className="flex-1 bg-gray-100">
         <View className="flex-1">
-          {/* Header */}
           <ScreenHeader
             title="Perfil Personal"
             onBack={() => navigation.goBack()}
             rightComponent={
               !isEditing ? (
-                <TouchableOpacity 
+                <TouchableOpacity
                   className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
                   onPress={() => setIsEditing(true)}
                 >
@@ -213,25 +199,36 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
           />
 
           <ScrollView className="flex-1 p-4">
-            <Text className="text-2xl font-bold text-indigo-900 mb-6">Información Personal</Text>
+            <Text className="text-2xl font-bold text-indigo-900 mb-6">
+              Información Personal
+            </Text>
 
-            {/* Basic Information Card */}
             <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
-              <Text className="text-lg font-semibold text-gray-800 mb-4">Datos Básicos</Text>
-              
+              <Text className="text-lg font-semibold text-gray-800 mb-4">
+                Datos Básicos
+              </Text>
+
               {!isEditing ? (
                 <View>
                   <View className="mb-4">
                     <Text className="text-gray-600 mb-1">Nombre</Text>
-                    <Text className="text-gray-800 font-medium">{currentUser?.first_name || ""}</Text>
+                    <Text className="text-gray-800 font-medium">
+                      {currentUser?.first_name || ""}
+                    </Text>
                   </View>
                   <View className="mb-4">
                     <Text className="text-gray-600 mb-1">Apellido</Text>
-                    <Text className="text-gray-800 font-medium">{currentUser?.last_name || ""}</Text>
+                    <Text className="text-gray-800 font-medium">
+                      {currentUser?.last_name || ""}
+                    </Text>
                   </View>
                   <View className="mb-4">
-                    <Text className="text-gray-600 mb-1">Correo Electrónico</Text>
-                    <Text className="text-gray-800 font-medium">{currentUser?.email || ""}</Text>
+                    <Text className="text-gray-600 mb-1">
+                      Correo Electrónico
+                    </Text>
+                    <Text className="text-gray-800 font-medium">
+                      {currentUser?.email || ""}
+                    </Text>
                   </View>
                 </View>
               ) : (
@@ -255,7 +252,9 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
                     />
                   </View>
                   <View className="mb-4">
-                    <Text className="text-gray-600 mb-1">Correo Electrónico *</Text>
+                    <Text className="text-gray-600 mb-1">
+                      Correo Electrónico *
+                    </Text>
                     <TextInput
                       className="bg-gray-50 border border-gray-300 rounded-md p-2.5 text-gray-700"
                       value={email}
@@ -268,13 +267,14 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
                 </View>
               )}
             </View>
-            
-            {/* Password Change - only displayed during edit mode */}
+
             {isEditing && (
               <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
                 <View className="flex-row justify-between items-center mb-4">
-                  <Text className="text-lg font-semibold text-gray-800">Cambiar Contraseña</Text>
-                  <TouchableOpacity 
+                  <Text className="text-lg font-semibold text-gray-800">
+                    Cambiar Contraseña
+                  </Text>
+                  <TouchableOpacity
                     onPress={togglePasswordChange}
                     className="bg-gray-200 py-1 px-3 rounded-lg"
                   >
@@ -283,11 +283,13 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
                     </Text>
                   </TouchableOpacity>
                 </View>
-                
+
                 {showPasswordFields && (
                   <View>
                     <View className="mb-4">
-                      <Text className="text-gray-600 mb-1">Contraseña Actual *</Text>
+                      <Text className="text-gray-600 mb-1">
+                        Contraseña Actual *
+                      </Text>
                       <TextInput
                         className="bg-gray-50 border border-gray-300 rounded-md p-2.5 text-gray-700"
                         value={currentPassword}
@@ -297,7 +299,9 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
                       />
                     </View>
                     <View className="mb-4">
-                      <Text className="text-gray-600 mb-1">Nueva Contraseña *</Text>
+                      <Text className="text-gray-600 mb-1">
+                        Nueva Contraseña *
+                      </Text>
                       <TextInput
                         className="bg-gray-50 border border-gray-300 rounded-md p-2.5 text-gray-700"
                         value={newPassword}
@@ -307,7 +311,9 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
                       />
                     </View>
                     <View className="mb-4">
-                      <Text className="text-gray-600 mb-1">Confirmar Contraseña *</Text>
+                      <Text className="text-gray-600 mb-1">
+                        Confirmar Contraseña *
+                      </Text>
                       <TextInput
                         className="bg-gray-50 border border-gray-300 rounded-md p-2.5 text-gray-700"
                         value={confirmPassword}
@@ -321,7 +327,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
               </View>
             )}
 
-            {/* Logout Button - Only displayed when not in editing mode */}
             {!isEditing && (
               <TouchableOpacity
                 className="bg-red-500 py-3 px-5 rounded-lg"
@@ -339,26 +344,27 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
                   );
                 }}
               >
-                <Text className="text-center text-red-600 font-semibold">
+                <Text className="text-center text-white font-semibold">
                   Cerrar Sesión
                 </Text>
               </TouchableOpacity>
             )}
           </ScrollView>
-          
-          {/* Fixed buttons at the bottom when in edit mode */}
+
           {isEditing && (
             <View className="p-4 bg-white border-t border-gray-200 shadow-lg">
               <View className="flex-row justify-between">
-                <TouchableOpacity 
+                <TouchableOpacity
                   className="bg-gray-300 py-3 px-6 rounded-lg flex-1 mr-2"
                   onPress={() => {
                     setIsEditing(false);
-                    loadUserProfile(); // Reset to original values
+                    loadUserProfile();
                     setShowPasswordFields(false);
                   }}
                 >
-                  <Text className="text-gray-700 text-center font-semibold">Cancelar</Text>
+                  <Text className="text-gray-700 text-center font-semibold">
+                    Cancelar
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="bg-indigo-600 rounded-lg py-3 px-6 shadow-sm flex-1 ml-2"
@@ -378,7 +384,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({ navigation }) =
           )}
         </View>
       </SafeAreaView>
-
     </>
   );
 };
