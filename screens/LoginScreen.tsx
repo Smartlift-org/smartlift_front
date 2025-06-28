@@ -4,13 +4,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
   StatusBar,
-  ActivityIndicator,
 } from "react-native";
 import AppAlert from "../components/AppAlert";
 
@@ -42,34 +40,37 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       const response = await authService.login(sanitizedEmail, password);
 
       if (response && response.token && response.user) {
-        // Check if user has completed their profile (for regular users, not coaches)
         const userRole = response.user.role;
-        
-        if (userRole === 'coach') {
+
+        if (userRole === "coach") {
           setIsLoading(false);
           navigation.reset({
             index: 0,
             routes: [{ name: "CoachHome" }],
           });
         } else {
-          // For regular users, check if they've completed their profile
           try {
-            const hasCompletedProfile = await userStatsService.hasCompletedProfile();
+            const hasCompletedProfile =
+              await userStatsService.hasCompletedProfile();
             setIsLoading(false);
-            
+
             if (!hasCompletedProfile) {
-              // User hasn't completed their profile, redirect to stats profile screen
               navigation.reset({
                 index: 0,
-                routes: [{ 
-                  name: "StatsProfile",
-                  params: { fromRedirect: true }
-                }],
+                routes: [
+                  {
+                    name: "StatsProfile",
+                    params: { fromRedirect: true },
+                  },
+                ],
               });
-              
-              AppAlert.info("Perfil incompleto", "Por favor complete su perfil para continuar.", [{ text: "Entendido" }]);
+
+              AppAlert.info(
+                "Perfil incompleto",
+                "Por favor complete su perfil para continuar.",
+                [{ text: "Entendido" }]
+              );
             } else {
-              // User has completed their profile, proceed to home screen
               navigation.reset({
                 index: 0,
                 routes: [{ name: "UserHome" }],
@@ -78,8 +79,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           } catch (error) {
             console.error("Error checking profile completion:", error);
             setIsLoading(false);
-            
-            // Default to user home if there's an error checking profile
+
             navigation.reset({
               index: 0,
               routes: [{ name: "UserHome" }],
@@ -88,7 +88,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         }
       } else {
         setIsLoading(false);
-        AppAlert.error("Error", "No se pudo obtener la información del usuario");
+        AppAlert.error(
+          "Error",
+          "No se pudo obtener la información del usuario"
+        );
       }
     } catch (error: any) {
       setIsLoading(false);
@@ -109,26 +112,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <StatusBar barStyle="dark-content" />
-
-        <View className="items-center mt-15 bg-background">
-          <Image
-            source={require("../assets/smartlift_logo.png")}
-            className="w-36 h-36"
-            resizeMode="contain"
-            onError={(error: any) =>
-              console.error("Image loading error:", error.nativeEvent.error)
-            }
-          />
-        </View>
-
-        <View className="flex-1 px-6 mt-8">
+        <View className="flex-1 px-6 mt-20">
           <Text className="text-3xl font-bold text-text">Bienvenido</Text>
           <Text className="text-base text-textLight mt-1 mb-8">
             Inicia sesión para continuar
           </Text>
 
           <View className="mb-5">
-            <Text className="text-sm text-[#495057] mb-2">Correo Electrónico</Text>
+            <Text className="text-sm text-[#495057] mb-2">
+              Correo Electrónico
+            </Text>
             <TextInput
               className="bg-white border border-border rounded-lg p-4 text-base"
               placeholder="Ingresa tu correo electrónico"
@@ -151,7 +144,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           </View>
 
           <TouchableOpacity className="self-end mb-8">
-            <Text className="text-primary text-sm">¿Olvidaste tu contraseña?</Text>
+            <Text className="text-primary text-sm">
+              ¿Olvidaste tu contraseña?
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
