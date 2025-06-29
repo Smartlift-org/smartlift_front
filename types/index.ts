@@ -1,4 +1,7 @@
-import { RoutineFormData } from '../services/routineService';
+import {
+  RoutineFormData,
+  RoutineExerciseFormData,
+} from "../services/routineService";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -14,26 +17,30 @@ export type RootStackParamList = {
   ActiveWorkouts: undefined;
   RoutineSelect: { fromActiveWorkouts?: boolean };
   WorkoutInProgress: { workoutId: number };
-  
-  ExerciseSelect: { 
+
+  ExerciseSelect: {
     routineData: {
       name: string;
       description: string;
-      difficulty: 'beginner' | 'intermediate' | 'advanced';
+      difficulty: "beginner" | "intermediate" | "advanced";
       duration: number;
-    } 
+    };
   };
   WorkoutTracker: { routineId: number };
-  WorkoutStats: undefined;
+  WorkoutStats: { workoutId?: string; message?: string };
   AIRoutineGenerator: undefined;
   WorkoutHistory: undefined;
-  ReviewRoutines: { 
+  SelectedExercises: {
+    selectedExercises: RoutineExerciseFormData[];
+    onReturn: (updatedExercises: RoutineExerciseFormData[] | null) => void;
+  };
+  ReviewRoutines: {
     routines: {
       descripcion: string;
       routine: {
         name: string;
         description: string;
-        difficulty: 'beginner' | 'intermediate' | 'advanced';
+        difficulty: "beginner" | "intermediate" | "advanced";
         duration: number;
         routine_exercises_attributes: {
           exercise_id: number;
@@ -52,7 +59,7 @@ export interface User {
   first_name: string;
   last_name: string;
   email: string;
-  role: 'user' | 'coach';
+  role: "user" | "coach";
   created_at?: string;
 }
 
@@ -67,5 +74,5 @@ export interface RegisterData {
   email: string;
   password: string;
   password_confirmation: string;
-  role?: 'user' | 'coach';
+  role?: "user" | "coach";
 }

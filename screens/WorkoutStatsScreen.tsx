@@ -18,6 +18,7 @@ import workoutStatsService, {
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
+import AppAlert from "../components/AppAlert";
 
 const formatTotalTime = (seconds: number): string => {
   if (!seconds) return "0h 0m";
@@ -30,21 +31,31 @@ const formatTotalTime = (seconds: number): string => {
 
 type WorkoutStatsScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "WorkoutStats">;
+  route: any;
 };
 
 const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
   navigation,
+  route,
 }) => {
   const [stats, setStats] = useState<WorkoutStatsGeneral | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
+  const { message } = route.params || {};
+
+  useEffect(() => {
+    if (message) {
+      AppAlert.success("Éxito", message);
+    }
+  }, [message]);
 
   const fetchStats = async () => {
     try {
       const data = await workoutStatsService.getGeneralStats();
       setStats(data);
     } catch (error) {
-      console.error("Error al cargar estadísticas:", error);
+      AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -73,7 +84,7 @@ const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
 
   if (!stats || stats.totalWorkouts === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-[#f8f9fa]">
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <ScreenHeader
           title="Estadísticas de Entrenamiento"
           onBack={() => navigation.goBack()}
@@ -97,7 +108,7 @@ const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#f8f9fa]">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
       <ScreenHeader
         title="Estadísticas de Entrenamiento"
         onBack={() => navigation.goBack()}
