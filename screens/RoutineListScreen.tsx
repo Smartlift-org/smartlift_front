@@ -34,7 +34,6 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
       const data = await routineService.getRoutines();
       setRoutines(data);
     } catch (error) {
-      console.error("Error al cargar rutinas:", error);
       AppAlert.error("Error", "Error al cargar rutinas");
     } finally {
       setLoading(false);
@@ -143,7 +142,13 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
       <ScreenHeader
         title={"Tus Rutinas"}
         onBack={() => {
-          navigation.goBack();
+          const canGoBack = navigation.canGoBack();
+          
+          if (canGoBack) {
+            navigation.goBack();
+          } else {
+            navigation.navigate("UserHome");
+          }
         }}
       />
 

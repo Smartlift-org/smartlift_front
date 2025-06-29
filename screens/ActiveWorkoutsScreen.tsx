@@ -37,7 +37,6 @@ const ActiveWorkoutsScreen: React.FC<ActiveWorkoutsScreenProps> = ({
       const workouts = await workoutService.getActiveWorkouts();
       setActiveWorkouts(workouts);
     } catch (error) {
-      console.error("Error al cargar entrenamientos activos:", error);
       AppAlert.error(
         "Error",
         "No se pudieron cargar los entrenamientos activos. Verifica la conexión con el servidor."
@@ -125,7 +124,7 @@ const ActiveWorkoutsScreen: React.FC<ActiveWorkoutsScreenProps> = ({
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
-      <SafeAreaView className="flex-1 bg-gray-100">
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1">
           <ScreenHeader
             title="Entrenamientos"

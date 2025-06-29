@@ -37,7 +37,6 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
       setRoutinesInUse(inUseMap);
       
     } catch (error) {
-      console.error("Error al cargar rutinas:", error);
       AppAlert.error("Error", "Error al cargar rutinas");
     } finally {
       setLoading(false);
@@ -78,7 +77,6 @@ const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
           AppAlert.success("Éxito", "Rutina eliminada correctamente");
           loadRoutines(); 
         } catch (error) {
-          console.error("Error al eliminar rutina:", error);
           AppAlert.error("Error", "No se pudo eliminar la rutina");
         }
       }

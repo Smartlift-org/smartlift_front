@@ -77,7 +77,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               });
             }
           } catch (error) {
-            console.error("Error checking profile completion:", error);
             setIsLoading(false);
 
             navigation.reset({

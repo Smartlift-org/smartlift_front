@@ -56,7 +56,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
         );
       }
     } catch (error) {
-      console.error("Error loading user profile:", error);
       AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
     } finally {
       setIsLoading(false);
@@ -155,7 +154,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
         );
       }
     } catch (error) {
-      console.error("Error saving profile:", error);
       AppAlert.error(
         "Error",
         "No se pudo actualizar tu información. Inténtalo más tarde."
@@ -167,7 +165,7 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white justify-center items-center">
+      <SafeAreaView className="flex-1 bg-white justify-center items-center" edges={["top"]}>
         <ActivityIndicator size="large" color="#4f46e5" />
         <Text className="mt-4 text-gray-600 font-medium">
           Cargando perfil...
@@ -179,7 +177,9 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
-      <SafeAreaView className="flex-1 bg-gray-100">
+      <SafeAreaView className="flex-1 bg-gray-50" edges={[
+        "top"
+      ]}>
         <View className="flex-1">
           <ScreenHeader
             title="Perfil Personal"

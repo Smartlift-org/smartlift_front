@@ -8,7 +8,7 @@ export interface AIRoutineRequest {
     focusAreas?: string[];
     equipment?: string;
     additionalNotes?: string;
-  }
+  };
 }
 
 export interface AIRoutineResponse {
@@ -25,5 +25,5 @@ export interface AIRoutineResponse {
       rest_time: number;
       order: number;
     }[];
-  }
+  };
 }

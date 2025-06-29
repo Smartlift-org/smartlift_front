@@ -59,7 +59,6 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
       AppAlert.success("¡Éxito!", "Rutinas guardadas correctamente");
       navigation.navigate("RoutineList", { refresh: true });
     } catch (error) {
-      console.error("Error al guardar rutinas:", error);
       AppAlert.error("Error", "No se pudieron guardar las rutinas");
     } finally {
       setSaving(false);

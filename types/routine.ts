@@ -4,7 +4,7 @@ export interface Routine {
   id: number;
   name: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   duration: number;
   user_id?: number;
   user?: {
@@ -17,13 +17,13 @@ export interface Routine {
   formatted_created_at?: string;
   formatted_updated_at?: string;
   image_url?: string;
-  exercises?: RoutineExercise[]; // Campo antiguo para compatibilidad
-  routine_exercises?: RoutineExercise[]; // Campo actual del backend
+  exercises?: RoutineExercise[];
+  routine_exercises?: RoutineExercise[];
 }
 
 export interface RoutineExercise {
   id: number;
-  routine_id?: number; // Hacemos este campo opcional para compatibilidad
+  routine_id?: number;
   exercise_id: number;
   sets: number;
   reps: number;
@@ -43,7 +43,7 @@ export interface RoutineExerciseFormData {
 export interface RoutineFormData {
   name: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   duration: number;
   routine_exercises_attributes?: RoutineExerciseFormData[];
 }

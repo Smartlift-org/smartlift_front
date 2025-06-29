@@ -12,13 +12,11 @@ interface WorkoutControlsProps {
   elapsedTime: number;
   viewMode?: boolean;
   saving?: boolean;
-  // Soporta ambos conjuntos de nombres de propiedades
   startWorkout?: () => void;
   pauseWorkout?: () => void;
   resumeWorkout?: () => void;
   handleCompleteWorkout?: () => void;
   handleAbandonWorkout?: () => void;
-  // Nombres alternativos usados en WorkoutTrackerScreen
   onStart?: () => void;
   onPause?: () => void;
   onResume?: () => void;
@@ -32,13 +30,11 @@ const WorkoutControls: React.FC<WorkoutControlsProps> = ({
   elapsedTime,
   viewMode = false,
   saving = false,
-  // Soporte para ambos conjuntos de nombres de propiedades
   startWorkout,
   pauseWorkout,
   resumeWorkout,
   handleCompleteWorkout,
   handleAbandonWorkout,
-  // Nombres alternativos
   onStart,
   onPause,
   onResume,
@@ -46,7 +42,6 @@ const WorkoutControls: React.FC<WorkoutControlsProps> = ({
   onAbandon,
   formatTime,
 }) => {
-  // Funciones de manejo que usarán cualquier prop que esté definida
   const handleStart = startWorkout || onStart;
   const handlePause = pauseWorkout || onPause;
   const handleResume = resumeWorkout || onResume;

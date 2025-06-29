@@ -1,6 +1,5 @@
 import { Exercise } from "./exercise";
 
-// Tipos para el seguimiento de entrenamientos activos
 export interface WorkoutSet {
   set_number: number;
   weight: number;
@@ -28,9 +27,7 @@ export interface Workout {
   energy_level?: number;
   mood?: string;
   notes?: string;
-  // Datos de los ejercicios completados
   exercises?: WorkoutExercise[];
-  // Relación con la rutina asociada (puede venir del backend)
   routine?: {
     id: number;
     name: string;
@@ -49,10 +46,12 @@ export interface Workout {
   };
 }
 
-// Posibles estados de un entrenamiento
-export type WorkoutStatus = 'not_started' | 'in_progress' | 'paused' | 'completed';
+export type WorkoutStatus =
+  | "not_started"
+  | "in_progress"
+  | "paused"
+  | "completed";
 
-// Tipos para registrar el progreso de un ejercicio durante un entrenamiento
 export interface WorkoutExerciseProgress {
   id?: number;
   workout_id: number;
@@ -62,12 +61,10 @@ export interface WorkoutExerciseProgress {
   notes?: string;
 }
 
-// Tipo para enviar al backend para crear un nuevo entrenamiento
 export interface CreateWorkoutRequest {
   routine_id: number;
 }
 
-// Tipo para actualizar el estado de un entrenamiento
 export interface UpdateWorkoutStatusRequest {
   status: WorkoutStatus;
 }

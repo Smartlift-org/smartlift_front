@@ -31,8 +31,7 @@ apiClient.interceptors.request.use(
       }
       return config;
     } catch (error) {
-      console.error("Error getting token from AsyncStorage:", error);
-      return config;
+      throw error;
     }
   },
   (error: AxiosError) => {

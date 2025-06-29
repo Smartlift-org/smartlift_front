@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   TextInput,
   ActivityIndicator,
   BackHandler,
@@ -10,7 +9,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
-
 import routineService, {
   Routine,
   WorkoutSet,
@@ -18,7 +16,6 @@ import routineService, {
   WorkoutSession,
 } from "../services/routineService";
 import { apiClient } from "../services/apiClient";
-import { AntDesign } from "@expo/vector-icons";
 import {
   ExerciseSelector,
   ExerciseSets,
@@ -95,17 +92,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         if (routineId) {
           const routineData = await routineService.getRoutine(routineId);
 
-          console.log(
-            "Datos de rutina recibidos:",
-            JSON.stringify(routineData)
-          );
-          console.log(
-            "Ejercicios en la rutina:",
-            routineData.routine_exercises
-              ? `${routineData.routine_exercises.length} ejercicios encontrados`
-              : "No se encontraron ejercicios"
-          );
-
           setRoutine(routineData);
 
           const exercises: WorkoutExercise[] = routineData.routine_exercises
@@ -130,7 +116,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         }
       } catch (error) {
         AppAlert.error("Error", "Error al cargar la rutina");
-        console.error("Error al cargar la rutina:", error);
       } finally {
         setLoading(false);
       }
@@ -181,8 +166,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         throw new Error("ID de rutina inválido");
       }
 
-      console.log("Parámetros del workout a enviar:", workoutParams);
-
       const workoutData: WorkoutSession = {
         routine_id: routine!.id,
         routine_name: routine!.name,
@@ -196,7 +179,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       const response = await apiClient.post("/workouts", {
         workout: workoutParams,
       });
-      console.log("Respuesta al crear workout:", response.data);
 
       if (response.data && response.data.id) {
         setWorkoutId(response.data.id);
@@ -208,7 +190,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         );
       }
     } catch (error) {
-      console.error("Error al iniciar entrenamiento:", error);
       AppAlert.error("Error", "No se pudo iniciar el entrenamiento");
 
       setWorkoutStatus("not_started");
@@ -246,7 +227,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       }
       setLoading(false);
     } catch (error) {
-      console.error("Error loading workout data:", error);
       setLoading(false);
     }
   };
@@ -287,7 +267,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         await routineService.pauseWorkout(Number(workoutId), pauseReason);
       }
     } catch (error) {
-      console.error("Error al pausar el workout:", error);
       AppAlert.error("Error", "No se pudo pausar el entrenamiento");
       startTimer();
       setWorkoutStatus("in_progress");
@@ -319,7 +298,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         await routineService.resumeWorkout(Number(workoutId));
       }
     } catch (error) {
-      console.error("Error al reanudar el workout:", error);
       AppAlert.error("Error", "No se pudo reanudar el entrenamiento");
       setWorkoutStatus("paused");
     }
@@ -350,8 +328,7 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         onPress: () => {},
       });
     } catch (error) {
-      console.error("Error al abandonar el workout:", error);
-      AppAlert.error("Error", "No se pudo abandonar el entrenamiento");
+      throw error;
     }
   };
 
@@ -449,13 +426,19 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
 
       setWorkoutStatus("completed");
 
-      navigation.navigate("WorkoutStats", {
-        workoutId: workoutId || "",
-        message: "Entrenamiento guardado correctamente",
+      // Usar reset en lugar de navigate para evitar volver al entrenamiento completado
+      navigation.reset({
+        index: 0,
+        routes: [{ 
+          name: "WorkoutStats", 
+          params: {
+            workoutId: workoutId || "",
+            message: "Entrenamiento guardado correctamente"
+          } 
+        }]
       });
     } catch (error) {
-      console.error("Error al guardar el workout:", error);
-      AppAlert.error("Error", "No se pudo guardar el entrenamiento");
+      throw error;
     } finally {
       setSaving(false);
     }
@@ -473,7 +456,7 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ConfirmModal
         visible={showConfirmModal}
         title={

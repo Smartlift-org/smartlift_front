@@ -1,5 +1,5 @@
-declare module 'axios' {
-  export * from 'axios';
+declare module "axios" {
+  export * from "axios";
   export interface AxiosInstance {
     get: any;
     post: any;
