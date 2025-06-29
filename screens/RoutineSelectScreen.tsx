@@ -44,7 +44,6 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
       const data = await routineService.getRoutines();
       setRoutines(data);
     } catch (error) {
-      console.error("Error al cargar rutinas:", error);
       AppAlert.error(
         "Error",
         "No se pudieron cargar las rutinas. Verifica la conexión con el servidor."
@@ -72,7 +71,6 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
                 viewMode: false,
               });
             } catch (error) {
-              console.error("Error al abandonar workout:", error);
               AppAlert.error(
                 "Error",
                 "No se pudo abandonar el entrenamiento actual."
@@ -88,7 +86,6 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
         });
       }
     } catch (error) {
-      console.error("Error al verificar entrenamientos activos:", error);
       AppAlert.error(
         "Error",
         "Ocurrió un problema al iniciar el entrenamiento."
@@ -162,7 +159,7 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
         title="Elegir Rutina"
         onBack={() => {

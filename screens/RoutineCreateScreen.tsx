@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
+import routineService from "../services/routineService";
 
 type RoutineCreateScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "RoutineCreate">;
@@ -92,14 +93,31 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({
   const handleContinueToExerciseSelection = async (): Promise<void> => {
     if (!validateForm()) return;
 
-    navigation.navigate("ExerciseSelect", {
-      routineData: {
-        name: name.trim(),
-        description: description.trim(),
-        difficulty,
-        duration: Number(duration),
-      },
-    });
+    setIsLoading(true);
+    try {
+      const nameExists = await routineService.checkRoutineNameExists(name.trim());
+      
+      if (nameExists) {
+        AppAlert.error(
+          "Nombre duplicado", 
+          "Ya existe una rutina con este nombre. Por favor, elige un nombre diferente."
+        );
+        return;
+      }
+      
+      navigation.navigate("ExerciseSelect", {
+        routineData: {
+          name: name.trim(),
+          description: description.trim(),
+          difficulty,
+          duration: Number(duration),
+        },
+      });
+    } catch (error) {
+      AppAlert.error("Error", "Ocurrió un error al validar el nombre de la rutina. Inténtalo de nuevo.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

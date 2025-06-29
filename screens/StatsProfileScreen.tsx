@@ -106,7 +106,6 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
         setIsEditing(true);
       }
     } catch (error) {
-      console.error("Error loading user stats:", error);
       AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
     } finally {
       setIsLoading(false);
@@ -207,7 +206,6 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
         );
       }
     } catch (error) {
-      console.error("Error saving stats:", error);
       AppAlert.error(
         "Error",
         "No se pudo actualizar tu información. Intenta más tarde."
@@ -230,8 +228,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
 
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
-      <SafeAreaView className="flex-1 bg-gray-100">
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>  
         <View className="flex-1">
           <ScreenHeader
             title="Perfil de Estadísticas"

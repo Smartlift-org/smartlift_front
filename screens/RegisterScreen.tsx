@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Image,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
@@ -141,8 +142,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
               });
             }
           } catch (error) {
-            console.error("Error checking profile completion:", error);
-
             navigation.reset({
               index: 0,
               routes: [{ name: "UserHome" }],
@@ -185,7 +184,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         />
         <StatusBar barStyle="dark-content" />
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="px-6 mt-20">
+          <View className="items-center mt-10">
+            <Image
+              source={require("../assets/smartlift_logo.png")}
+              className="w-36 h-36"
+              resizeMode="contain"
+            />
+          </View>
+
+          <View className="px-6 mt-5">
             <Text className="text-3xl font-bold text-text">Crear Cuenta</Text>
             <Text className="text-base text-textLight mt-1 mb-6">
               Regístrate para comenzar

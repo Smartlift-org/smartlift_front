@@ -56,6 +56,7 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
           routine_exercises_attributes: data.routine_exercises.map(
             (exercise) => ({
               exercise_id: exercise.exercise_id,
+              name: exercise.exercise.name,
               sets: exercise.sets,
               reps: exercise.reps,
               rest_time: exercise.rest_time,
@@ -64,7 +65,6 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
           ),
         });
       } catch (error) {
-        console.error("Error al cargar la rutina:", error);
         AppAlert.error("Error", "No se pudo cargar la rutina");
         navigation.goBack();
       } finally {
@@ -80,6 +80,29 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
       ...formData,
       [field]: value,
     });
+  };
+
+  const normalizeExercisesOrder = () => {
+    if (
+      !formData.routine_exercises_attributes ||
+      formData.routine_exercises_attributes.length === 0
+    ) {
+      return;
+    }
+    const normalizedExercises = [...formData.routine_exercises_attributes];
+
+    normalizedExercises.sort((a, b) => a.order - b.order);
+
+    normalizedExercises.forEach((exercise, index) => {
+      exercise.order = index + 1;
+    });
+
+    setFormData({
+      ...formData,
+      routine_exercises_attributes: normalizedExercises,
+    });
+
+    return normalizedExercises;
   };
 
   const handleSave = async () => {
@@ -106,11 +129,36 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
 
     try {
       setSaving(true);
-      await routineService.updateRoutine(routineId, formData);
+
+      const nameChanged =
+        routine && routine.name.trim() !== formData.name.trim();
+
+      if (nameChanged) {
+        const nameExists = await routineService.checkRoutineNameExists(
+          formData.name.trim(),
+          routineId
+        );
+
+        if (nameExists) {
+          AppAlert.error(
+            "Nombre duplicado",
+            "Ya existe otra rutina con este nombre. Por favor, elige un nombre diferente."
+          );
+          setSaving(false);
+          return;
+        }
+      }
+
+      const normalizedFormData = {
+        ...formData,
+        routine_exercises_attributes:
+          normalizeExercisesOrder() || formData.routine_exercises_attributes,
+      };
+
+      await routineService.updateRoutine(routineId, normalizedFormData);
       AppAlert.success("Éxito", "Rutina actualizada correctamente");
       navigation.navigate("RoutineManagement", { refresh: true });
     } catch (error) {
-      console.error("Error al actualizar la rutina:", error);
       AppAlert.error("Error", "No se pudo actualizar la rutina");
     } finally {
       setSaving(false);
@@ -140,7 +188,6 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
         );
       }
     } catch (error) {
-      console.error("Error al eliminar ejercicio:", error);
       AppAlert.error("Error", "No se pudo eliminar el ejercicio");
       navigation.replace("RoutineEdit", { routineId });
     }
@@ -161,7 +208,6 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
             description: formData.description,
             difficulty: formData.difficulty,
             duration: formData.duration,
-            // Enviamos los ejercicios existentes
             routine_exercises_attributes: formData.routine_exercises_attributes,
           },
           isEditing: true,
@@ -169,7 +215,6 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
         });
       })
       .catch((error) => {
-        console.error("Error al guardar cambios básicos:", error);
         AppAlert.error(
           "Error",
           "No se pudieron guardar los cambios de la rutina"

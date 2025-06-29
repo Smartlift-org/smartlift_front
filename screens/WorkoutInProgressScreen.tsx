@@ -6,15 +6,10 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  AntDesign,
-  MaterialCommunityIcons,
-  Ionicons,
-} from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import workoutService from "../services/workoutService";
 import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
@@ -49,7 +44,6 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
       const data = await workoutService.getWorkout(workoutId);
       setWorkout(data);
     } catch (error) {
-      console.error(`Error al cargar entrenamiento ID ${workoutId}:`, error);
       AppAlert.error(
         "Error",
         "No se pudo cargar el entrenamiento. Verifica la conexión con el servidor."
@@ -71,7 +65,6 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
       );
       navigation.navigate("Home");
     } catch (error) {
-      console.error(`Error al pausar entrenamiento ${workout.id}:`, error);
       AppAlert.error(
         "Error",
         "No se pudo pausar el entrenamiento. Inténtalo de nuevo."
@@ -104,10 +97,6 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
               );
               navigation.navigate("Home");
             } catch (error) {
-              console.error(
-                `Error al completar entrenamiento ${workout.id}:`,
-                error
-              );
               AppAlert.error(
                 "Error",
                 "No se pudo completar el entrenamiento. Inténtalo de nuevo."
@@ -137,7 +126,7 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
     workout.routine.exercises.length === 0
   ) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-100">
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1 justify-center items-center p-6">
           <MaterialCommunityIcons
             name="alert-circle-outline"
@@ -166,7 +155,7 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
   const hasPreviousExercise = currentExerciseIndex > 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
         title="Entrenamiento"
         onBack={() => {
