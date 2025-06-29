@@ -87,7 +87,7 @@ const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
       <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <ScreenHeader
           title="Estadísticas de Entrenamiento"
-          onBack={() => navigation.goBack()}
+          onBack={() => navigation.navigate("UserHome")}
         />
 
         <View className="flex-1 justify-center items-center p-5">
@@ -111,7 +111,7 @@ const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
       <ScreenHeader
         title="Estadísticas de Entrenamiento"
-        onBack={() => navigation.goBack()}
+        onBack={() => navigation.navigate("UserHome")}
       />
       <ScrollView
         className="p-4"
