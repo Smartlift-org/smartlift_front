@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -194,6 +195,27 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
             {currentExercise.exercise?.name ||
               `Ejercicio ${currentExerciseIndex + 1}`}
           </Text>
+
+          {/* Mostrar imágenes del ejercicio */}
+          {currentExercise.exercise?.image_urls && currentExercise.exercise.image_urls.length > 0 ? (
+            <View className="mt-3 mb-2">
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="py-2"
+              >
+                {currentExercise.exercise.image_urls.map((url, index) => (
+                  <View key={index} className="mr-3 rounded-lg overflow-hidden shadow-sm">
+                    <Image
+                      source={{ uri: url }}
+                      className="w-40 h-40 rounded-lg"
+                      resizeMode="cover"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
 
           <View className="flex-row mt-4 justify-around">
             <View className="items-center">

@@ -102,18 +102,6 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
       className="bg-white mb-4 rounded-lg overflow-hidden shadow-sm"
       onPress={() => navigateToRoutineDetail(item.id)}
     >
-      {item.image_url ? (
-        <Image
-          source={{ uri: item.image_url }}
-          className="w-full h-32"
-          resizeMode="cover"
-        />
-      ) : (
-        <View className="w-full h-32 bg-gray-200 justify-center items-center">
-          <MaterialCommunityIcons name="dumbbell" size={40} color="#666" />
-        </View>
-      )}
-
       <View className="p-4">
         <Text className="text-lg font-bold text-gray-800">{item.name}</Text>
 

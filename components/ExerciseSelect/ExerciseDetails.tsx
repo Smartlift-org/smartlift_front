@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { Exercise } from "../../types/exercise";
 
@@ -33,30 +34,61 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
   onAddToRoutine,
   loading,
 }) => {
+  // Tamaño de la pantalla para dimensiones responsivas
+  const screenWidth = Dimensions.get('window').width;
+  const imageSize = Math.min(screenWidth * 0.45, 180);
+
   return (
     <View className="flex-1 bg-white rounded-t-3xl shadow-xl">
-      <ScrollView className="flex-1 p-4">
-        <View className="items-center mb-4">
-          <Text className="text-xl font-bold mt-4 text-gray-800">
+      {/* Contenedor principal con scroll */}
+      <ScrollView className="flex-1">
+        {/* Título y detalles del ejercicio */}
+        <View className="p-4">
+          <Text className="text-xl font-bold text-center text-gray-800 mb-2">
             {exercise.name}
           </Text>
 
-          <View className="flex-row items-center mt-2">
-            <Text
-              className={`text-sm px-2 py-1 rounded-full ${
-                exercise.level === "beginner"
-                  ? "bg-green-100 text-green-800"
-                  : exercise.level === "intermediate"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {exercise.level === "beginner"
-                ? "Principiante"
-                : exercise.level === "intermediate"
-                ? "Intermedio"
-                : "Avanzado"}
+          {/* Imágenes del ejercicio en carrusel horizontal */}
+          {exercise.image_urls && exercise.image_urls.length > 0 && (
+            <View>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 4 }}
+              >
+                {exercise.image_urls.map((url, imgIndex) => (
+                  <Image
+                    key={imgIndex}
+                    source={{ uri: url }}
+                    style={{
+                      width: imageSize,
+                      height: imageSize,
+                      borderRadius: 8,
+                      marginHorizontal: 6
+                    }}
+                    resizeMode="cover"
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Sección de información del ejercicio */}
+          <View className="mt-4">
+            <Text className="text-lg font-bold mb-2 text-gray-800 text-center">
+              Información del ejercicio
             </Text>
+
+            <View className="flex-row justify-center mb-4">
+              <Text className="text-sm text-gray-600">
+                Nivel:{" "}
+                {exercise.level === "beginner"
+                  ? "Principiante"
+                  : exercise.level === "intermediate"
+                  ? "Intermedio"
+                  : "Avanzado"}
+              </Text>
+            </View>
 
             <Text className="text-sm text-gray-600 ml-2">
               {exercise.primary_muscles ? exercise.primary_muscles.join(", ") : ""}
