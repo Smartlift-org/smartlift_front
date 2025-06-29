@@ -8,7 +8,6 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RootStackParamList } from "../types";
 import routineService, { Routine } from "../services/routineService";
 import {
   AntDesign,

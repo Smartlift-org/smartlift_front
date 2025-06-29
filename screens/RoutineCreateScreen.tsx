@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
-import { AntDesign } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import AppAlert from "../components/AppAlert";

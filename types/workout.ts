@@ -22,6 +22,13 @@ export interface Workout {
   status: WorkoutStatus;
   created_at: string;
   updated_at: string;
+  date?: string;
+  started_at?: string;
+  completed_at?: string;
+  paused_at?: string;
+  total_duration?: number;
+  effective_duration?: number;
+  total_duration_seconds?: number;
   completed_exercises?: number;
   perceived_intensity?: number;
   energy_level?: number;
@@ -63,8 +70,15 @@ export interface WorkoutExerciseProgress {
 
 export interface CreateWorkoutRequest {
   routine_id: number;
+  name?: string;
+  workout_type?: string;
 }
 
-export interface UpdateWorkoutStatusRequest {
-  status: WorkoutStatus;
+export interface WorkoutCompletionData {
+  workout_rating?: number;
+  perceived_intensity?: number;
+  energy_level?: number;
+  mood?: string;
+  notes?: string;
+  total_duration_seconds?: number;      // Duración total del workout en segundos (actualizado para API)
 }

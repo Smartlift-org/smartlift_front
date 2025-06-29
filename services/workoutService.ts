@@ -2,8 +2,8 @@ import { apiClient } from "./apiClient";
 import {
   Workout,
   CreateWorkoutRequest,
-  UpdateWorkoutStatusRequest,
   WorkoutStatus,
+  WorkoutCompletionData
 } from "../types/workout";
 
 class WorkoutService {
@@ -11,6 +11,15 @@ class WorkoutService {
     try {
       const response = await apiClient.get("/workouts");
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  getWorkoutsByRoutine = async (routineId: number): Promise<Workout[]> => {
+    try {
+      const workouts = await this.getWorkouts();
+      return workouts.filter(workout => workout.routine_id === routineId);
     } catch (error) {
       throw error;
     }
@@ -40,40 +49,17 @@ class WorkoutService {
 
   createWorkout = async (data: CreateWorkoutRequest): Promise<Workout> => {
     try {
-      const response = await apiClient.post("/workouts", data);
+      const response = await apiClient.post("/workouts", { workout: data });
       return response.data;
     } catch (error) {
       throw error;
     }
   };
 
-  updateWorkoutStatus = async (
-    id: number,
-    data: UpdateWorkoutStatusRequest
-  ): Promise<Workout> => {
+  createFreeWorkout = async (name: string): Promise<Workout> => {
     try {
-      const response = await apiClient.put(`/workouts/${id}/status`, data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  logExerciseProgress = async (
-    workoutId: number,
-    routineExerciseId: number,
-    completedSets: number,
-    completed: boolean,
-    notes?: string
-  ) => {
-    try {
-      const response = await apiClient.post(`/workouts/${workoutId}/progress`, {
-        workout_exercise_progress: {
-          routine_exercise_id: routineExerciseId,
-          completed_sets: completedSets,
-          completed: completed,
-          notes: notes || "",
-        },
+      const response = await apiClient.post("/workouts/free", { 
+        workout: { name } 
       });
       return response.data;
     } catch (error) {
@@ -81,25 +67,126 @@ class WorkoutService {
     }
   };
 
-  completeWorkout = async (id: number) => {
+
+
+
+
+  completeWorkout = async (id: number, data?: WorkoutCompletionData): Promise<Workout> => {
     try {
-      return await this.updateWorkoutStatus(id, { status: "completed" });
+      const response = await apiClient.put(`/workouts/${id}/complete`, data || {});
+      return response.data;
     } catch (error) {
       throw error;
     }
   };
 
-  pauseWorkout = async (id: number) => {
+  pauseWorkout = async (id: number, reason?: string): Promise<Workout> => {
     try {
-      return await this.updateWorkoutStatus(id, { status: "paused" });
+      const response = await apiClient.put(`/workouts/${id}/pause`, { reason });
+      return response.data;
     } catch (error) {
       throw error;
     }
   };
 
-  resumeWorkout = async (id: number) => {
+  resumeWorkout = async (id: number): Promise<Workout> => {
     try {
-      return await this.updateWorkoutStatus(id, { status: "in_progress" });
+      const response = await apiClient.put(`/workouts/${id}/resume`, {});
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  abandonWorkout = async (id: number): Promise<Workout> => {
+    try {
+      const response = await apiClient.put(`/workouts/${id}/abandon`, {});
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Workout Exercise methods
+  getWorkoutExercises = async (workoutId: number) => {
+    try {
+      const response = await apiClient.get(`/workout/exercises`, {
+        params: { workout_id: workoutId }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  addWorkoutExercise = async (workoutId: number, exerciseData: any) => {
+    try {
+      const response = await apiClient.post(`/workout/exercises`, {
+        workout_id: workoutId,
+        workout_exercise: exerciseData
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  recordExerciseSet = async (exerciseId: number, setData: any) => {
+    try {
+      const response = await apiClient.post(`/workout/exercises/${exerciseId}/record_set`, {
+        set: setData
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  completeExercise = async (exerciseId: number) => {
+    try {
+      const response = await apiClient.put(`/workout/exercises/${exerciseId}/complete`, {});
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Set methods
+  getSets = async (exerciseId: number) => {
+    try {
+      const response = await apiClient.get(`/workout/exercises/${exerciseId}/sets`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  createSet = async (exerciseId: number, setData: any) => {
+    try {
+      const response = await apiClient.post(`/workout/exercises/${exerciseId}/sets`, {
+        set: setData
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  completeSet = async (exerciseId: number, setId: number, data: any) => {
+    try {
+      const response = await apiClient.put(`/workout/exercises/${exerciseId}/sets/${setId}/complete`, {
+        set: data
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  startSet = async (exerciseId: number, setId: number) => {
+    try {
+      const response = await apiClient.put(`/workout/exercises/${exerciseId}/sets/${setId}/start`, {});
+      return response.data;
     } catch (error) {
       throw error;
     }

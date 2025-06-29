@@ -249,14 +249,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
       routine_exercises_attributes: normalizedExercises,
     };
 
-    if (!isEditing && routineFormData.routine_exercises_attributes) {
-      routineFormData.routine_exercises_attributes =
-        routineFormData.routine_exercises_attributes.map((exercise) => {
-          const { id, ...rest } = exercise as any;
-          return rest;
-        });
-    }
-
     const savePromise =
       isEditing && routineId
         ? routineService.updateRoutine(routineId, routineFormData)
@@ -306,12 +298,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
     }
 
     return true;
-  };
-
-  const handleRemoveExercise = (index: number) => {
-    const updatedExercises = [...selectedExercises];
-    updatedExercises.splice(index, 1);
-    setSelectedExercises(updatedExercises);
   };
 
   const onReturn = (updatedExercises: RoutineExerciseFormData[] | null) => {

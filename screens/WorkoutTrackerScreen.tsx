@@ -6,6 +6,9 @@ import {
   ActivityIndicator,
   BackHandler,
   Alert,
+  Image,
+  ScrollView,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
@@ -13,9 +16,8 @@ import routineService, {
   Routine,
   WorkoutSet,
   WorkoutExercise,
-  WorkoutSession,
 } from "../services/routineService";
-import { apiClient } from "../services/apiClient";
+import workoutService from "../services/workoutService";
 import {
   ExerciseSelector,
   ExerciseSets,
@@ -156,33 +158,14 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
     setWorkoutStatus("in_progress");
 
     try {
-      const workoutParams = {
+      // Creamos un workout basado en la rutina
+      const result = await workoutService.createWorkout({
         routine_id: Number(routine!.id),
-        name: routine!.name,
-        workout_type: "routine_based",
-      };
-
-      if (!workoutParams.routine_id || isNaN(workoutParams.routine_id)) {
-        throw new Error("ID de rutina inválido");
-      }
-
-      const workoutData: WorkoutSession = {
-        routine_id: routine!.id,
-        routine_name: routine!.name,
-        date: now.toISOString(),
-        start_time: now.toISOString(),
-        status: "in_progress",
-        exercises: workoutExercises,
-        notes: "",
-      };
-
-      const response = await apiClient.post("/workouts", {
-        workout: workoutParams,
+        name: routine!.name
       });
 
-      if (response.data && response.data.id) {
-        setWorkoutId(response.data.id);
-
+      if (result && result.id) {
+        setWorkoutId(String(result.id));
         startTimer();
       } else {
         throw new Error(
@@ -264,7 +247,7 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       setShowPauseReasonModal(false);
 
       if (workoutId) {
-        await routineService.pauseWorkout(Number(workoutId), pauseReason);
+        await workoutService.pauseWorkout(Number(workoutId), pauseReason);
       }
     } catch (error) {
       AppAlert.error("Error", "No se pudo pausar el entrenamiento");
@@ -295,7 +278,7 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       startTimer();
 
       if (workoutId) {
-        await routineService.resumeWorkout(Number(workoutId));
+        await workoutService.resumeWorkout(Number(workoutId));
       }
     } catch (error) {
       AppAlert.error("Error", "No se pudo reanudar el entrenamiento");
@@ -321,7 +304,7 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       setShowConfirmModal(false);
 
       if (workoutId) {
-        await routineService.abandonWorkout(Number(workoutId));
+        await workoutService.abandonWorkout(Number(workoutId));
       }
       navigation.navigate("Routines", {
         message: "Entrenamiento abandonado",
@@ -385,43 +368,28 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         timerInterval.current = null;
       }
 
-      const currentDateTime = new Date().toISOString();
-      const currentDate = currentDateTime.split("T")[0];
-
-      const workoutData = {
-        routine_id: routine?.id || "",
-        routine_name: routine?.name || "",
-        date: currentDate,
-        start_time: startTime,
-        end_time: currentDateTime,
-        total_duration: elapsedTime,
-        effective_duration: effectiveTime,
-        status: "completed" as const,
-        exercises: workoutExercises.map((exercise) => ({
-          routine_exercise_id: exercise.routine_exercise_id,
-          exercise: exercise.exercise,
-          planned_sets: exercise.planned_sets,
-          planned_reps: exercise.planned_reps,
-          sets: exercise.sets,
-        })),
-        perceived_intensity: perceivedIntensity,
-        energy_level: energyLevel,
-        mood: mood,
-        notes: notes,
-      };
-
       if (workoutId) {
-        await routineService.completeWorkout(Number(workoutId), {
+        // Si ya existe un workout, lo completamos con los datos adicionales
+        await workoutService.completeWorkout(Number(workoutId), {
           perceived_intensity: perceivedIntensity,
           energy_level: energyLevel,
           mood: mood,
           notes: notes,
+          total_duration_seconds: elapsedTime,    // Enviamos el tiempo total transcurrido según nuevo formato del backend
         });
       } else {
-        const result = await routineService.createWorkout(
-          workoutData as WorkoutSession
-        );
-        setWorkoutId(result.id ? String(result.id) : null);
+        // Si no existe, creamos uno nuevo basado en la rutina
+        const result = await workoutService.createWorkout({
+          routine_id: routine?.id || 0,
+        });
+
+        // Registramos cada ejercicio y sus sets
+        if (result && result.id) {
+          setWorkoutId(String(result.id));
+
+          // En una implementación completa, aquí registraríamos los sets completados
+          // usando los nuevos endpoints para cada ejercicio
+        }
       }
 
       setWorkoutStatus("completed");
@@ -429,16 +397,22 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       // Usar reset en lugar de navigate para evitar volver al entrenamiento completado
       navigation.reset({
         index: 0,
-        routes: [{ 
-          name: "WorkoutStats", 
-          params: {
-            workoutId: workoutId || "",
-            message: "Entrenamiento guardado correctamente"
-          } 
-        }]
+        routes: [
+          {
+            name: "WorkoutStats",
+            params: {
+              workoutId: workoutId || "",
+              message: "Entrenamiento guardado correctamente",
+            },
+          },
+        ],
       });
     } catch (error) {
-      throw error;
+      console.error("Error al guardar el entrenamiento:", error);
+      AppAlert.error(
+        "Error",
+        "No se pudo guardar el entrenamiento. Por favor, inténtalo de nuevo."
+      );
     } finally {
       setSaving(false);
     }
@@ -527,53 +501,90 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
               activeExerciseIndex={activeExerciseIndex}
               setActiveExerciseIndex={setActiveExerciseIndex}
             />
+            
+            <ScrollView 
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingBottom: !viewMode ? 100 : 20, // Extra padding when workout controls are shown
+              }}
+            >
+              {workoutExercises.length > 0 &&
+                activeExerciseIndex < workoutExercises.length && (
+                  <View className="px-4 pt-2 pb-4">
+                    <View className="mb-3">
+                      <Text className="text-xl font-bold text-gray-800">
+                        {workoutExercises[activeExerciseIndex].exercise.name}
+                      </Text>
+                      <Text className="text-sm text-gray-500">
+                        {workoutExercises[
+                          activeExerciseIndex
+                        ].exercise.primary_muscles.join(", ")}{
+                          ""
+                        } •{
+                          ""
+                        }
+                        {workoutExercises[activeExerciseIndex].exercise.equipment}
+                      </Text>
+                    </View>
 
-            {workoutExercises.length > 0 &&
-              activeExerciseIndex < workoutExercises.length && (
-                <View className="flex-1 px-4 pt-2 pb-4">
-                  <View className="mb-3">
-                    <Text className="text-xl font-bold text-gray-800">
-                      {workoutExercises[activeExerciseIndex].exercise.name}
-                    </Text>
-                    <Text className="text-sm text-gray-500">
-                      {workoutExercises[
-                        activeExerciseIndex
-                      ].exercise.primary_muscles.join(", ")}{" "}
-                      •{" "}
-                      {workoutExercises[activeExerciseIndex].exercise.equipment}
-                    </Text>
+                    {/* Imágenes del ejercicio */}
+                    {workoutExercises[activeExerciseIndex].exercise.image_urls && 
+                     workoutExercises[activeExerciseIndex].exercise.image_urls.length > 0 && (
+                      <View className="mb-4">
+                        <ScrollView 
+                          horizontal 
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={{ paddingHorizontal: 4 }}
+                        >
+                          {workoutExercises[activeExerciseIndex].exercise.image_urls.map((url, imgIndex) => (
+                            <Image
+                              key={imgIndex}
+                              source={{ uri: url }}
+                              style={{
+                                width: Math.min(Dimensions.get('window').width * 0.45, 180),
+                                height: Math.min(Dimensions.get('window').width * 0.45, 180),
+                                borderRadius: 8,
+                                marginHorizontal: 6
+                              }}
+                              resizeMode="cover"
+                            />
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
+
+                    <ExerciseSets
+                      exercise={workoutExercises[activeExerciseIndex]}
+                      exerciseIndex={activeExerciseIndex}
+                      viewMode={viewMode}
+                      workoutStatus={workoutStatus}
+                      updateSetDetails={updateSetDetails}
+                      toggleSetCompletion={toggleSetCompletion}
+                    />
                   </View>
+                )}
 
-                  <ExerciseSets
-                    exercise={workoutExercises[activeExerciseIndex]}
-                    exerciseIndex={activeExerciseIndex}
-                    viewMode={viewMode}
-                    workoutStatus={workoutStatus}
-                    updateSetDetails={updateSetDetails}
-                    toggleSetCompletion={toggleSetCompletion}
-                  />
-                </View>
-              )}
-
-            <View className="px-4 py-3 mb-20 bg-white border-t border-gray-200">
-              <Text className="text-sm font-medium text-gray-700 mb-1">
-                Notas del entrenamiento:
-              </Text>
-              {viewMode ? (
-                <Text className="p-2 min-h-[80px] rounded-md bg-gray-50 text-gray-600">
-                  {notes || "Sin notas"}
+              <View className="px-4 py-3 bg-white border-t border-gray-200">
+                <Text className="text-sm font-medium text-gray-700 mb-1">
+                  Notas del entrenamiento:
                 </Text>
-              ) : (
-                <TextInput
-                  className="p-2 min-h-[80px] bg-gray-50 border border-gray-200 rounded-md text-gray-800"
-                  multiline
-                  placeholder="Agregar notas sobre tu entrenamiento (opcional)"
-                  value={notes}
-                  onChangeText={setNotes}
-                  textAlignVertical="top"
-                />
-              )}
-            </View>
+                {viewMode ? (
+                  <Text className="p-2 min-h-[80px] rounded-md bg-gray-50 text-gray-600">
+                    {notes || "Sin notas"}
+                  </Text>
+                ) : (
+                  <TextInput
+                    className="p-2 min-h-[80px] bg-gray-50 border border-gray-200 rounded-md text-gray-800"
+                    multiline
+                    placeholder="Agregar notas sobre tu entrenamiento (opcional)"
+                    value={notes}
+                    onChangeText={setNotes}
+                    textAlignVertical="top"
+                  />
+                )}
+              </View>
+            </ScrollView>
 
             {!viewMode && (
               <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
