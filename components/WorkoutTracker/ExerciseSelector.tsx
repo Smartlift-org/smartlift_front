@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import { WorkoutExercise } from "../../services/routineService";
 
 interface ExerciseSelectorProps {
@@ -21,7 +20,8 @@ const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
       <View className="flex-row justify-between items-center mb-2 px-4">
         <Text className="text-lg font-bold text-gray-800">Ejercicios</Text>
         <Text className="text-sm text-indigo-600">
-          {exercises.length} {exercises.length === 1 ? "ejercicio" : "ejercicios"}
+          {exercises.length}{" "}
+          {exercises.length === 1 ? "ejercicio" : "ejercicios"}
         </Text>
       </View>
       <ScrollView
@@ -59,10 +59,12 @@ const ExerciseSelector: React.FC<ExerciseSelectorProps> = ({
                   <View
                     className="h-1 bg-indigo-600 rounded-full"
                     style={{ width: `${(completedSets / totalSets) * 100}%` }}
-                  />  
+                  />
                 </View>
                 <Text className="text-xs text-gray-600 ml-2">
-                  {viewMode ? `${exercise.planned_sets}×${exercise.planned_reps}` : `${completedSets}/${totalSets}`}
+                  {viewMode
+                    ? `${exercise.planned_sets}×${exercise.planned_reps}`
+                    : `${completedSets}/${totalSets}`}
                 </Text>
               </View>
             </TouchableOpacity>
