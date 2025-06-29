@@ -73,8 +73,7 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
 
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
-      <SafeAreaView className="flex-1 bg-gray-100">
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <ScreenHeader
           title={`¡Hola, ${currentUser?.first_name || "Usuario"}!`}
           rightComponent={
@@ -95,16 +94,15 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
           }
         />
         <ScrollView className="flex-1 p-4">
+          <Text className="text-xl font-bold text-indigo-900 mb-4">
+            Panel de Usuario
+          </Text>
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <Text className="text-lg text-gray-600 font-medium italic">
               "{quote}"
             </Text>
           </View>
-
-          <Text className="text-xl font-bold text-indigo-900 mb-4">
-            Panel de Usuario
-          </Text>
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">

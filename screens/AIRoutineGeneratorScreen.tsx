@@ -46,7 +46,6 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
         const stats = await userStatsService.getUserStats();
         setUserStats(stats);
       } catch (error) {
-        console.error("Error al cargar datos del usuario:", error);
         AppAlert.error(
           "Error",
           "No se pudieron cargar tus datos. Verifica tu conexión."
@@ -96,7 +95,6 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
 
       navigation.navigate("ReviewRoutines", { routines: result });
     } catch (error) {
-      console.error("Error generando rutinas:", error);
       AppAlert.error(
         "Error",
         "No se pudieron generar las rutinas. Intenta de nuevo más tarde."
@@ -107,7 +105,7 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
         title="Generador IA de Rutinas"
         onBack={() => navigation.goBack()}

@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
-import { StatusBar, Platform } from "react-native";
 import {
   AntDesign,
   FontAwesome5,
@@ -19,6 +18,7 @@ import {
 import ScreenHeader from "../components/ScreenHeader";
 import workoutService from "../services/workoutService";
 import { Workout } from "../types/workout";
+import AppAlert from "../components/AppAlert";
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -64,7 +64,7 @@ const WorkoutHistoryScreen: React.FC<WorkoutHistoryScreenProps> = ({
 
       setWorkouts(completedWorkouts);
     } catch (error) {
-      console.error("Error al cargar entrenamientos:", error);
+      AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -152,14 +152,8 @@ const WorkoutHistoryScreen: React.FC<WorkoutHistoryScreenProps> = ({
     );
   }
 
-  const androidPaddingTop =
-    Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0;
-
   return (
-    <SafeAreaView
-      className="flex-1 bg-gray-50"
-      style={{ paddingTop: androidPaddingTop }}
-    >
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
         title="Historial de Entrenamientos"
         onBack={() => navigation.goBack()}
