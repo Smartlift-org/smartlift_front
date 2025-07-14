@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Exercise } from "../../types/exercise";
+import VideoPlayer from "../VideoPlayer";
 
 type ExerciseDetailsProps = {
   exercise: Exercise;
@@ -34,21 +35,19 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
   onAddToRoutine,
   loading,
 }) => {
-  // Tamaño de la pantalla para dimensiones responsivas
   const screenWidth = Dimensions.get('window').width;
   const imageSize = Math.min(screenWidth * 0.45, 180);
 
   return (
     <View className="flex-1 bg-white rounded-t-3xl shadow-xl">
-      {/* Contenedor principal con scroll */}
       <ScrollView className="flex-1">
-        {/* Título y detalles del ejercicio */}
         <View className="p-4">
           <Text className="text-xl font-bold text-center text-gray-800 mb-2">
             {exercise.name}
           </Text>
 
-          {/* Imágenes del ejercicio en carrusel horizontal */}
+          <VideoPlayer videoId="https://youtu.be/xdmxM-v4KQg" />
+
           {exercise.image_urls && exercise.image_urls.length > 0 && (
             <View>
               <ScrollView 
@@ -73,7 +72,6 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
             </View>
           )}
 
-          {/* Sección de información del ejercicio */}
           <View className="mt-4">
             <Text className="text-lg font-bold mb-2 text-gray-800 text-center">
               Información del ejercicio
@@ -163,8 +161,6 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
               />
             </View>
           </View>
-
-
         </View>
       </ScrollView>
 

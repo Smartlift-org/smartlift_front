@@ -6,11 +6,14 @@ import {
   TouchableOpacity,
   StatusBar,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
+import trainerService from "../services/trainerService";
 import type { RootStackParamList, User } from "../types";
+import type { Member, TrainerDashboard } from "../types/declarations/trainer";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
 
@@ -18,28 +21,36 @@ type CoachHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "CoachHome">;
 };
 
-interface MockUser {
-  id: string;
-  name: string;
-  progress: string;
-}
 
-const mockUsers: MockUser[] = [
-  { id: "1", name: "Carlos Rodríguez", progress: "70%" },
-  { id: "2", name: "María López", progress: "45%" },
-  { id: "3", name: "Juan Pérez", progress: "85%" },
-  { id: "4", name: "Laura García", progress: "30%" },
-];
 
 const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [dashboard, setDashboard] = useState<TrainerDashboard | null>(null);
+  const [recentMembers, setRecentMembers] = useState<Member[]>([]);
 
   useEffect(() => {
-    const loadUserData = async () => {
-      const user = await authService.getCurrentUser();
-      setCurrentUser(user);
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+        
+        if (user && user.id) {
+          const dashboardData = await trainerService.getDashboard(user.id);
+          setDashboard(dashboardData);
+          
+          const membersResponse = await trainerService.getMembers(user.id, 1, 5);
+          setRecentMembers(membersResponse.members || []);
+        }
+      } catch (error) {
+        AppAlert.error("Error", "No se pudieron cargar los datos del entrenador.");
+      } finally {
+        setIsLoading(false);
+      }
     };
-    loadUserData();
+    
+    loadData();
   }, []);
 
   useLayoutEffect(() => {
@@ -63,26 +74,35 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
     }
   };
 
-  const renderUserItem = ({ item }: { item: MockUser }): React.ReactElement => (
+  const renderMemberItem = ({ item }: { item: Member }): React.ReactElement => (
     <TouchableOpacity
       className="bg-white p-4 rounded-lg mb-3 shadow-sm"
-      onPress={() => {
-        AppAlert.info(
-          "Detalles del Usuario",
-          `Ver detalles completos de ${item.name}`
-        );
-      }}
+      onPress={() => navigation.navigate("MemberProfile", { memberId: item.id })}
     >
       <View className="flex-row justify-between items-center">
-        <Text className="text-lg font-medium text-gray-800">{item.name}</Text>
-        <View className="bg-indigo-100 px-3 py-1 rounded-full">
-          <Text className="text-indigo-800 font-medium">
-            Progreso: {item.progress}
+        <Text className="text-lg font-medium text-gray-800">{item.name || '-'}</Text>
+        <View className={`px-3 py-1 rounded-full ${item.status === 'active' ? 'bg-green-100' : 'bg-red-100'}`}>
+          <Text className={item.status === 'active' ? 'text-green-800' : 'text-red-800'}>
+            {item.status === 'active' ? 'Activo' : 'Inactivo'}
           </Text>
         </View>
       </View>
+      <View className="flex-row mt-2">
+        <Text className="text-gray-600">
+          Consistencia: {item.activity?.consistency_score || 0}%
+        </Text>
+      </View>
     </TouchableOpacity>
   );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
+        <ActivityIndicator size="large" color="#4f46e5" />
+        <Text className="mt-4 text-gray-600">Cargando datos del entrenador...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <>
@@ -92,20 +112,12 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           <ScreenHeader
             title="Panel de Entrenador"
             rightComponent={
-              <View className="flex-row">
-                <TouchableOpacity
-                  className="bg-white p-2 rounded-lg shadow-sm mr-4"
-                  onPress={() => navigation.navigate("BasicProfile")}
-                >
-                  <Text className="text-indigo-600 font-medium">Mi Perfil</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="bg-indigo-600 py-2 px-4 rounded-lg"
-                  onPress={handleLogout}
-                >
-                  <Text className="text-white font-semibold">Salir</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                className="bg-indigo-600 py-2 px-4 rounded-lg"
+                onPress={handleLogout}
+              >
+                <Text className="text-white font-semibold">Salir</Text>
+              </TouchableOpacity>
             }
           />
           <View className="mb-6">
@@ -117,17 +129,38 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           <View className="flex-row mb-6">
             <View className="flex-1 bg-white rounded-xl shadow-sm p-5 mr-2">
               <Text className="text-lg font-semibold text-indigo-800 mb-1">
-                Usuarios Activos
+                Miembros Activos
               </Text>
               <Text className="text-3xl font-bold text-indigo-600">
-                {mockUsers.length}
+                {dashboard?.active_members_count || 0}
               </Text>
             </View>
             <View className="flex-1 bg-white rounded-xl shadow-sm p-5 ml-2">
               <Text className="text-lg font-semibold text-indigo-800 mb-1">
-                Rutinas Creadas
+                Total Miembros
               </Text>
-              <Text className="text-3xl font-bold text-indigo-600">12</Text>
+              <Text className="text-3xl font-bold text-indigo-600">
+                {dashboard?.total_members_count || 0}
+              </Text>
+            </View>
+          </View>
+
+          <View className="flex-row mb-6">
+            <View className="flex-1 bg-white rounded-xl shadow-sm p-5 mr-2">
+              <Text className="text-lg font-semibold text-indigo-800 mb-1">
+                Entrenamientos
+              </Text>
+              <Text className="text-3xl font-bold text-indigo-600">
+                {dashboard?.total_workouts_count || 0}
+              </Text>
+            </View>
+            <View className="flex-1 bg-white rounded-xl shadow-sm p-5 ml-2">
+              <Text className="text-lg font-semibold text-indigo-800 mb-1">
+                Consistencia
+              </Text>
+              <Text className="text-3xl font-bold text-indigo-600">
+                {dashboard?.avg_member_consistency || 0}%
+              </Text>
             </View>
           </View>
 
@@ -151,27 +184,30 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
 
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-xl font-bold text-indigo-900">
-              Mis Usuarios
+              Miembros Recientes
             </Text>
             <TouchableOpacity
               className="bg-indigo-600 py-2 px-4 rounded-lg"
-              onPress={() => {
-                AppAlert.info(
-                  "Añadir Usuario",
-                  "Aquí podrás añadir un nuevo usuario a tu lista"
-                );
-              }}
+              onPress={() => navigation.navigate("MemberManagement")}
             >
-              <Text className="text-white font-semibold">+ Añadir Usuario</Text>
+              <Text className="text-white font-semibold">Gestionar Miembros</Text>
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={mockUsers}
-            renderItem={renderUserItem}
-            keyExtractor={(item: MockUser) => item.id}
-            className="mb-4"
-          />
+          {recentMembers.length > 0 ? (
+            <FlatList
+              data={recentMembers}
+              renderItem={renderMemberItem}
+              keyExtractor={(item: Member) => item.id.toString()}
+              className="mb-4"
+            />
+          ) : (
+            <View className="bg-white rounded-lg p-6 items-center justify-center mb-4">
+              <Text className="text-gray-600 text-center">
+                No tienes miembros asignados aún
+              </Text>
+            </View>
+          )}
 
           <View className="flex-row justify-around mb-4">
             <TouchableOpacity

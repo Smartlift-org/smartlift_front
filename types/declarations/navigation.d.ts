@@ -2,6 +2,8 @@ declare module "@react-navigation/native" {
   export * from "@react-navigation/native";
   export function NavigationContainer(props: any): any;
   export type NavigationContainerRef<T = any> = any;
+  export function useRoute(): any;
+  export type RouteProp<T, K extends keyof T> = any;
 }
 
 declare module "@react-navigation/native-stack" {

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { WorkoutExercise, WorkoutSet } from "../../services/routineService";
+import VideoPlayer from "../VideoPlayer";
 
 interface ExerciseSetsProps {
   exercise: WorkoutExercise;
@@ -41,6 +42,8 @@ const ExerciseSets: React.FC<ExerciseSetsProps> = ({
       <Text className="text-lg font-bold text-gray-800 mb-2">
         {exercise.exercise.name}
       </Text>
+      
+      <VideoPlayer videoId="https://youtu.be/xdmxM-v4KQg" small={true} buttonText="Ver técnica" />
       <View className="flex-row items-center justify-between mb-3">
         <Text className="text-gray-600">
           Series totales: {exercise.sets.length}

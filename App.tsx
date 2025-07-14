@@ -28,6 +28,10 @@ import ActiveWorkoutsScreen from "./screens/ActiveWorkoutsScreen";
 import RoutineSelectScreen from "./screens/RoutineSelectScreen";
 import WorkoutInProgressScreen from "./screens/WorkoutInProgressScreen";
 import SelectedExercisesScreen from "./screens/SelectedExercisesScreen";
+import MemberManagementScreen from "./screens/MemberManagementScreen";
+import MemberProfileScreen from "./screens/MemberProfileScreen";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types";
@@ -128,6 +132,22 @@ export default function App(): React.ReactElement {
           <Stack.Screen
             name="SelectedExercises"
             component={SelectedExercisesScreen}
+          />
+          <Stack.Screen
+            name="MemberManagement"
+            component={MemberManagementScreen}
+          />
+          <Stack.Screen
+            name="MemberProfile"
+            component={MemberProfileScreen}
+          />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
+          />
+          <Stack.Screen
+            name="ResetPassword"
+            component={ResetPasswordScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

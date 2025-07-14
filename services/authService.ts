@@ -1,4 +1,4 @@
-import { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { InternalAxiosRequestConfig } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User, LoginResponse, RegisterData } from "../types";
 import { apiClient, TOKEN_KEY, USER_KEY } from "./apiClient";
@@ -72,6 +72,32 @@ const authService = {
     try {
       const token = await AsyncStorage.getItem(TOKEN_KEY);
       return !!token;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  forgotPassword: async (email: string): Promise<{ message: string; email: string }> => {
+    try {
+      const response = await apiClient.post("/auth/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  resetPassword: async (
+    token: string,
+    password: string,
+    passwordConfirmation: string
+  ): Promise<{ message: string; user: { id: number; email: string; name: string } }> => {
+    try {
+      const response = await apiClient.post("/auth/reset-password", {
+        token,
+        password,
+        password_confirmation: passwordConfirmation,
+      });
+      return response.data;
     } catch (error) {
       throw error;
     }

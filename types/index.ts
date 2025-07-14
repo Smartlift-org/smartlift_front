@@ -1,11 +1,13 @@
 import {
-  RoutineFormData,
   RoutineExerciseFormData,
 } from "../services/routineService";
 
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { token: string };
+  
   UserHome: undefined;
   CoachHome: undefined;
   BasicProfile: undefined;
