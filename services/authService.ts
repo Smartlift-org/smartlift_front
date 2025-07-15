@@ -86,6 +86,19 @@ const authService = {
     }
   },
   
+  validateToken: async (token: string): Promise<{ valid: boolean; message?: string; error?: string }> => {
+    try {
+      const response = await apiClient.get(`/auth/validate-token?token=${encodeURIComponent(token)}`);
+      return response.data;
+    } catch (error: any) {
+      // Si hay un error HTTP, devolvemos un objeto con formato consistente
+      return {
+        valid: false,
+        error: error.response?.data?.error || "Error al validar el token"
+      };
+    }
+  },
+  
   resetPassword: async (
     token: string,
     password: string,

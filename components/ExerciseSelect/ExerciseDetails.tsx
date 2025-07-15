@@ -35,7 +35,7 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
   onAddToRoutine,
   loading,
 }) => {
-  const screenWidth = Dimensions.get('window').width;
+  const screenWidth = Dimensions.get("window").width;
   const imageSize = Math.min(screenWidth * 0.45, 180);
 
   return (
@@ -48,14 +48,15 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
 
           <VideoPlayer videoId="https://youtu.be/xdmxM-v4KQg" />
 
-          {exercise.image_urls && exercise.image_urls.length > 0 && (
+          {/* Si tenemos un array de imágenes, mostrarlas en un carrusel */}
+          {exercise.images && exercise.images.length > 0 ? (
             <View>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 4 }}
               >
-                {exercise.image_urls.map((url, imgIndex) => (
+                {exercise.images.map((url: string, imgIndex: number) => (
                   <Image
                     key={imgIndex}
                     source={{ uri: url }}
@@ -63,14 +64,14 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                       width: imageSize,
                       height: imageSize,
                       borderRadius: 8,
-                      marginHorizontal: 6
+                      marginHorizontal: 6,
                     }}
                     resizeMode="cover"
                   />
                 ))}
               </ScrollView>
             </View>
-          )}
+          ) : null}
 
           <View className="mt-4">
             <Text className="text-lg font-bold mb-2 text-gray-800 text-center">
@@ -78,42 +79,62 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
             </Text>
 
             <View className="flex-row justify-center mb-4">
-              <Text className="text-sm text-gray-600">
-                Nivel:{" "}
-                {exercise.level === "beginner"
-                  ? "Principiante"
-                  : exercise.level === "intermediate"
-                  ? "Intermedio"
-                  : "Avanzado"}
-              </Text>
+              <View className="bg-indigo-100 px-3 py-1 rounded-full">
+                <Text className="text-sm text-black font-medium">
+                  Nivel:{" "}
+                  {exercise.level === "beginner"
+                    ? "Principiante"
+                    : exercise.level === "intermediate"
+                    ? "Intermedio"
+                    : "Avanzado"}
+                </Text>
+              </View>
             </View>
-
-            <Text className="text-sm text-gray-600 ml-2">
-              {exercise.primary_muscles ? exercise.primary_muscles.join(", ") : ""}
-              {exercise.secondary_muscles && exercise.secondary_muscles.length > 0
-                ? `, ${exercise.secondary_muscles.join(", ")}`
-                : ""}
+            
+            <Text className="text-base font-semibold text-gray-800 mb-2 text-center">
+              Músculos trabajados
             </Text>
+            
+            <View className="flex-row flex-wrap justify-center gap-2 mb-4">
+              {exercise.primary_muscles && exercise.primary_muscles.map((muscle, index) => (
+                <View key={index} className="bg-indigo-100 px-3 py-1 rounded-full">
+                  <Text className="text-sm text-black capitalize font-medium">
+                    {muscle}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
 
           {exercise.instructions ? (
             <View className="mt-4 w-full">
-              <Text className="font-semibold text-gray-700 mb-2 text-center">Instrucciones:</Text>
+              <Text className="font-semibold text-gray-700 mb-2 text-center">
+                Instrucciones:
+              </Text>
               {(() => {
                 try {
                   const parsedInstructions = JSON.parse(exercise.instructions);
                   return (
                     <View className="bg-gray-50 p-4 rounded-lg">
-                      {Array.isArray(parsedInstructions) && parsedInstructions.map((instruction, index) => (
-                        <View key={index} className="flex-row mb-3">
-                          <Text className="text-indigo-600 font-bold mr-3">{index + 1}.</Text>
-                          <Text className="text-sm text-gray-700 flex-1">{instruction}</Text>
-                        </View>
-                      ))}
+                      {Array.isArray(parsedInstructions) &&
+                        parsedInstructions.map((instruction, index) => (
+                          <View key={index} className="flex-row mb-3">
+                            <Text className="text-black font-bold mr-3">
+                              {index + 1}.
+                            </Text>
+                            <Text className="text-sm text-black flex-1">
+                              {instruction}
+                            </Text>
+                          </View>
+                        ))}
                     </View>
                   );
                 } catch (e) {
-                  return <Text className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">{exercise.instructions}</Text>;
+                  return (
+                    <Text className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">
+                      {exercise.instructions}
+                    </Text>
+                  );
                 }
               })()}
             </View>
@@ -131,7 +152,7 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
 
           <View className="flex-row justify-between mb-4">
             <View className="flex-1 mr-2">
-              <Text className="text-gray-700 mb-1 font-medium">Series</Text>
+              <Text className="text-black mb-1 font-medium">Series</Text>
               <TextInput
                 className="bg-white border border-gray-300 rounded-lg p-3 text-center font-medium"
                 keyboardType="numeric"
@@ -141,7 +162,9 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
               />
             </View>
             <View className="flex-1 mx-2">
-              <Text className="text-gray-700 mb-1 font-medium">Repeticiones</Text>
+              <Text className="text-black mb-1 font-medium">
+                Repeticiones
+              </Text>
               <TextInput
                 className="bg-white border border-gray-300 rounded-lg p-3 text-center font-medium"
                 keyboardType="numeric"
@@ -151,7 +174,9 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
               />
             </View>
             <View className="flex-1 ml-2">
-              <Text className="text-gray-700 mb-1 font-medium">Descanso (s)</Text>
+              <Text className="text-black mb-1 font-medium">
+                Descanso (s)
+              </Text>
               <TextInput
                 className="bg-white border border-gray-300 rounded-lg p-3 text-center font-medium"
                 keyboardType="numeric"
