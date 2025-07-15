@@ -1,15 +1,11 @@
 export interface Exercise {
   id: number;
   name: string;
-  equipment: string;
-  category: string;
+  instructions: string;
   primary_muscles: string[];
-  secondary_muscles: string[];
-  image_urls: string[];
-  difficulty_level: number;
-  has_equipment: boolean;
   level: string;
-  instructions?: string;
+  images: string[];
+  difficulty_level: number;
 }
 
 export interface ExerciseCategory {

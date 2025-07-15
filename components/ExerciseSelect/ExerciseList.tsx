@@ -25,13 +25,13 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
         onPress={() => onSelectExercise(item)}
       >
         <View className="flex-row">
-          {item.image_urls && item.image_urls.length > 0 && (
+          {item.images && item.images.length > 0 ? (
             <Image
-              source={{ uri: item.image_urls[0] }}
+              source={{ uri: item.images[0] }}
               className="w-20 h-20"
               resizeMode="cover"
             />
-          )}
+          ) :  null}
 
           <View className="flex-1 p-3">
             <View className="flex-row justify-between items-start">
@@ -45,12 +45,13 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
               )}
             </View>
 
-            <Text className="text-sm text-gray-600 mb-1">
-              {item.primary_muscles ? item.primary_muscles.join(", ") : ""}
-              {item.secondary_muscles && item.secondary_muscles.length > 0
-                ? `, ${item.secondary_muscles.join(", ")}`
-                : ""}
-            </Text>
+            <View className="flex-row flex-wrap mt-1 mb-2">
+              {item.primary_muscles && item.primary_muscles.map((muscle, index) => (
+                <View key={index} className="bg-indigo-50 rounded-full px-2 py-0.5 mr-1 mb-1">
+                  <Text className="text-xs text-indigo-700 capitalize">{muscle}</Text>
+                </View>
+              ))}
+            </View>
 
             <View className="flex-row items-center mt-1">
               <Text

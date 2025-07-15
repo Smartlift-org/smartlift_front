@@ -23,8 +23,11 @@ type ForgotPasswordScreenProps = {
 
 const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
+  const [token, setToken] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isValidatingToken, setIsValidatingToken] = useState<boolean>(false);
   const [requestSent, setRequestSent] = useState<boolean>(false);
+  const [tokenError, setTokenError] = useState<string>("");
 
   const handleForgotPassword = async (): Promise<void> => {
     if (!email) {
@@ -126,14 +129,101 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
               <Text className="text-base text-textLight text-center mt-2 mb-6">
                 Te hemos enviado instrucciones para restablecer tu contraseña a {email}
               </Text>
-              <TouchableOpacity
-                className="bg-primary rounded-lg p-4 w-full items-center"
-                onPress={() => navigation.navigate("Login")}
-              >
-                <Text className="text-white text-base font-bold">
-                  Volver al Inicio de Sesión
+              
+              <Text className="text-base text-black font-semibold text-center mt-4">
+                ¿Ya recibiste el token?
+              </Text>
+              
+              <View className="mb-5 w-full mt-2">
+                <Text className="text-sm text-[#495057] mb-2">
+                  Ingresa el token recibido
                 </Text>
-              </TouchableOpacity>
+                <TextInput
+                  className={`bg-white border ${tokenError ? 'border-red-500' : 'border-border'} rounded-lg p-4 text-base w-full`}
+                  placeholder="Pega aquí el token recibido en tu correo"
+                  autoCapitalize="none"
+                  onChangeText={(text: string) => {
+                    setToken(text);
+                    // Limpiar error cuando el usuario escribe
+                    if (tokenError) setTokenError("");
+                  }}
+                  value={token}
+                />
+                {tokenError ? (
+                  <Text className="text-red-500 text-sm mt-1">{tokenError}</Text>
+                ) : null}
+              </View>
+              
+              <View className="flex-row w-full justify-between">
+                <TouchableOpacity
+                  className={`bg-primary rounded-lg p-4 flex-1 mr-2 items-center ${isValidatingToken ? "bg-opacity-50" : ""}`}
+                  disabled={isValidatingToken}
+                  onPress={async () => {
+                    const trimmedToken = token.trim();
+                    // Validar que el token no esté vacío
+                    if (!trimmedToken) {
+                      setTokenError("Por favor ingresa el token recibido en tu correo");
+                      AppAlert.error("Error", "Por favor ingresa el token recibido en tu correo");
+                      return;
+                    }
+                    
+                    // Validar longitud mínima (los tokens generados por SecureRandom.urlsafe_base64(32) tienen ~43 caracteres)
+                    if (trimmedToken.length < 40) {
+                      setTokenError("El token parece ser demasiado corto. Verifica que lo hayas copiado completamente");
+                      AppAlert.error("Error", "El token parece ser demasiado corto. Verifica que lo hayas copiado completamente");
+                      return;
+                    }
+                    
+                    // Validar caracteres permitidos (alphanumericos + algunos símbolos seguros como - y _)
+                    // Los tokens generados por urlsafe_base64 solo contienen estos caracteres
+                    const validTokenRegex = /^[A-Za-z0-9\-_]+$/;
+                    if (!validTokenRegex.test(trimmedToken)) {
+                      setTokenError("El token contiene caracteres no válidos. Por favor cópialo exactamente como aparece en el correo");
+                      AppAlert.error("Error", "El token contiene caracteres no válidos. Por favor cópialo exactamente como aparece en el correo");
+                      return;
+                    }
+                    
+                    // Si las validaciones locales pasan, validar con el backend
+                    setTokenError("");
+                    setIsValidatingToken(true);
+                    
+                    try {
+                      const validationResult = await authService.validateToken(trimmedToken);
+                      setIsValidatingToken(false);
+                      
+                      if (validationResult.valid) {
+                        // Token validado por el backend, navegar a la pantalla de reseteo
+                        navigation.navigate("ResetPassword", { token: trimmedToken });
+                      } else {
+                        // Token inválido o expirado según el backend
+                        setTokenError(validationResult.error || "El token es inválido o ha expirado");
+                        AppAlert.error("Error", validationResult.error || "El token es inválido o ha expirado");
+                      }
+                    } catch (error) {
+                      setIsValidatingToken(false);
+                      setTokenError("Error de conexión. Por favor intenta nuevamente.");
+                      AppAlert.error("Error", "No se pudo validar el token. Verifica tu conexión a internet.");
+                    }
+                  }}
+                >
+                  {isValidatingToken ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text className="text-white text-base font-bold">
+                      Continuar
+                    </Text>
+                  )}
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  className="bg-gray-200 rounded-lg p-4 flex-1 ml-2 items-center"
+                  onPress={() => navigation.navigate("Login")}
+                >
+                  <Text className="text-gray-700 text-base font-bold">
+                    Cancelar
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
