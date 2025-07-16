@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
+import authService from "../services/authService";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ScreenHeader from "../components/ScreenHeader";
@@ -19,7 +20,6 @@ import routineService, {
 } from "../services/routineService";
 import AppAlert from "../components/AppAlert";
 import {
-  CategoryFilter,
   SearchBar,
   ExerciseList,
   ExerciseDetails,
@@ -43,7 +43,7 @@ type ExerciseSelectScreenProps = {
   };
 };
 
-type CategoryFilterType = string | null;
+
 
 const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
   navigation,
@@ -59,9 +59,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [creatingRoutine, setCreatingRoutine] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [categoryFilter, setCategoryFilter] =
-    useState<CategoryFilterType>(null);
-  const [categories, setCategories] = useState<string[]>([]);
   const [showLevelMatching, setShowLevelMatching] = useState<boolean>(true);
 
   const [selectedExercises, setSelectedExercises] = useState<
@@ -105,17 +102,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
 
       setExercises(exercisesArray);
       setFilteredExercises(exercisesArray);
-
-      if (exercisesArray.length > 0) {
-        const uniqueCategories = Array.from(
-          new Set(
-            exercisesArray
-              .map((e) => e.category)
-              .filter((c): c is string => c !== undefined && c !== null)
-          )
-        ).sort();
-        setCategories(uniqueCategories);
-      }
     } catch (error) {
       AppAlert.error("Error", "No se pudieron cargar los ejercicios");
     } finally {
@@ -130,9 +116,10 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
       case "intermediate":
         return ["beginner", "intermediate"];
       case "advanced":
-        return ["beginner", "intermediate", "advanced"];
+        // En el backend se usa 'expert' en lugar de 'advanced'
+        return ["beginner", "intermediate", "expert"];
       default:
-        return ["beginner", "intermediate", "advanced"];
+        return ["beginner", "intermediate", "expert"];
     }
   };
 
@@ -149,28 +136,23 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
       filtered = filtered.filter(
         (e) =>
           (e.name && e.name.toLowerCase().includes(query)) ||
+          (e.instructions && e.instructions.toLowerCase().includes(query)) ||
           (e.primary_muscles &&
-            e.primary_muscles.join(", ").toLowerCase().includes(query)) ||
-          (e.secondary_muscles &&
-            e.secondary_muscles.join(", ").toLowerCase().includes(query))
+            e.primary_muscles.join(", ").toLowerCase().includes(query))
       );
     }
 
-    if (categoryFilter) {
-      filtered = filtered.filter((e) => e.category === categoryFilter);
-    }
 
-    if (showLevelMatching) {
+
+    // Si showLevelMatching está activado, filtramos por los niveles de dificultad compatibles
+    if (showLevelMatching && routineData.difficulty) {
       const allowedLevels = getDifficultyRange(routineData.difficulty);
-      filtered = filtered.filter(
-        (e) => e.level && allowedLevels.includes(e.level)
-      );
+      filtered = filtered.filter((e) => e.level && allowedLevels.includes(e.level));
     }
 
     setFilteredExercises(filtered);
   }, [
     searchQuery,
-    categoryFilter,
     showLevelMatching,
     exercises,
     routineData.difficulty,
@@ -261,10 +243,17 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
           `Tu rutina "${routineData.name}" ha sido ${
             isEditing ? "actualizada" : "creada"
           } con éxito.`,
-          () => {
+          async () => {
+            // Verificar si el usuario es un entrenador para redirigirlo a la pantalla adecuada
+            const currentUser = await authService.getCurrentUser();
+            const isCoach = currentUser && currentUser.role === "coach";
+            
             navigation.reset({
               index: 0,
-              routes: [{ name: "RoutineList", params: { refresh: true } }],
+              routes: [{ 
+                name: isCoach ? "TrainerRoutines" : "RoutineList", 
+                params: { refresh: true } 
+              }],
             });
           }
         );
@@ -369,11 +358,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
                   difficultyLabel={getDifficultyLabel(routineData.difficulty)}
                 />
 
-                <CategoryFilter
-                  categories={categories}
-                  selectedCategory={categoryFilter}
-                  onSelectCategory={setCategoryFilter}
-                />
 
                 <ExerciseList
                   exercises={filteredExercises}
