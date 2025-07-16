@@ -3,7 +3,9 @@ import type {
   PaginatedResponse,
   Member,
   TrainerDashboard,
-  AvailableUser
+  AvailableUser,
+  TrainerRoutine,
+  PaginatedRoutinesResponse
 } from "../types/declarations/trainer";
 
 const trainerService = {
@@ -31,8 +33,19 @@ const trainerService = {
   async getDashboard(trainerId: string): Promise<TrainerDashboard> {
     try {
       const response = await apiClient.get(`/api/v1/trainers/${trainerId}/dashboard`);
-      return response.data;
+      const data = response.data;
+      
+      // Mapear los datos anidados a los campos de nivel superior que espera el componente
+      return {
+        ...data,
+        // Campos a nivel superior que necesita el componente
+        total_members_count: data.dashboard?.overview?.total_members || 0,
+        active_members_count: data.dashboard?.overview?.active_members || 0,
+        total_workouts_count: data.dashboard?.overview?.total_workouts || 0,
+        avg_member_consistency: data.dashboard?.overview?.activity_rate || 0
+      };
     } catch (error) {
+      console.error('Error al obtener dashboard:', error);
       throw error;
     }
   },
@@ -59,7 +72,8 @@ const trainerService = {
     try {
       const response = await apiClient.get(`/api/v1/trainers/${trainerId}/members/${memberId}`);
       
-      const memberData = response.data.member_profile;
+      // El nuevo controlador devuelve los datos directamente en la raíz
+      const memberData = response.data;
       
       return {
         id: memberData.id,
@@ -67,31 +81,14 @@ const trainerService = {
         last_name: memberData.last_name,
         email: memberData.email,
         stats: {
-          consistency_score: memberData.metrics?.active_streak || 0,
-          recent_workouts: memberData.metrics?.recent_activity?.filter((day: {workout_count: number}) => day.workout_count > 0)?.length || 0,
-          total_workouts: memberData.metrics?.total_workouts || 0,
-          avg_workout_duration: 0,
-          personal_records: memberData.personal_records?.length || 0,
-          volume_lifted: 0,
-          favorite_exercises: []
+          consistency_score: memberData.stats?.consistency_score || 0,
+          recent_workouts: memberData.stats?.recent_workouts || 0,
+          total_workouts: memberData.stats?.total_workouts || 0,
+          avg_workout_duration: memberData.stats?.avg_workout_duration || 0,
+          personal_records: memberData.stats?.personal_records || 0,
+          favorite_exercises: memberData.stats?.favorite_exercises || []
         },
-        recent_activity: memberData.recent_workouts?.map((workout: {
-          id: string;
-          name?: string;
-          status: string;
-          duration: number;
-          exercises_count: number;
-          created_at: string;
-          completed_at?: string;
-        }) => ({
-          id: workout.id,
-          type: workout.name || 'Entrenamiento',
-          status: workout.status,
-          duration: workout.duration,
-          exercises_count: workout.exercises_count,
-          created_at: workout.created_at,
-          completed_at: workout.completed_at
-        })) || []
+        recent_activity: memberData.recent_activity || []
       };
     } catch (error) {
       throw error;
@@ -131,6 +128,101 @@ const trainerService = {
         members: response.data.available_users || [],
         meta: response.data.pagination || {}
       };
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  getRoutines: async (
+    trainerId: string,
+    page: number = 1,
+    perPage: number = 20,
+    difficulty?: string
+  ): Promise<PaginatedRoutinesResponse> => {
+    try {
+      const response = await apiClient.get(`/api/v1/trainers/${trainerId}/routines`, {
+        params: {
+          page,
+          per_page: perPage,
+          difficulty: difficulty || ""
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  assignRoutine: async (
+    trainerId: string, 
+    userId: string, 
+    routineId: string, 
+    customName?: string
+  ): Promise<TrainerRoutine> => {
+    try {
+      const response = await apiClient.post(
+        `/api/v1/trainers/${trainerId}/members/${userId}/assign_routine`, 
+        { 
+          routine_id: routineId,
+          custom_name: customName 
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  getMemberRoutines: async (
+    trainerId: string,
+    memberId: string,
+    page: number = 1,
+    perPage: number = 10
+  ) => {
+    try {
+      // Usamos la ruta del nuevo controlador que tiene formato similar
+      const response = await apiClient.get(
+        `/api/v1/trainers/${trainerId}/members/${memberId}/routines`,
+        {
+          params: {
+            page,
+            per_page: perPage
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  deleteMemberRoutine: async (
+    trainerId: string,
+    memberId: string,
+    routineId: string
+  ) => {
+    try {
+      const response = await apiClient.delete(
+        `/api/v1/trainers/${trainerId}/members/${memberId}/routines/${routineId}`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  updateMemberRoutine: async (
+    trainerId: string,
+    memberId: string,
+    routineId: string,
+    routineData: any
+  ) => {
+    try {
+      const response = await apiClient.put(
+        `/api/v1/trainers/${trainerId}/members/${memberId}/routines/${routineId}`,
+        { routine: routineData }
+      );
+      return response.data;
     } catch (error) {
       throw error;
     }

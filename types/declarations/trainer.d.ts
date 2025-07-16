@@ -144,3 +144,39 @@ export interface AvailableUser {
   email: string;
   created_at: string;
 }
+
+export interface TrainerRoutine {
+  id: string;
+  name: string;
+  description?: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  routine_exercises?: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    sets: number;
+    reps?: number;
+    duration_seconds?: number;
+    rest_seconds?: number;
+    weight?: number;
+    position: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+}
+
+export interface PaginatedRoutinesResponse {
+  routines: TrainerRoutine[];
+  pagination: {
+    current_page: number;
+    total_pages: number;
+    total_count: number;
+    per_page: number;
+  };
+  filters_applied?: {
+    difficulty?: string;
+  };
+}

@@ -1,5 +1,4 @@
-import React from "react";
-import { useLayoutEffect, useState, useEffect } from "react";
+import React, { useLayoutEffect, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,9 +6,11 @@ import {
   StatusBar,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRoute } from "@react-navigation/native";
 import authService from "../services/authService";
 import trainerService from "../services/trainerService";
 import type { RootStackParamList, User } from "../types";
@@ -26,32 +27,41 @@ type CoachHomeScreenProps = {
 const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [dashboard, setDashboard] = useState<TrainerDashboard | null>(null);
   const [recentMembers, setRecentMembers] = useState<Member[]>([]);
+  const route = useRoute();
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const user = await authService.getCurrentUser();
-        setCurrentUser(user);
+  const loadData = async (showFullLoading = true) => {
+    if (showFullLoading) setIsLoading(true);
+    try {
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+      
+      if (user && user.id) {
+        const dashboardData = await trainerService.getDashboard(user.id);
+        setDashboard(dashboardData);
         
-        if (user && user.id) {
-          const dashboardData = await trainerService.getDashboard(user.id);
-          setDashboard(dashboardData);
-          
-          const membersResponse = await trainerService.getMembers(user.id, 1, 5);
-          setRecentMembers(membersResponse.members || []);
-        }
-      } catch (error) {
-        AppAlert.error("Error", "No se pudieron cargar los datos del entrenador.");
-      } finally {
-        setIsLoading(false);
+        const membersResponse = await trainerService.getMembers(user.id, 1, 5);
+        setRecentMembers(membersResponse.members || []);
       }
-    };
-    
+    } catch (error) {
+      AppAlert.error("Error", "No se pudieron cargar los datos del entrenador.");
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData(false);
+  };
+  
+  // Load data on initial mount and when route params change (e.g., after assigning a member)
+  useEffect(() => {
     loadData();
-  }, []);
+  }, [route.params?.refresh]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -200,6 +210,13 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
               renderItem={renderMemberItem}
               keyExtractor={(item: Member) => item.id.toString()}
               className="mb-4"
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={["#4f46e5"]}
+                />
+              }
             />
           ) : (
             <View className="bg-white rounded-lg p-6 items-center justify-center mb-4">
@@ -212,12 +229,7 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
           <View className="flex-row justify-around mb-4">
             <TouchableOpacity
               className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 mr-2"
-              onPress={() => {
-                AppAlert.info(
-                  "Gestionar Rutinas",
-                  "Aquí podrás crear y editar rutinas para tus usuarios"
-                );
-              }}
+              onPress={() => navigation.navigate("TrainerRoutines")}
             >
               <Text className="text-indigo-800 font-medium text-center">
                 Gestionar Rutinas

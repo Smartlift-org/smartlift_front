@@ -201,6 +201,10 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
       await loadMembers(trainerId);
 
       AppAlert.success("Éxito", "Usuario asignado correctamente.");
+      setModalVisible(false);
+      
+      // Navegar de vuelta al dashboard con parámetro de refresco
+      navigation.navigate("CoachHome", { refresh: Date.now() });
     } catch (error) {
       AppAlert.error("Error", "No se pudo asignar el usuario.");
     } finally {
