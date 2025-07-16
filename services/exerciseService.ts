@@ -7,7 +7,6 @@ export interface ExerciseFormData {
   category: string;
   difficulty: string;
   primary_muscles: string[];
-  secondary_muscles: string[];
   image_urls: string[];
 }
 
