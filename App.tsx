@@ -25,11 +25,14 @@ import ReviewRoutinesScreen from "./screens/ReviewRoutinesScreen";
 import RoutineManagementScreen from "./screens/RoutineManagementScreen";
 import RoutineEditScreen from "./screens/RoutineEditScreen";
 import ActiveWorkoutsScreen from "./screens/ActiveWorkoutsScreen";
+import TrainerRoutinesScreen from "./screens/TrainerRoutinesScreen";
+import MemberSelectionScreen from "./screens/MemberSelectionScreen";
 import RoutineSelectScreen from "./screens/RoutineSelectScreen";
 import WorkoutInProgressScreen from "./screens/WorkoutInProgressScreen";
 import SelectedExercisesScreen from "./screens/SelectedExercisesScreen";
 import MemberManagementScreen from "./screens/MemberManagementScreen";
 import MemberProfileScreen from "./screens/MemberProfileScreen";
+import MemberRoutineEditScreen from "./screens/MemberRoutineEditScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import authService from "./services/authService";
@@ -148,6 +151,18 @@ export default function App(): React.ReactElement {
           <Stack.Screen
             name="ResetPassword"
             component={ResetPasswordScreen}
+          />
+          <Stack.Screen
+            name="TrainerRoutines"
+            component={TrainerRoutinesScreen}
+          />
+          <Stack.Screen
+            name="MemberSelection"
+            component={MemberSelectionScreen}
+          />
+          <Stack.Screen
+            name="MemberRoutineEdit"
+            component={MemberRoutineEditScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

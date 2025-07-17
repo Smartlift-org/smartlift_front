@@ -3,9 +3,9 @@ export interface Exercise {
   name: string;
   instructions: string;
   primary_muscles: string[];
-  level: string;
+  level: "beginner" | "intermediate" | "expert";
   images: string[];
-  difficulty_level: number;
+  difficulty_level: number; // Calculado en el backend (1=beginner, 2=intermediate, 3=expert)
 }
 
 export interface ExerciseCategory {

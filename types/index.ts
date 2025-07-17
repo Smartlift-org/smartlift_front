@@ -14,11 +14,16 @@ export type RootStackParamList = {
   StatsProfile: { fromRedirect?: boolean };
   RoutineList: { refresh?: boolean; startWorkout?: boolean };
   RoutineManagement: { refresh?: boolean };
-  RoutineCreate: undefined;
+  RoutineCreate: { customName?: string };
   RoutineEdit: { routineId: number; refresh?: boolean };
   ActiveWorkouts: undefined;
   RoutineSelect: { fromActiveWorkouts?: boolean };
   WorkoutInProgress: { workoutId: number };
+  TrainerRoutines: { refresh?: boolean };
+  MemberSelection: { routineId: string; customName?: string };
+  MemberProfile: { memberId: string; refresh?: boolean };
+  MemberManagement: undefined;
+  MemberRoutineEdit: { routineId: number; memberId: string; refresh?: boolean };
 
   ExerciseSelect: {
     routineData: {
