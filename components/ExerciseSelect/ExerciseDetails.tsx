@@ -48,7 +48,6 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
 
           <VideoPlayer videoId="https://youtu.be/xdmxM-v4KQg" />
 
-          {/* Si tenemos un array de imágenes, mostrarlas en un carrusel */}
           {exercise.images && exercise.images.length > 0 ? (
             <View>
               <ScrollView
@@ -90,19 +89,23 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
                 </Text>
               </View>
             </View>
-            
+
             <Text className="text-base font-semibold text-gray-800 mb-2 text-center">
               Músculos trabajados
             </Text>
-            
+
             <View className="flex-row flex-wrap justify-center gap-2 mb-4">
-              {exercise.primary_muscles && exercise.primary_muscles.map((muscle, index) => (
-                <View key={index} className="bg-indigo-100 px-3 py-1 rounded-full">
-                  <Text className="text-sm text-black capitalize font-medium">
-                    {muscle}
-                  </Text>
-                </View>
-              ))}
+              {exercise.primary_muscles &&
+                exercise.primary_muscles.map((muscle, index) => (
+                  <View
+                    key={index}
+                    className="bg-indigo-100 px-3 py-1 rounded-full"
+                  >
+                    <Text className="text-sm text-black capitalize font-medium">
+                      {muscle}
+                    </Text>
+                  </View>
+                ))}
             </View>
           </View>
 
@@ -162,9 +165,7 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
               />
             </View>
             <View className="flex-1 mx-2">
-              <Text className="text-black mb-1 font-medium">
-                Repeticiones
-              </Text>
+              <Text className="text-black mb-1 font-medium">Repeticiones</Text>
               <TextInput
                 className="bg-white border border-gray-300 rounded-lg p-3 text-center font-medium"
                 keyboardType="numeric"
@@ -174,9 +175,7 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
               />
             </View>
             <View className="flex-1 ml-2">
-              <Text className="text-black mb-1 font-medium">
-                Descanso (s)
-              </Text>
+              <Text className="text-black mb-1 font-medium">Descanso (s)</Text>
               <TextInput
                 className="bg-white border border-gray-300 rounded-lg p-3 text-center font-medium"
                 keyboardType="numeric"

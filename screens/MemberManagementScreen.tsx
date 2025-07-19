@@ -28,18 +28,18 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [members, setMembers] = useState<Member[]>([]);
-  const [totalMembers, setTotalMembers] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [trainerId, setTrainerId] = useState<string>("");
-  
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
-  const [availableUsersLoading, setAvailableUsersLoading] = useState<boolean>(false);
+  const [availableUsersLoading, setAvailableUsersLoading] =
+    useState<boolean>(false);
   const [availableUsersPage, setAvailableUsersPage] = useState<number>(1);
-  const [availableUsersTotalPages, setAvailableUsersTotalPages] = useState<number>(1);
+  const [availableUsersTotalPages, setAvailableUsersTotalPages] =
+    useState<number>(1);
   const [availableUsersSearch, setAvailableUsersSearch] = useState<string>("");
   const [assigningUser, setAssigningUser] = useState<boolean>(false);
 
@@ -58,7 +58,10 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
           await loadMembers(user.id);
         }
       } catch (error) {
-        AppAlert.error("Error", "No se pudieron cargar los datos del entrenador.");
+        AppAlert.error(
+          "Error",
+          "No se pudieron cargar los datos del entrenador."
+        );
       }
     };
 
@@ -77,9 +80,8 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
         search,
         status,
       });
-      
+
       setMembers(response.members || []);
-      setTotalMembers(response.meta?.total_count || 0);
       setCurrentPage(response.meta?.current_page || 1);
       setTotalPages(response.meta?.total_pages || 1);
     } catch (error) {
@@ -109,8 +111,8 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   };
 
   const renderMemberItem = ({ item }: { item: Member }) => {
-    const isActive = item.activity?.activity_status !== 'inactive';
-    
+    const isActive = item.activity?.activity_status !== "inactive";
+
     return (
       <TouchableOpacity
         className="bg-white p-4 rounded-lg mb-3 shadow-sm"
@@ -119,7 +121,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
         <View className="flex-row justify-between items-center">
           <View>
             <Text className="text-lg font-medium text-gray-800">
-              {item.name || '-'}
+              {item.name || "-"}
             </Text>
             <Text className="text-sm text-gray-500">{item.email}</Text>
           </View>
@@ -160,7 +162,12 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
 
     setAvailableUsersLoading(true);
     try {
-      const response = await trainerService.getAvailableUsers(trainerId, page, 10, search);
+      const response = await trainerService.getAvailableUsers(
+        trainerId,
+        page,
+        10,
+        search
+      );
 
       const responseMembers = response.members || [];
       if (page === 1) {
@@ -172,7 +179,10 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
       setAvailableUsersPage(response.meta?.current_page || 1);
       setAvailableUsersTotalPages(response.meta?.total_pages || 1);
     } catch (error) {
-      AppAlert.error("Error", "No se pudieron cargar los usuarios disponibles.");
+      AppAlert.error(
+        "Error",
+        "No se pudieron cargar los usuarios disponibles."
+      );
     } finally {
       setAvailableUsersLoading(false);
     }
@@ -183,7 +193,10 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   };
 
   const handleLoadMoreAvailableUsers = () => {
-    if (availableUsersPage < availableUsersTotalPages && !availableUsersLoading) {
+    if (
+      availableUsersPage < availableUsersTotalPages &&
+      !availableUsersLoading
+    ) {
       loadAvailableUsers(availableUsersPage + 1, availableUsersSearch);
     }
   };
@@ -195,15 +208,14 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
     try {
       await trainerService.assignMember(trainerId, userId);
 
-      const updatedUsers = availableUsers.filter(user => user.id !== userId);
+      const updatedUsers = availableUsers.filter((user) => user.id !== userId);
       setAvailableUsers(updatedUsers);
 
       await loadMembers(trainerId);
 
       AppAlert.success("Éxito", "Usuario asignado correctamente.");
       setModalVisible(false);
-      
-      // Navegar de vuelta al dashboard con parámetro de refresco
+
       navigation.navigate("CoachHome", { refresh: Date.now() });
     } catch (error) {
       AppAlert.error("Error", "No se pudo asignar el usuario.");
@@ -324,7 +336,11 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
           />
         ) : (
           <View className="flex-1 justify-center items-center">
-            <MaterialCommunityIcons name="account-off-outline" size={64} color="#9ca3af" />
+            <MaterialCommunityIcons
+              name="account-off-outline"
+              size={64}
+              color="#9ca3af"
+            />
             <Text className="mt-4 text-lg text-gray-600">No hay miembros</Text>
             <Text className="text-gray-500 text-center mt-2">
               {searchQuery || statusFilter
@@ -340,7 +356,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
         >
           <Text className="text-white text-3xl">+</Text>
         </TouchableOpacity>
-        
+
         <Modal
           animationType="slide"
           transparent={true}
@@ -350,12 +366,14 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
           <View className="flex-1 justify-end bg-black/50">
             <View className="bg-white rounded-t-3xl p-5 h-3/4">
               <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-xl font-bold text-gray-800">Asignar nuevos miembros</Text>
+                <Text className="text-xl font-bold text-gray-800">
+                  Asignar nuevos miembros
+                </Text>
                 <TouchableOpacity onPress={() => setModalVisible(false)}>
                   <Text className="text-2xl text-gray-600">×</Text>
                 </TouchableOpacity>
               </View>
-              
+
               <View className="flex-row bg-gray-100 rounded-lg mb-4">
                 <TextInput
                   className="flex-1 py-2 px-4"
@@ -368,14 +386,20 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
                   className="bg-indigo-600 rounded-r-lg px-4 justify-center"
                   onPress={handleAvailableUsersSearch}
                 >
-                  <MaterialCommunityIcons name="magnify" size={24} color="white" />
+                  <MaterialCommunityIcons
+                    name="magnify"
+                    size={24}
+                    color="white"
+                  />
                 </TouchableOpacity>
               </View>
-              
+
               {availableUsersLoading && availableUsers.length === 0 ? (
                 <View className="flex-1 justify-center items-center">
                   <ActivityIndicator size="large" color="#4f46e5" />
-                  <Text className="mt-2 text-gray-600">Cargando usuarios disponibles...</Text>
+                  <Text className="mt-2 text-gray-600">
+                    Cargando usuarios disponibles...
+                  </Text>
                 </View>
               ) : availableUsers.length > 0 ? (
                 <FlatList
@@ -387,7 +411,9 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
                           <Text className="text-lg font-medium text-gray-800">
                             {item.first_name} {item.last_name}
                           </Text>
-                          <Text className="text-sm text-gray-500">{item.email}</Text>
+                          <Text className="text-sm text-gray-500">
+                            {item.email}
+                          </Text>
                         </View>
                         <TouchableOpacity
                           className="bg-indigo-600 py-2 px-4 rounded-lg"
@@ -397,7 +423,9 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
                           {assigningUser ? (
                             <ActivityIndicator size="small" color="white" />
                           ) : (
-                            <Text className="text-white font-medium">Asignar</Text>
+                            <Text className="text-white font-medium">
+                              Asignar
+                            </Text>
                           )}
                         </TouchableOpacity>
                       </View>
@@ -406,29 +434,44 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
                   keyExtractor={(item: AvailableUser) => item.id}
                   onEndReached={handleLoadMoreAvailableUsers}
                   onEndReachedThreshold={0.5}
-                  ListFooterComponent={(): React.ReactElement | null => (
-                    availableUsersPage < availableUsersTotalPages && availableUsersLoading ? (
+                  ListFooterComponent={(): React.ReactElement | null =>
+                    availableUsersPage < availableUsersTotalPages &&
+                    availableUsersLoading ? (
                       <View className="py-4 items-center">
                         <ActivityIndicator size="small" color="#4f46e5" />
                       </View>
                     ) : null
-                  )}
+                  }
                   ListEmptyComponent={(): React.ReactElement => (
                     <View className="flex-1 justify-center items-center py-12">
-                      <MaterialCommunityIcons name="help-circle" size={48} color="#9ca3af" />
-                      <Text className="mt-4 text-lg text-gray-600">No hay usuarios disponibles</Text>
+                      <MaterialCommunityIcons
+                        name="help-circle"
+                        size={48}
+                        color="#9ca3af"
+                      />
+                      <Text className="mt-4 text-lg text-gray-600">
+                        No hay usuarios disponibles
+                      </Text>
                       <Text className="text-gray-500 text-center mt-2">
-                        Todos los usuarios ya están asignados o no hay usuarios registrados
+                        Todos los usuarios ya están asignados o no hay usuarios
+                        registrados
                       </Text>
                     </View>
                   )}
                 />
               ) : (
                 <View className="flex-1 justify-center items-center">
-                  <MaterialCommunityIcons name="help-circle" size={48} color="#9ca3af" />
-                  <Text className="mt-4 text-lg text-gray-600">No hay usuarios disponibles</Text>
+                  <MaterialCommunityIcons
+                    name="help-circle"
+                    size={48}
+                    color="#9ca3af"
+                  />
+                  <Text className="mt-4 text-lg text-gray-600">
+                    No hay usuarios disponibles
+                  </Text>
                   <Text className="text-gray-500 text-center mt-2">
-                    Todos los usuarios ya están asignados o no hay usuarios registrados
+                    Todos los usuarios ya están asignados o no hay usuarios
+                    registrados
                   </Text>
                 </View>
               )}

@@ -4,7 +4,11 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL as ENV_API_URL, TOKEN_KEY as ENV_TOKEN_KEY, USER_KEY as ENV_USER_KEY } from "@env";
+import {
+  API_URL as ENV_API_URL,
+  TOKEN_KEY as ENV_TOKEN_KEY,
+  USER_KEY as ENV_USER_KEY,
+} from "@env";
 
 // Base URL for API requests
 export const API_URL = ENV_API_URL; // From .env file

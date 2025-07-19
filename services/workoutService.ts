@@ -2,8 +2,7 @@ import { apiClient } from "./apiClient";
 import {
   Workout,
   CreateWorkoutRequest,
-  WorkoutStatus,
-  WorkoutCompletionData
+  WorkoutCompletionData,
 } from "../types/workout";
 
 class WorkoutService {
@@ -19,7 +18,7 @@ class WorkoutService {
   getWorkoutsByRoutine = async (routineId: number): Promise<Workout[]> => {
     try {
       const workouts = await this.getWorkouts();
-      return workouts.filter(workout => workout.routine_id === routineId);
+      return workouts.filter((workout) => workout.routine_id === routineId);
     } catch (error) {
       throw error;
     }
@@ -58,8 +57,8 @@ class WorkoutService {
 
   createFreeWorkout = async (name: string): Promise<Workout> => {
     try {
-      const response = await apiClient.post("/workouts/free", { 
-        workout: { name } 
+      const response = await apiClient.post("/workouts/free", {
+        workout: { name },
       });
       return response.data;
     } catch (error) {
@@ -67,13 +66,16 @@ class WorkoutService {
     }
   };
 
-
-
-
-
-  completeWorkout = async (id: number, data?: WorkoutCompletionData): Promise<Workout> => {
+  completeWorkout = async (
+    id: number,
+    data?: WorkoutCompletionData
+  ): Promise<Workout> => {
     try {
-      const response = await apiClient.put(`/workouts/${id}/complete`, data || {});
+      // Backend expects: workout_rating, notes, total_duration_seconds, perceived_intensity, energy_level, mood
+      const response = await apiClient.put(
+        `/workouts/${id}/complete`,
+        data || {}
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -107,11 +109,10 @@ class WorkoutService {
     }
   };
 
-  // Workout Exercise methods
   getWorkoutExercises = async (workoutId: number) => {
     try {
       const response = await apiClient.get(`/workout/exercises`, {
-        params: { workout_id: workoutId }
+        params: { workout_id: workoutId },
       });
       return response.data;
     } catch (error) {
@@ -123,7 +124,7 @@ class WorkoutService {
     try {
       const response = await apiClient.post(`/workout/exercises`, {
         workout_id: workoutId,
-        workout_exercise: exerciseData
+        workout_exercise: exerciseData,
       });
       return response.data;
     } catch (error) {
@@ -131,10 +132,12 @@ class WorkoutService {
     }
   };
 
-  recordExerciseSet = async (exerciseId: number, setData: any) => {
+  // Create workout exercise when starting a workout
+  createWorkoutExercise = async (workoutId: number, exerciseData: any) => {
     try {
-      const response = await apiClient.post(`/workout/exercises/${exerciseId}/record_set`, {
-        set: setData
+      const response = await apiClient.post(`/workout/exercises`, {
+        workout_id: workoutId,
+        workout_exercise: exerciseData,
       });
       return response.data;
     } catch (error) {
@@ -142,19 +145,38 @@ class WorkoutService {
     }
   };
 
-  completeExercise = async (exerciseId: number) => {
+  // Record a set for a workout exercise (correct method)
+  recordExerciseSet = async (workoutExerciseId: number, setData: any) => {
     try {
-      const response = await apiClient.put(`/workout/exercises/${exerciseId}/complete`, {});
+      const response = await apiClient.post(
+        `/workout/exercises/${workoutExerciseId}/record_set`,
+        {
+          set: setData,
+        }
+      );
       return response.data;
     } catch (error) {
       throw error;
     }
   };
 
-  // Set methods
+  completeExercise = async (workoutExerciseId: number) => {
+    try {
+      const response = await apiClient.put(
+        `/workout/exercises/${workoutExerciseId}/complete`,
+        {}
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   getSets = async (exerciseId: number) => {
     try {
-      const response = await apiClient.get(`/workout/exercises/${exerciseId}/sets`);
+      const response = await apiClient.get(
+        `/workout/exercises/${exerciseId}/sets`
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -163,9 +185,12 @@ class WorkoutService {
 
   createSet = async (exerciseId: number, setData: any) => {
     try {
-      const response = await apiClient.post(`/workout/exercises/${exerciseId}/sets`, {
-        set: setData
-      });
+      const response = await apiClient.post(
+        `/workout/exercises/${exerciseId}/sets`,
+        {
+          set: setData,
+        }
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -174,9 +199,12 @@ class WorkoutService {
 
   completeSet = async (exerciseId: number, setId: number, data: any) => {
     try {
-      const response = await apiClient.put(`/workout/exercises/${exerciseId}/sets/${setId}/complete`, {
-        set: data
-      });
+      const response = await apiClient.put(
+        `/workout/exercises/${exerciseId}/sets/${setId}/complete`,
+        {
+          set: data,
+        }
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -185,7 +213,10 @@ class WorkoutService {
 
   startSet = async (exerciseId: number, setId: number) => {
     try {
-      const response = await apiClient.put(`/workout/exercises/${exerciseId}/sets/${setId}/start`, {});
+      const response = await apiClient.put(
+        `/workout/exercises/${exerciseId}/sets/${setId}/start`,
+        {}
+      );
       return response.data;
     } catch (error) {
       throw error;

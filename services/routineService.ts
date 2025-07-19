@@ -96,20 +96,22 @@ const routineService = {
 
   createRoutine: async (routineData: RoutineFormData): Promise<Routine> => {
     try {
-      const cleanedExercises = routineData.routine_exercises_attributes?.map(exercise => ({
-        exercise_id: exercise.exercise_id,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        rest_time: exercise.rest_time,
-        order: exercise.order,
-      }));
+      const cleanedExercises = routineData.routine_exercises_attributes?.map(
+        (exercise) => ({
+          exercise_id: exercise.exercise_id,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          rest_time: exercise.rest_time,
+          order: exercise.order,
+        })
+      );
 
       const cleanedData = {
         name: routineData.name,
         description: routineData.description,
         difficulty: routineData.difficulty,
         duration: routineData.duration,
-        routine_exercises_attributes: cleanedExercises
+        routine_exercises_attributes: cleanedExercises,
       };
 
       const response = await apiClient.post("/routines", {
@@ -126,22 +128,24 @@ const routineService = {
     routineData: RoutineFormData
   ): Promise<Routine> => {
     try {
-      const cleanedExercises = routineData.routine_exercises_attributes?.map(exercise => ({
-        id: exercise.id,
-        exercise_id: exercise.exercise_id,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        rest_time: exercise.rest_time,
-        order: exercise.order,
-        _destroy: exercise._destroy || false
-      }));
+      const cleanedExercises = routineData.routine_exercises_attributes?.map(
+        (exercise) => ({
+          id: exercise.id,
+          exercise_id: exercise.exercise_id,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          rest_time: exercise.rest_time,
+          order: exercise.order,
+          _destroy: exercise._destroy || false,
+        })
+      );
 
       const cleanedData = {
         name: routineData.name,
         description: routineData.description,
         difficulty: routineData.difficulty,
         duration: routineData.duration,
-        routine_exercises_attributes: cleanedExercises
+        routine_exercises_attributes: cleanedExercises,
       };
       const response = await apiClient.put(`/routines/${id}`, {
         routine: cleanedData,
@@ -305,13 +309,13 @@ const routineService = {
     try {
       const response = await apiClient.get("/workouts");
       const workoutsData = response.data;
-      
+
       const hasActiveWorkouts = workoutsData.some(
-        (workout: any) => 
-          workout.routine_id === routineId && 
-          (["in_progress", "paused"].includes(workout.status))
+        (workout: any) =>
+          workout.routine_id === routineId &&
+          ["in_progress", "paused"].includes(workout.status)
       );
-      
+
       return hasActiveWorkouts;
     } catch (error) {
       throw error;

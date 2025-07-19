@@ -41,7 +41,7 @@ const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
   const [stats, setStats] = useState<WorkoutStatsGeneral | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const { message } = route.params || {};
 
   useEffect(() => {
@@ -108,7 +108,7 @@ const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
         title="Estadísticas de Entrenamiento"
         onBack={() => navigation.navigate("UserHome")}

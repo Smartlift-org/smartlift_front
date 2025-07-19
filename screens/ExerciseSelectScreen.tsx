@@ -43,14 +43,11 @@ type ExerciseSelectScreenProps = {
   };
 };
 
-
-
 const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
   navigation,
   route,
 }) => {
   const { routineData, isEditing = false, routineId } = route.params;
-
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
@@ -60,11 +57,9 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
   const [creatingRoutine, setCreatingRoutine] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showLevelMatching, setShowLevelMatching] = useState<boolean>(true);
-
   const [selectedExercises, setSelectedExercises] = useState<
     RoutineExerciseFormData[]
   >([]);
-
   const [sets, setSets] = useState<string>("3");
   const [reps, setReps] = useState<string>("12");
   const [restTime, setRestTime] = useState<string>("60");
@@ -116,7 +111,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
       case "intermediate":
         return ["beginner", "intermediate"];
       case "advanced":
-        // En el backend se usa 'expert' en lugar de 'advanced'
         return ["beginner", "intermediate", "expert"];
       default:
         return ["beginner", "intermediate", "expert"];
@@ -142,21 +136,15 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
       );
     }
 
-
-
-    // Si showLevelMatching está activado, filtramos por los niveles de dificultad compatibles
     if (showLevelMatching && routineData.difficulty) {
       const allowedLevels = getDifficultyRange(routineData.difficulty);
-      filtered = filtered.filter((e) => e.level && allowedLevels.includes(e.level));
+      filtered = filtered.filter(
+        (e) => e.level && allowedLevels.includes(e.level)
+      );
     }
 
     setFilteredExercises(filtered);
-  }, [
-    searchQuery,
-    showLevelMatching,
-    exercises,
-    routineData.difficulty,
-  ]);
+  }, [searchQuery, showLevelMatching, exercises, routineData.difficulty]);
 
   const handleSelectExercise = (exercise: Exercise) => {
     if (selectedExercise && selectedExercise.id === exercise.id) {
@@ -237,23 +225,24 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
         : routineService.createRoutine(routineFormData);
 
     savePromise
-      .then((response) => {
+      .then(() => {
         AppAlert.confirm(
           "¡Rutina guardada!",
           `Tu rutina "${routineData.name}" ha sido ${
             isEditing ? "actualizada" : "creada"
           } con éxito.`,
           async () => {
-            // Verificar si el usuario es un entrenador para redirigirlo a la pantalla adecuada
             const currentUser = await authService.getCurrentUser();
             const isCoach = currentUser && currentUser.role === "coach";
-            
+
             navigation.reset({
               index: 0,
-              routes: [{ 
-                name: isCoach ? "TrainerRoutines" : "RoutineList", 
-                params: { refresh: true } 
-              }],
+              routes: [
+                {
+                  name: isCoach ? "TrainerRoutines" : "RoutineList",
+                  params: { refresh: true },
+                },
+              ],
             });
           }
         );
@@ -357,7 +346,6 @@ const ExerciseSelectScreen: React.FC<ExerciseSelectScreenProps> = ({
                   }
                   difficultyLabel={getDifficultyLabel(routineData.difficulty)}
                 />
-
 
                 <ExerciseList
                   exercises={filteredExercises}

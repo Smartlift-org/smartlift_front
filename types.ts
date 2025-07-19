@@ -2,6 +2,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  ResetPassword: { token: string };
   UserHome: undefined;
   CoachHome: undefined;
   BasicProfile: undefined;
@@ -43,6 +44,7 @@ export interface RegisterData {
   password_confirmation: string;
   first_name: string;
   last_name: string;
+  role: 'user' | 'coach' | 'admin';
 }
 
 export * from './types/declarations/trainer';

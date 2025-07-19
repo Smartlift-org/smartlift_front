@@ -22,9 +22,9 @@ import {
   ExerciseSelector,
   ExerciseSets,
   PauseReasonModal,
-  CompleteWorkoutModal,
   ConfirmModal,
   WorkoutControls,
+  CompleteWorkoutModal,
 } from "../components/WorkoutTracker";
 
 const AppAlert = {
@@ -40,7 +40,6 @@ type Props = {
 
 export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const routineId = route.params?.routineId;
-
   const viewMode = route.params?.viewMode === true;
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -49,7 +48,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   );
   const [notes, setNotes] = useState<string>("");
   const [activeExerciseIndex, setActiveExerciseIndex] = useState<number>(0);
-  const [saving, setSaving] = useState<boolean>(false);
   const [workoutId, setWorkoutId] = useState<string | null>(null);
 
   const [workoutStatus, setWorkoutStatus] = useState<
@@ -57,8 +55,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   >("not_started");
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [effectiveTime, setEffectiveTime] = useState<number>(0);
-  const [startTime, setStartTime] = useState<string>("");
-  const [endTime, setEndTime] = useState<string>("");
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [confirmAction, setConfirmAction] = useState<
     "abandon" | "complete" | null
@@ -66,6 +62,8 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const [showPauseReasonModal, setShowPauseReasonModal] =
     useState<boolean>(false);
   const [pauseReason, setPauseReason] = useState<string>("");
+  const [showCompleteWorkoutModal, setShowCompleteWorkoutModal] =
+    useState<boolean>(false);
 
   const pauseReasonOptions = [
     "Descanso",
@@ -75,12 +73,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
     "Fatiga muscular",
     "Otro",
   ];
-
-  const [showCompleteWorkoutModal, setShowCompleteWorkoutModal] =
-    useState<boolean>(false);
-  const [perceivedIntensity, setPerceivedIntensity] = useState<number>(5);
-  const [energyLevel, setEnergyLevel] = useState<number>(5);
-  const [mood, setMood] = useState<string>("neutral");
 
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const pauseStartTime = useRef<Date | null>(null);
@@ -153,28 +145,55 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   };
 
   const startWorkout = async () => {
-    const now = new Date();
-    setStartTime(now.toISOString());
     setWorkoutStatus("in_progress");
 
     try {
-      // Creamos un workout basado en la rutina
       const result = await workoutService.createWorkout({
         routine_id: Number(routine!.id),
-        name: routine!.name
+        name: routine!.name,
       });
 
-      if (result && result.id) {
-        setWorkoutId(String(result.id));
-        startTimer();
-      } else {
+      if (!result || !result.id) {
         throw new Error(
           "La respuesta del servidor no incluye un ID de workout"
         );
       }
-    } catch (error) {
-      AppAlert.error("Error", "No se pudo iniciar el entrenamiento");
 
+      setWorkoutId(String(result.id));
+
+      const updatedExercises = [...workoutExercises];
+
+      for (let i = 0; i < updatedExercises.length; i++) {
+        const exercise = updatedExercises[i];
+
+        try {
+          const workoutExercise = await workoutService.createWorkoutExercise(
+            result.id,
+            {
+              exercise_id: exercise.exercise.id,
+              order: i + 1,
+              target_sets: exercise.planned_sets,
+              target_reps: exercise.planned_reps,
+            }
+          );
+
+          updatedExercises[i] = {
+            ...exercise,
+            id: workoutExercise.id,
+          } as WorkoutExercise;
+        } catch (exerciseError) {
+          console.error(`Error creating workout exercise ${i}:`, exerciseError);
+          throw new Error(
+            `No se pudo crear el ejercicio ${exercise.exercise.name}`
+          );
+        }
+      }
+
+      setWorkoutExercises(updatedExercises);
+      startTimer();
+    } catch (error) {
+      console.error("Error starting workout:", error);
+      AppAlert.error("Error", "No se pudo iniciar el entrenamiento");
       setWorkoutStatus("not_started");
       return;
     }
@@ -189,27 +208,88 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const loadWorkoutData = async (id: string | number) => {
     try {
       setLoading(true);
-      const response = await routineService.getWorkout(Number(id));
-      if (response) {
-        setElapsedTime(response.total_duration || 0);
-        setEffectiveTime(response.effective_duration || 0);
-        setWorkoutStatus(
-          response.status as
-            | "not_started"
-            | "in_progress"
-            | "paused"
-            | "completed"
-            | "abandoned"
-        );
-        setWorkoutExercises(response.exercises || []);
-        setNotes(response.notes || "");
 
-        if (response.exercises && response.exercises.length > 0) {
-          setActiveExerciseIndex(0);
-        }
+      const response = await routineService.getWorkout(Number(id));
+      if (!response) {
+        throw new Error("No se pudo cargar el workout");
       }
+      const workoutExercises = await workoutService.getWorkoutExercises(
+        Number(id)
+      );
+
+      const mappedExercises =
+        response.exercises?.map((routineExercise: any) => {
+          const workoutExercise = workoutExercises.find(
+            (we: any) => we.exercise_id === routineExercise.exercise.id
+          );
+
+          let mappedSets = routineExercise.sets || [];
+
+          if (workoutExercise?.sets && workoutExercise.sets.length > 0) {
+            mappedSets = workoutExercise.sets.map((backendSet: any) => ({
+              set_number: backendSet.set_number || backendSet.order,
+              reps: backendSet.reps || routineExercise.planned_reps,
+              weight: backendSet.weight || 0,
+              completed: backendSet.completed || false,
+              rest_time: routineExercise.rest_time || 60,
+            }));
+          }
+
+          return {
+            ...routineExercise,
+            id: workoutExercise?.id,
+            routine_exercise_id:
+              routineExercise.id || routineExercise.routine_exercise_id,
+            sets: mappedSets,
+          } as any;
+        }) || [];
+
+      setElapsedTime(response.total_duration || 0);
+      setEffectiveTime(response.effective_duration || 0);
+      setWorkoutStatus(
+        response.status as
+          | "not_started"
+          | "in_progress"
+          | "paused"
+          | "completed"
+          | "abandoned"
+      );
+      setWorkoutExercises(mappedExercises);
+      setNotes(response.notes || "");
+
+      if (mappedExercises.length > 0) {
+        setActiveExerciseIndex(0);
+      }
+
+      console.log("Basic workout data:", {
+        id: response.id,
+        status: response.status,
+        exercises_count: response.exercises?.length || 0,
+      });
+      console.log(
+        "Backend workout_exercises:",
+        workoutExercises.map((we: any) => ({
+          id: we.id,
+          exercise_id: we.exercise_id,
+          sets_count: we.sets?.length || 0,
+          completed_sets: we.sets?.filter((s: any) => s.completed).length || 0,
+        }))
+      );
+      console.log(
+        "Mapped exercises with IDs:",
+        mappedExercises.map((e) => ({
+          name: e.exercise.name,
+          workout_exercise_id: e.id,
+          routine_exercise_id: e.routine_exercise_id,
+          sets_count: e.sets?.length || 0,
+          completed_sets: e.sets?.filter((s: any) => s.completed).length || 0,
+        }))
+      );
+
       setLoading(false);
     } catch (error) {
+      console.error("Error loading workout data:", error);
+      AppAlert.error("Error", "No se pudo cargar el entrenamiento");
       setLoading(false);
     }
   };
@@ -242,13 +322,44 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         timerInterval.current = null;
       }
 
+      if (workoutId) {
+        for (const exercise of workoutExercises) {
+          const completedSets = exercise.sets.filter((set) => set.completed);
+
+          for (const set of completedSets) {
+            try {
+              if ((exercise as any).id) {
+                await workoutService.recordExerciseSet((exercise as any).id, {
+                  weight: set.weight,
+                  reps: set.reps,
+                  set_type: "normal",
+                  rpe: undefined,
+                });
+              }
+            } catch (error) {
+              console.error("Error saving set during pause:", error);
+            }
+          }
+
+          const allSetsCompleted =
+            exercise.sets.length > 0 &&
+            exercise.sets.every((set) => set.completed);
+
+          if (allSetsCompleted && (exercise as any).id) {
+            try {
+              await workoutService.completeExercise((exercise as any).id);
+            } catch (error) {
+              console.error("Error completing exercise during pause:", error);
+            }
+          }
+        }
+
+        await workoutService.pauseWorkout(Number(workoutId), pauseReason);
+      }
+
       setWorkoutStatus("paused");
       pauseStartTime.current = new Date();
       setShowPauseReasonModal(false);
-
-      if (workoutId) {
-        await workoutService.pauseWorkout(Number(workoutId), pauseReason);
-      }
     } catch (error) {
       AppAlert.error("Error", "No se pudo pausar el entrenamiento");
       startTimer();
@@ -264,14 +375,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const resumeWorkout = async () => {
     try {
       if (workoutStatus !== "paused") return;
-
-      const pauseEndTime = new Date();
-      const pauseDurationSeconds = pauseStartTime.current
-        ? Math.floor(
-            (pauseEndTime.getTime() - pauseStartTime.current.getTime()) / 1000
-          )
-        : 0;
-
       setWorkoutStatus("in_progress");
       pauseStartTime.current = null;
 
@@ -315,24 +418,9 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleCompleteWorkout = () => {
-    if (workoutStatus === "in_progress" || workoutStatus === "paused") {
-      setShowCompleteWorkoutModal(true);
-    }
-  };
-
-  const cancelCompleteWorkout = () => {
-    setShowCompleteWorkoutModal(false);
-  };
-
   const closeConfirmModal = () => {
     setShowConfirmModal(false);
     setConfirmAction(null);
-  };
-
-  const confirmCompleteWorkout = () => {
-    setShowConfirmModal(false);
-    setShowCompleteWorkoutModal(true);
   };
 
   const updateSetDetails = (
@@ -351,17 +439,48 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
     setWorkoutExercises(updatedExercises);
   };
 
-  const toggleSetCompletion = (exerciseIndex: number, setIndex: number) => {
+  const toggleSetCompletion = async (
+    exerciseIndex: number,
+    setIndex: number
+  ) => {
     const updatedExercises = [...workoutExercises];
-    updatedExercises[exerciseIndex].sets[setIndex].completed =
-      !updatedExercises[exerciseIndex].sets[setIndex].completed;
+    const set = updatedExercises[exerciseIndex].sets[setIndex];
+    const exercise = updatedExercises[exerciseIndex];
+
+    set.completed = !set.completed;
     setWorkoutExercises(updatedExercises);
+
+    if (set.completed && workoutId && (exercise as any).id) {
+      try {
+        await workoutService.recordExerciseSet((exercise as any).id, {
+          weight: set.weight,
+          reps: set.reps,
+          set_type: "normal",
+          rpe: undefined,
+        });
+      } catch (error) {
+        console.error("Error saving set data:", error);
+        const revertedExercises = [...workoutExercises];
+        revertedExercises[exerciseIndex].sets[setIndex].completed =
+          !set.completed;
+        setWorkoutExercises(revertedExercises);
+        AppAlert.error("Error", "No se pudo guardar los datos de la serie");
+      }
+    }
   };
 
   const saveWorkout = async () => {
+    setShowCompleteWorkoutModal(true);
+  };
+
+  const handleCompleteWorkout = async (data: {
+    perceivedIntensity: number;
+    energyLevel: number;
+    mood: string;
+    notes: string;
+  }) => {
     try {
       setShowCompleteWorkoutModal(false);
-      setSaving(true);
 
       if (timerInterval.current) {
         clearInterval(timerInterval.current);
@@ -369,32 +488,52 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       }
 
       if (workoutId) {
-        // Si ya existe un workout, lo completamos con los datos adicionales
+        for (const exercise of workoutExercises) {
+          const completedSets = exercise.sets.filter((set) => set.completed);
+          for (const set of completedSets) {
+            try {
+              if ((exercise as any).id) {
+                await workoutService.recordExerciseSet((exercise as any).id, {
+                  weight: set.weight,
+                  reps: set.reps,
+                  set_type: "normal",
+                  rpe: undefined,
+                });
+              }
+            } catch (error) {
+              console.error("Error saving set during completion:", error);
+            }
+          }
+
+          const allSetsCompleted =
+            exercise.sets.length > 0 &&
+            exercise.sets.every((set) => set.completed);
+
+          if (allSetsCompleted && (exercise as any).id) {
+            try {
+              await workoutService.completeExercise((exercise as any).id);
+            } catch (error) {
+              console.error("Error completing exercise:", error);
+            }
+          }
+        }
         await workoutService.completeWorkout(Number(workoutId), {
-          perceived_intensity: perceivedIntensity,
-          energy_level: energyLevel,
-          mood: mood,
-          notes: notes,
-          total_duration_seconds: elapsedTime,    // Enviamos el tiempo total transcurrido según nuevo formato del backend
+          perceived_intensity: data.perceivedIntensity,
+          energy_level: data.energyLevel,
+          mood: data.mood,
+          notes: data.notes,
+          total_duration_seconds: elapsedTime,
         });
       } else {
-        // Si no existe, creamos uno nuevo basado en la rutina
         const result = await workoutService.createWorkout({
           routine_id: routine?.id || 0,
         });
-
-        // Registramos cada ejercicio y sus sets
         if (result && result.id) {
           setWorkoutId(String(result.id));
-
-          // En una implementación completa, aquí registraríamos los sets completados
-          // usando los nuevos endpoints para cada ejercicio
         }
       }
 
       setWorkoutStatus("completed");
-
-      // Usar reset en lugar de navigate para evitar volver al entrenamiento completado
       navigation.reset({
         index: 0,
         routes: [
@@ -414,8 +553,11 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         "No se pudo guardar el entrenamiento. Por favor, inténtalo de nuevo."
       );
     } finally {
-      setSaving(false);
     }
+  };
+
+  const handleCancelCompleteWorkout = () => {
+    setShowCompleteWorkoutModal(false);
   };
 
   if (loading) {
@@ -462,18 +604,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         }}
       />
 
-      <CompleteWorkoutModal
-        visible={showCompleteWorkoutModal}
-        onCancel={cancelCompleteWorkout}
-        onConfirm={(data) => {
-          setPerceivedIntensity(data.perceivedIntensity);
-          setEnergyLevel(data.energyLevel);
-          setMood(data.mood);
-          setNotes(data.notes);
-          saveWorkout();
-        }}
-      />
-
       <View className="flex-1 bg-gray-50">
         {routine && (
           <>
@@ -501,12 +631,12 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
               activeExerciseIndex={activeExerciseIndex}
               setActiveExerciseIndex={setActiveExerciseIndex}
             />
-            
-            <ScrollView 
+
+            <ScrollView
               className="flex-1"
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                paddingBottom: !viewMode ? 100 : 20, // Extra padding when workout controls are shown
+                paddingBottom: !viewMode ? 100 : 20,
               }}
             >
               {workoutExercises.length > 0 &&
@@ -519,40 +649,43 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
                       <Text className="text-sm text-gray-500">
                         {workoutExercises[
                           activeExerciseIndex
-                        ].exercise.primary_muscles.join(", ")}{
-                          ""
-                        } •{
-                          ""
-                        }
-                        {workoutExercises[activeExerciseIndex].exercise.equipment}
+                        ].exercise.primary_muscles.join(", ")}
                       </Text>
                     </View>
 
-                    {/* Imágenes del ejercicio */}
-                    {workoutExercises[activeExerciseIndex].exercise.image_urls && 
-                     workoutExercises[activeExerciseIndex].exercise.image_urls.length > 0 && (
-                      <View className="mb-4">
-                        <ScrollView 
-                          horizontal 
-                          showsHorizontalScrollIndicator={false}
-                          contentContainerStyle={{ paddingHorizontal: 4 }}
-                        >
-                          {workoutExercises[activeExerciseIndex].exercise.image_urls.map((url, imgIndex) => (
-                            <Image
-                              key={imgIndex}
-                              source={{ uri: url }}
-                              style={{
-                                width: Math.min(Dimensions.get('window').width * 0.45, 180),
-                                height: Math.min(Dimensions.get('window').width * 0.45, 180),
-                                borderRadius: 8,
-                                marginHorizontal: 6
-                              }}
-                              resizeMode="cover"
-                            />
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
+                    {workoutExercises[activeExerciseIndex].exercise.images &&
+                      workoutExercises[activeExerciseIndex].exercise.images
+                        .length > 0 && (
+                        <View className="mb-4">
+                          <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingHorizontal: 4 }}
+                          >
+                            {workoutExercises[
+                              activeExerciseIndex
+                            ].exercise.images.map((url, imgIndex) => (
+                              <Image
+                                key={imgIndex}
+                                source={{ uri: url }}
+                                style={{
+                                  width: Math.min(
+                                    Dimensions.get("window").width * 0.45,
+                                    180
+                                  ),
+                                  height: Math.min(
+                                    Dimensions.get("window").width * 0.45,
+                                    180
+                                  ),
+                                  borderRadius: 8,
+                                  marginHorizontal: 6,
+                                }}
+                                resizeMode="cover"
+                              />
+                            ))}
+                          </ScrollView>
+                        </View>
+                      )}
 
                     <ExerciseSets
                       exercise={workoutExercises[activeExerciseIndex]}
@@ -610,6 +743,12 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
           </>
         )}
       </View>
+
+      <CompleteWorkoutModal
+        visible={showCompleteWorkoutModal}
+        onConfirm={handleCompleteWorkout}
+        onCancel={handleCancelCompleteWorkout}
+      />
     </SafeAreaView>
   );
 }

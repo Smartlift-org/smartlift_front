@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -228,7 +227,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
 
   return (
     <>
-      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>  
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1">
           <ScreenHeader
             title="Perfil de Estadísticas"

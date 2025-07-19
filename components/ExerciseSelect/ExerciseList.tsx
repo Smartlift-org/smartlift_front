@@ -31,7 +31,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
               className="w-20 h-20"
               resizeMode="cover"
             />
-          ) :  null}
+          ) : null}
 
           <View className="flex-1 p-3">
             <View className="flex-row justify-between items-start">
@@ -46,11 +46,17 @@ const ExerciseList: React.FC<ExerciseListProps> = ({
             </View>
 
             <View className="flex-row flex-wrap mt-1 mb-2">
-              {item.primary_muscles && item.primary_muscles.map((muscle, index) => (
-                <View key={index} className="bg-indigo-50 rounded-full px-2 py-0.5 mr-1 mb-1">
-                  <Text className="text-xs text-indigo-700 capitalize">{muscle}</Text>
-                </View>
-              ))}
+              {item.primary_muscles &&
+                item.primary_muscles.map((muscle, index) => (
+                  <View
+                    key={index}
+                    className="bg-indigo-50 rounded-full px-2 py-0.5 mr-1 mb-1"
+                  >
+                    <Text className="text-xs text-indigo-700 capitalize">
+                      {muscle}
+                    </Text>
+                  </View>
+                ))}
             </View>
 
             <View className="flex-row items-center mt-1">

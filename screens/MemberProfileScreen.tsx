@@ -22,10 +22,12 @@ type MemberProfileScreenProps = {
 };
 
 const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
-  navigation
+  navigation,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(null);
+  const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(
+    null
+  );
   const [trainerId, setTrainerId] = useState<string>("");
   const [routines, setRoutines] = useState<any[]>([]);
   const [loadingRoutines, setLoadingRoutines] = useState<boolean>(false);
@@ -48,7 +50,10 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
           await loadMemberRoutines(user.id, memberId);
         }
       } catch (error) {
-        AppAlert.error("Error", "No se pudieron cargar los datos del entrenador.");
+        AppAlert.error(
+          "Error",
+          "No se pudieron cargar los datos del entrenador."
+        );
       }
     };
 
@@ -58,7 +63,10 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
   const loadMemberProfile = async (trainerId: string, memberId: string) => {
     setIsLoading(true);
     try {
-      const profileData = await trainerService.getMemberProfile(trainerId, memberId);
+      const profileData = await trainerService.getMemberProfile(
+        trainerId,
+        memberId
+      );
       setMemberProfile(profileData as MemberProfile);
     } catch (error) {
       AppAlert.error(
@@ -73,13 +81,13 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
   const loadMemberRoutines = async (trainerId: string, memberId: string) => {
     setLoadingRoutines(true);
     try {
-      const response = await trainerService.getMemberRoutines(trainerId, memberId);
+      const response = await trainerService.getMemberRoutines(
+        trainerId,
+        memberId
+      );
       setRoutines(response.routines || []);
     } catch (error) {
-      AppAlert.error(
-        "Error",
-        "No se pudieron cargar las rutinas del miembro."
-      );
+      AppAlert.error("Error", "No se pudieron cargar las rutinas del miembro.");
     } finally {
       setLoadingRoutines(false);
     }
@@ -91,8 +99,12 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
       "¿Estás seguro de que deseas eliminar esta rutina del miembro?",
       async () => {
         try {
-          await trainerService.deleteMemberRoutine(trainerId, memberId, routineId);
-          setRoutines(routines.filter(r => r.id !== routineId));
+          await trainerService.deleteMemberRoutine(
+            trainerId,
+            memberId,
+            routineId
+          );
+          setRoutines(routines.filter((r) => r.id !== routineId));
           AppAlert.success("Éxito", "Rutina eliminada correctamente");
         } catch (error) {
           AppAlert.error("Error", "No se pudo eliminar la rutina");
@@ -100,8 +112,13 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
       }
     );
   };
-  
-  const renderMetricCard = (title: string, value: number, iconName: any, iconColor: string) => {
+
+  const renderMetricCard = (
+    title: string,
+    value: number,
+    iconName: any,
+    iconColor: string
+  ) => {
     return (
       <View className="items-center p-3">
         <MaterialCommunityIcons name={iconName} size={28} color={iconColor} />
@@ -113,7 +130,7 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
 
   const renderActivityItem = (activity: any) => {
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         key={activity.id}
         className="bg-white p-4 mb-3 rounded-lg shadow-sm"
       >
@@ -152,17 +169,26 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
             </Text>
           </View>
         </View>
-  
+
         {activity.duration && (
           <View className="flex-row mt-2">
-            <MaterialCommunityIcons name="clock-outline" size={16} color="#6b7280" />
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={16}
+              color="#6b7280"
+            />
             <Text className="text-gray-600 ml-1">
               {Math.floor(activity.duration / 60)} min
             </Text>
-            
+
             {activity.exercises_count && (
               <>
-                <MaterialCommunityIcons name="dumbbell" size={16} color="#6b7280" style={{marginLeft: 12}} />
+                <MaterialCommunityIcons
+                  name="dumbbell"
+                  size={16}
+                  color="#6b7280"
+                  style={{ marginLeft: 12 }}
+                />
                 <Text className="text-gray-600 ml-1">
                   {activity.exercises_count} ejercicios
                 </Text>
@@ -189,7 +215,11 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
     return (
       <SafeAreaView className="flex-1 bg-gray-100">
         <View className="flex-1 justify-center items-center p-4">
-          <MaterialCommunityIcons name="alert-circle-outline" size={64} color="#9ca3af" />
+          <MaterialCommunityIcons
+            name="alert-circle-outline"
+            size={64}
+            color="#9ca3af"
+          />
           <Text className="text-xl font-bold text-gray-700 mt-4">
             Perfil no encontrado
           </Text>
@@ -239,52 +269,64 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
           <Text className="text-xl font-bold text-gray-800 mt-6 mb-3">
             Métricas
           </Text>
-          
+
           <View className="flex flex-row justify-around mt-6 bg-white rounded-xl py-2 mx-4 shadow-sm">
-            {memberProfile && renderMetricCard(
-              "Consistencia",
-              Number(memberProfile.stats?.consistency_score || 0),
-              "calendar-check",
-              "#FF9500"
-            )}
-            {memberProfile && renderMetricCard(
-              "Entrenamientos",
-              Number(memberProfile.stats?.total_workouts || 0),
-              "dumbbell",
-              "#4338ca"
-            )}
+            {memberProfile &&
+              renderMetricCard(
+                "Consistencia",
+                Number(memberProfile.stats?.consistency_score || 0),
+                "calendar-check",
+                "#FF9500"
+              )}
+            {memberProfile &&
+              renderMetricCard(
+                "Entrenamientos",
+                Number(memberProfile.stats?.total_workouts || 0),
+                "dumbbell",
+                "#4338ca"
+              )}
           </View>
 
           <View className="flex-row mb-3">
-            {memberProfile && renderMetricCard(
-              "Duración prom.",
-              Math.floor((memberProfile.stats?.avg_workout_duration || 0) / 60),
-              "clock-outline",
-              "#10b981"
-            )}
-            {memberProfile && renderMetricCard(
-              "Records",
-              Number(memberProfile.stats?.personal_records || 0),
-              "trophy-outline",
-              "#f59e0b"
-            )}
+            {memberProfile &&
+              renderMetricCard(
+                "Duración prom.",
+                Math.floor(
+                  (memberProfile.stats?.avg_workout_duration || 0) / 60
+                ),
+                "clock-outline",
+                "#10b981"
+              )}
+            {memberProfile &&
+              renderMetricCard(
+                "Records",
+                Number(memberProfile.stats?.personal_records || 0),
+                "trophy-outline",
+                "#f59e0b"
+              )}
           </View>
 
-          {memberProfile && memberProfile.stats?.favorite_exercises && 
-          memberProfile.stats.favorite_exercises.length > 0 && (
-            <View className="bg-white rounded-xl p-4 mt-3 shadow-sm">
-              <Text className="text-lg font-bold text-gray-800 mb-2">
-                Ejercicios Favoritos
-              </Text>
-              <View className="flex-row flex-wrap">
-                {memberProfile.stats.favorite_exercises.map((exercise, index) => (
-                  <View key={index} className="bg-indigo-50 rounded-full px-3 py-1 m-1">
-                    <Text className="text-indigo-800">{exercise}</Text>
-                  </View>
-                ))}
+          {memberProfile &&
+            memberProfile.stats?.favorite_exercises &&
+            memberProfile.stats.favorite_exercises.length > 0 && (
+              <View className="bg-white rounded-xl p-4 mt-3 shadow-sm">
+                <Text className="text-lg font-bold text-gray-800 mb-2">
+                  Ejercicios Favoritos
+                </Text>
+                <View className="flex-row flex-wrap">
+                  {memberProfile.stats.favorite_exercises.map(
+                    (exercise, index) => (
+                      <View
+                        key={index}
+                        className="bg-indigo-50 rounded-full px-3 py-1 m-1"
+                      >
+                        <Text className="text-indigo-800">{exercise}</Text>
+                      </View>
+                    )
+                  )}
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
           <View className="flex-row justify-between items-center mt-6 mb-3">
             <Text className="text-xl font-bold text-gray-800">
@@ -306,7 +348,11 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
             </View>
           ) : routines.length === 0 ? (
             <View className="bg-white rounded-xl p-8 shadow-sm items-center">
-              <MaterialCommunityIcons name="clipboard-text-outline" size={48} color="#9ca3af" />
+              <MaterialCommunityIcons
+                name="clipboard-text-outline"
+                size={48}
+                color="#9ca3af"
+              />
               <Text className="text-gray-600 mt-3 text-center">
                 No hay rutinas asignadas a este miembro
               </Text>
@@ -314,18 +360,31 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
                 className="mt-4 bg-indigo-100 py-2 px-4 rounded-lg"
                 onPress={() => navigation.navigate("TrainerRoutines")}
               >
-                <Text className="text-indigo-800 font-medium">Asignar rutina</Text>
+                <Text className="text-indigo-800 font-medium">
+                  Asignar rutina
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
             routines.map((routine) => (
-              <View key={routine.id} className="bg-white rounded-lg p-4 mb-3 shadow-sm">
+              <View
+                key={routine.id}
+                className="bg-white rounded-lg p-4 mb-3 shadow-sm"
+              >
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-lg font-medium text-gray-800">{routine.name}</Text>
+                  <Text className="text-lg font-medium text-gray-800">
+                    {routine.name}
+                  </Text>
                   <View className="flex-row">
                     <TouchableOpacity
                       className="p-2"
-                      onPress={() => navigation.navigate("MemberRoutineEdit", { routineId: routine.id, memberId: memberId, refresh: true })}
+                      onPress={() =>
+                        navigation.navigate("MemberRoutineEdit", {
+                          routineId: routine.id,
+                          memberId: memberId,
+                          refresh: true,
+                        })
+                      }
                     >
                       <Feather name="edit" size={18} color="#4f46e5" />
                     </TouchableOpacity>
@@ -337,13 +396,13 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
                     </TouchableOpacity>
                   </View>
                 </View>
-                
+
                 {routine.description && (
                   <Text className="text-gray-600 mt-1">
                     {routine.description}
                   </Text>
                 )}
-                
+
                 <View className="flex-row mt-2 justify-between">
                   <Text className="text-gray-700">
                     {routine.routine_exercises?.length || 0} ejercicios
@@ -360,11 +419,19 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
             Actividad Reciente
           </Text>
 
-          {memberProfile && memberProfile.recent_activity && memberProfile.recent_activity.length > 0 ? (
-            memberProfile.recent_activity.map((activity) => renderActivityItem(activity))
+          {memberProfile &&
+          memberProfile.recent_activity &&
+          memberProfile.recent_activity.length > 0 ? (
+            memberProfile.recent_activity.map((activity) =>
+              renderActivityItem(activity)
+            )
           ) : (
             <View className="bg-white rounded-xl p-8 shadow-sm items-center">
-              <MaterialCommunityIcons name="calendar-blank" size={48} color="#9ca3af" />
+              <MaterialCommunityIcons
+                name="calendar-blank"
+                size={48}
+                color="#9ca3af"
+              />
               <Text className="text-gray-600 mt-3 text-center">
                 No hay actividad reciente para mostrar
               </Text>

@@ -62,7 +62,7 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
               sets: exercise.sets,
               reps: exercise.reps,
               rest_time: exercise.rest_time,
-              order: exercise.order
+              order: exercise.order,
             })
           ),
         });
@@ -158,18 +158,15 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
       };
 
       await routineService.updateRoutine(routineId, normalizedFormData);
-      
-      // Mostrar mensaje de éxito
+
       AppAlert.success("Éxito", "Rutina actualizada correctamente");
-      
-      // Navegamos al listado común de rutinas con la indicación de que debe actualizarse
+
       setTimeout(() => {
         navigation.reset({
           index: 0,
-          routes: [{ name: "RoutineList", params: { refresh: true } }]
+          routes: [{ name: "RoutineList", params: { refresh: true } }],
         });
-      }, 500); // Un pequeño retraso para que se muestre el mensaje de éxito
-      
+      }, 500);
     } catch (error) {
       AppAlert.error("Error", "No se pudo actualizar la rutina");
     } finally {
@@ -177,7 +174,7 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const handleRemoveExercise = async (exerciseId: number, index: number) => {
+  const handleRemoveExercise = async (index: number) => {
     try {
       const updatedExercises = formData.routine_exercises_attributes
         ? [...formData.routine_exercises_attributes]
@@ -387,9 +384,7 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
                         </View>
                         <TouchableOpacity
                           className="justify-center items-center p-2"
-                          onPress={() =>
-                            handleRemoveExercise(ex.exercise_id, index)
-                          }
+                          onPress={() => handleRemoveExercise(index)}
                         >
                           <MaterialIcons
                             name="delete"
@@ -398,39 +393,37 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
                           />
                         </TouchableOpacity>
                       </View>
-                      
-                      {/* Imágenes del ejercicio */}
-                      {exerciseData.exercise.image_urls && exerciseData.exercise.image_urls.length > 0 && (
-                        <ScrollView
-                          horizontal
-                          showsHorizontalScrollIndicator={false}
-                          className="py-2 mb-2"
-                        >
-                          {exerciseData.exercise.image_urls.map((url, imgIndex) => (
-                            <View key={imgIndex} className="mr-3 rounded-lg overflow-hidden shadow-sm">
-                              <Image
-                                source={{ uri: url }}
-                                className="w-32 h-32 rounded-lg"
-                                resizeMode="cover"
-                              />
-                            </View>
-                          ))}
-                        </ScrollView>
-                      )}
-                      
+
+                      {exerciseData.exercise.images &&
+                        exerciseData.exercise.images.length > 0 && (
+                          <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            className="py-2 mb-2"
+                          >
+                            {exerciseData.exercise.images.map(
+                              (url, imgIndex) => (
+                                <View
+                                  key={imgIndex}
+                                  className="mr-3 rounded-lg overflow-hidden shadow-sm"
+                                >
+                                  <Image
+                                    source={{ uri: url }}
+                                    className="w-32 h-32 rounded-lg"
+                                    resizeMode="cover"
+                                  />
+                                </View>
+                              )
+                            )}
+                          </ScrollView>
+                        )}
+
                       <View className="flex-row flex-wrap mt-1">
                         <View className="bg-gray-200 rounded-full mr-2 mb-1 px-2 py-1">
                           <Text className="text-xs text-gray-700">
-                            {exerciseData.exercise.category}
+                            {exerciseData.exercise.level}
                           </Text>
                         </View>
-                        {exerciseData.exercise.equipment && (
-                          <View className="bg-gray-200 rounded-full mr-2 mb-1 px-2 py-1">
-                            <Text className="text-xs text-gray-700">
-                              {exerciseData.exercise.equipment}
-                            </Text>
-                          </View>
-                        )}
                       </View>
                     </View>
                   );

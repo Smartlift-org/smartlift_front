@@ -8,6 +8,7 @@ export interface WorkoutSet {
 }
 
 export interface WorkoutExercise {
+  id?: number;
   routine_exercise_id: number;
   exercise: Exercise;
   planned_sets: number;
@@ -80,5 +81,5 @@ export interface WorkoutCompletionData {
   energy_level?: number;
   mood?: string;
   notes?: string;
-  total_duration_seconds?: number;      // Duración total del workout en segundos (actualizado para API)
+  total_duration_seconds?: number;
 }

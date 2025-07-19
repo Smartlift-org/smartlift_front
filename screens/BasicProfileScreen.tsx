@@ -26,11 +26,9 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-
   const [showPasswordFields, setShowPasswordFields] = useState<boolean>(false);
   const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -165,7 +163,10 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white justify-center items-center" edges={["top"]}>
+      <SafeAreaView
+        className="flex-1 bg-white justify-center items-center"
+        edges={["top"]}
+      >
         <ActivityIndicator size="large" color="#4f46e5" />
         <Text className="mt-4 text-gray-600 font-medium">
           Cargando perfil...
@@ -177,9 +178,7 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
-      <SafeAreaView className="flex-1 bg-gray-50" edges={[
-        "top"
-      ]}>
+      <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
         <View className="flex-1">
           <ScreenHeader
             title="Perfil Personal"

@@ -27,26 +27,24 @@ const workoutStatsService = {
         };
       }
 
-      const sortedWorkouts = [...workouts].sort(
-        (a, b) => {
-          const dateA = a.date || a.created_at;
-          const dateB = b.date || b.created_at;
-          return new Date(dateB).getTime() - new Date(dateA).getTime();
-        }
-      );
+      const sortedWorkouts = [...workouts].sort((a, b) => {
+        const dateA = a.date || a.created_at;
+        const dateB = b.date || b.created_at;
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
 
       const completedWorkouts = sortedWorkouts.filter(
         (w) => w.status === "completed"
       );
 
-      const totalTime = completedWorkouts.reduce(
-        (total, w) => {
-          // Utilizamos total_duration_seconds si está disponible, o los campos antiguos como fallback
-          const duration = w.total_duration_seconds || w.effective_duration || w.total_duration || 0;
-          return total + duration;
-        },
-        0
-      );
+      const totalTime = completedWorkouts.reduce((total, w) => {
+        const duration =
+          w.total_duration_seconds ||
+          w.effective_duration ||
+          w.total_duration ||
+          0;
+        return total + duration;
+      }, 0);
 
       const avgWorkoutsPerWeek = calculateAvgWorkoutsPerWeek(completedWorkouts);
       const { currentStreak, bestStreak } = calculateStreaks(completedWorkouts);
@@ -68,7 +66,9 @@ const workoutStatsService = {
 function calculateAvgWorkoutsPerWeek(workouts: Workout[]): number {
   if (workouts.length <= 1) return workouts.length;
 
-  const dates = workouts.map((w) => new Date(w.date || w.created_at || '').getTime());
+  const dates = workouts.map((w) =>
+    new Date(w.date || w.created_at || "").getTime()
+  );
   const oldestDate = new Date(Math.min(...dates));
   const newestDate = new Date(Math.max(...dates));
 
@@ -84,7 +84,10 @@ function calculateStreaks(workouts: Workout[]): {
   if (workouts.length === 0) return { currentStreak: 0, bestStreak: 0 };
 
   const workoutDates = workouts.map((w) =>
-    format(parseISO(w.date || w.created_at || new Date().toISOString()), "yyyy-MM-dd")
+    format(
+      parseISO(w.date || w.created_at || new Date().toISOString()),
+      "yyyy-MM-dd"
+    )
   );
 
   const uniqueDates = [...new Set(workoutDates)].sort(

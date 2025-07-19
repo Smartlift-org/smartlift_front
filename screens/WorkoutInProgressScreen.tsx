@@ -196,16 +196,19 @@ const WorkoutInProgressScreen: React.FC<WorkoutInProgressScreenProps> = ({
               `Ejercicio ${currentExerciseIndex + 1}`}
           </Text>
 
-          {/* Mostrar imágenes del ejercicio */}
-          {currentExercise.exercise?.image_urls && currentExercise.exercise.image_urls.length > 0 ? (
+          {currentExercise.exercise?.images &&
+          currentExercise.exercise.images.length > 0 ? (
             <View className="mt-3 mb-2">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 className="py-2"
               >
-                {currentExercise.exercise.image_urls.map((url, index) => (
-                  <View key={index} className="mr-3 rounded-lg overflow-hidden shadow-sm">
+                {currentExercise.exercise.images.map((url, index) => (
+                  <View
+                    key={index}
+                    className="mr-3 rounded-lg overflow-hidden shadow-sm"
+                  >
                     <Image
                       source={{ uri: url }}
                       className="w-40 h-40 rounded-lg"
