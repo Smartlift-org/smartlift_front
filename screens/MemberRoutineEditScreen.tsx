@@ -15,7 +15,7 @@ import AppAlert from "../components/AppAlert";
 import routineService, {
   Routine,
   RoutineFormData,
-  RoutineExercise
+  RoutineExercise,
 } from "../services/routineService";
 import { Exercise } from "../types/exercise";
 import trainerService from "../services/trainerService";
@@ -23,20 +23,17 @@ import { RootStackParamList } from "../types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 
-// Extender la interfaz Exercise para incluir los campos adicionales que estamos usando
 interface ExtendedExercise extends Exercise {
   image_urls?: string[];
 }
 
-// Extender RoutineExercise para incluir el campo extendido de Exercise
 interface ExtendedRoutineExercise extends RoutineExercise {
   exercise: ExtendedExercise;
   rest_seconds?: number;
   position?: number;
 }
 
-// Extender Routine para usar ExtendedRoutineExercise
-interface ExtendedRoutine extends Omit<Routine, 'routine_exercises'> {
+interface ExtendedRoutine extends Omit<Routine, "routine_exercises"> {
   routine_exercises: ExtendedRoutineExercise[];
 }
 
@@ -84,7 +81,7 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
   useEffect(() => {
     const loadRoutine = async () => {
       if (!trainerId) return;
-      
+
       try {
         setLoading(true);
         const data = await routineService.getRoutine(routineId);
@@ -103,7 +100,7 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
               sets: exercise.sets,
               reps: exercise.reps,
               rest_time: exercise.rest_time,
-              order: exercise.order
+              order: exercise.order,
             })
           ),
         });
@@ -181,22 +178,18 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
           normalizeExercisesOrder() || formData.routine_exercises_attributes,
       };
 
-      // Utilizamos el nuevo método updateMemberRoutine de trainerService
       await trainerService.updateMemberRoutine(
         trainerId,
         memberId,
         routineId.toString(),
         normalizedFormData
       );
-      
-      // Mostrar mensaje de éxito
+
       AppAlert.success("Éxito", "Rutina actualizada correctamente");
-      
-      // Navegamos de vuelta al perfil del miembro con indicación de que debe actualizarse
+
       setTimeout(() => {
         navigation.navigate("MemberProfile", { memberId, refresh: true });
-      }, 500); // Un pequeño retraso para que se muestre el mensaje de éxito
-      
+      }, 500);
     } catch (error) {
       AppAlert.error("Error", "No se pudo actualizar la rutina del miembro");
     } finally {
@@ -209,19 +202,17 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
       const updatedExercises = formData.routine_exercises_attributes
         ? [...formData.routine_exercises_attributes]
         : [];
-      
-      // Marcar para eliminar en vez de eliminar directamente
+
       if (updatedExercises[index] && updatedExercises[index].id) {
         updatedExercises[index] = {
           ...updatedExercises[index],
-          _destroy: true
+          _destroy: true,
         };
       } else {
         updatedExercises.splice(index, 1);
       }
 
-      // Reordenar ejercicios visibles
-      const visibleExercises = updatedExercises.filter(ex => !ex._destroy);
+      const visibleExercises = updatedExercises.filter((ex) => !ex._destroy);
       visibleExercises.forEach((ex, idx) => {
         ex.order = idx + 1;
       });
@@ -230,46 +221,44 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
         ...formData,
         routine_exercises_attributes: updatedExercises,
       });
-      
     } catch (error) {
       AppAlert.error("Error", "No se pudo eliminar el ejercicio");
     }
   };
 
   const handleAddExercises = () => {
-    // Primero guardamos los cambios actuales
-    trainerService.updateMemberRoutine(
-      trainerId,
-      memberId,
-      routineId.toString(),
-      {
+    trainerService
+      .updateMemberRoutine(trainerId, memberId, routineId.toString(), {
         name: formData.name,
         description: formData.description,
         difficulty: formData.difficulty,
         duration: formData.duration,
-      }
-    )
-    .then(() => {
-      navigation.navigate("ExerciseSelect", {
-        routineData: {
-          name: formData.name,
-          description: formData.description,
-          difficulty: formData.difficulty,
-          duration: formData.duration,
-          routine_exercises_attributes: formData.routine_exercises_attributes ? formData.routine_exercises_attributes.filter(ex => !ex._destroy) : [],
-        },
-        isEditing: true,
-        routineId: routineId,
-        isMemberRoutine: true,
-        memberId: memberId
+      })
+      .then(() => {
+        navigation.navigate("ExerciseSelect", {
+          routineData: {
+            name: formData.name,
+            description: formData.description,
+            difficulty: formData.difficulty,
+            duration: formData.duration,
+            routine_exercises_attributes: formData.routine_exercises_attributes
+              ? formData.routine_exercises_attributes.filter(
+                  (ex) => !ex._destroy
+                )
+              : [],
+          },
+          isEditing: true,
+          routineId: routineId,
+          isMemberRoutine: true,
+          memberId: memberId,
+        });
+      })
+      .catch(() => {
+        AppAlert.error(
+          "Error",
+          "No se pudieron guardar los cambios de la rutina"
+        );
       });
-    })
-    .catch((error) => {
-      AppAlert.error(
-        "Error",
-        "No se pudieron guardar los cambios de la rutina"
-      );
-    });
   };
 
   if (loading) {
@@ -289,9 +278,8 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   }
 
-  // Filtrar ejercicios que no están marcados para eliminar
-  const visibleExercises = formData.routine_exercises_attributes 
-    ? formData.routine_exercises_attributes.filter(ex => !ex._destroy)
+  const visibleExercises = formData.routine_exercises_attributes
+    ? formData.routine_exercises_attributes.filter((ex) => !ex._destroy)
     : [];
 
   return (
@@ -439,26 +427,31 @@ const MemberRoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
                         />
                       </TouchableOpacity>
                     </View>
-                    
-                    {/* Imágenes del ejercicio */}
-                    {exerciseData.exercise.image_urls && exerciseData.exercise.image_urls.length > 0 && (
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        className="py-2 mb-2"
-                      >
-                        {exerciseData.exercise.image_urls.map((url: string, imgIndex: number) => (
-                          <View key={imgIndex} className="mr-3 rounded-lg overflow-hidden shadow-sm">
-                            <Image
-                              source={{ uri: url }}
-                              className="w-32 h-32 rounded-lg"
-                              resizeMode="cover"
-                            />
-                          </View>
-                        ))}
-                      </ScrollView>
-                    )}
-                    
+
+                    {exerciseData.exercise.image_urls &&
+                      exerciseData.exercise.image_urls.length > 0 && (
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          className="py-2 mb-2"
+                        >
+                          {exerciseData.exercise.image_urls.map(
+                            (url: string, imgIndex: number) => (
+                              <View
+                                key={imgIndex}
+                                className="mr-3 rounded-lg overflow-hidden shadow-sm"
+                              >
+                                <Image
+                                  source={{ uri: url }}
+                                  className="w-32 h-32 rounded-lg"
+                                  resizeMode="cover"
+                                />
+                              </View>
+                            )
+                          )}
+                        </ScrollView>
+                      )}
+
                     <View className="flex-row flex-wrap mt-1">
                       <View className="bg-gray-200 rounded-full mr-2 mb-1 px-2 py-1">
                         <Text className="text-xs text-gray-700">

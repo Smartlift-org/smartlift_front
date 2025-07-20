@@ -94,16 +94,18 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({
 
     setIsLoading(true);
     try {
-      const nameExists = await routineService.checkRoutineNameExists(name.trim());
-      
+      const nameExists = await routineService.checkRoutineNameExists(
+        name.trim()
+      );
+
       if (nameExists) {
         AppAlert.error(
-          "Nombre duplicado", 
+          "Nombre duplicado",
           "Ya existe una rutina con este nombre. Por favor, elige un nombre diferente."
         );
         return;
       }
-      
+
       navigation.navigate("ExerciseSelect", {
         routineData: {
           name: name.trim(),
@@ -113,7 +115,10 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({
         },
       });
     } catch (error) {
-      AppAlert.error("Error", "Ocurrió un error al validar el nombre de la rutina. Inténtalo de nuevo.");
+      AppAlert.error(
+        "Error",
+        "Ocurrió un error al validar el nombre de la rutina. Inténtalo de nuevo."
+      );
     } finally {
       setIsLoading(false);
     }

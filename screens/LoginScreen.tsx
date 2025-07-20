@@ -142,9 +142,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             />
           </View>
 
-          <TouchableOpacity 
-            className="self-end mb-8" 
-            onPress={() => navigation.navigate("ForgotPassword")}>
+          <TouchableOpacity
+            className="self-end mb-8"
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
             <Text className="text-primary text-sm">
               ¿Olvidaste tu contraseña?
             </Text>

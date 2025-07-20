@@ -18,7 +18,6 @@ import { RootStackParamList } from "../types";
 import authService from "../services/authService";
 import { Ionicons } from "@expo/vector-icons";
 
-// Asegurarse que coincide con la definición en RootStackParamList
 type ResetPasswordScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "ResetPassword">;
   route: RouteProp<RootStackParamList, "ResetPassword">;
@@ -32,19 +31,14 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
   const [resetSuccess, setResetSuccess] = useState<boolean>(false);
 
   const handleResetPassword = async (): Promise<void> => {
-    // Validación de campos vacíos
     if (!password || !confirmPassword) {
       AppAlert.error("Error", "Por favor completa todos los campos");
       return;
     }
-
-    // Validación de coincidencia de contraseñas
     if (password !== confirmPassword) {
       AppAlert.error("Error", "Las contraseñas no coinciden");
       return;
     }
-
-    // Validación de longitud mínima
     if (password.length < 6) {
       AppAlert.error("Error", "La contraseña debe tener al menos 6 caracteres");
       return;
@@ -80,7 +74,6 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
       >
         <StatusBar barStyle="dark-content" />
         <View className="flex-1 px-6 mt-20">
-          {/* Header con título */}
           <View className="mb-6">
             <Text className="text-2xl font-bold text-text">
               Crear nueva contraseña

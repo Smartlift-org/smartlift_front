@@ -30,20 +30,20 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
           paddingVertical: 8,
           paddingHorizontal: 16,
           borderRadius: 8,
-          backgroundColor: isSelected ? '#4f46e5' : '#ffffff',
+          backgroundColor: isSelected ? "#4f46e5" : "#ffffff",
           borderWidth: isSelected ? 0 : 1,
-          borderColor: isSelected ? 'transparent' : '#d1d5db',
-          minWidth: category.length * 8, 
-          maxWidth: 200
+          borderColor: isSelected ? "transparent" : "#d1d5db",
+          minWidth: category.length * 8,
+          maxWidth: 200,
         }}
         onPress={() => handleCategoryPress(category)}
       >
         <Text
           style={{
-            color: isSelected ? '#ffffff' : '#1f2937',
-            textAlign: 'center',
-            fontWeight: isSelected ? '600' : 'normal',
-            fontSize: 14
+            color: isSelected ? "#ffffff" : "#1f2937",
+            textAlign: "center",
+            fontWeight: isSelected ? "600" : "normal",
+            fontSize: 14,
           }}
           numberOfLines={1}
         >

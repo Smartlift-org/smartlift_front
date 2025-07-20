@@ -171,13 +171,6 @@ const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )
         )}
-
-        <View className="bg-yellow-50 p-4 rounded-lg mb-8">
-          <Text className="text-yellow-800">
-            Nota: Los IDs de ejercicios se reemplazarán con los nombres reales
-            cuando el backend esté completo.
-          </Text>
-        </View>
       </ScrollView>
 
       <View className="p-4 bg-white border-t border-gray-200">

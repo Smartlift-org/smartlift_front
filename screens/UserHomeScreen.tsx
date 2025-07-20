@@ -1,12 +1,5 @@
-import React from "react";
-import { useLayoutEffect, useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StatusBar,
-} from "react-native";
+import React, { useLayoutEffect, useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
@@ -48,6 +41,10 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
       setCurrentUser(user);
     };
     loadUserData();
+  }, []);
+
+  useEffect(() => {
+    setQuote(getRandomQuote());
   }, []);
 
   useLayoutEffect(() => {

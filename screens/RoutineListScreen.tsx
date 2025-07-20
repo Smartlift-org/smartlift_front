@@ -142,7 +142,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
         title={"Tus Rutinas"}
         onBack={() => {
           const canGoBack = navigation.canGoBack();
-          
+
           if (canGoBack) {
             navigation.goBack();
           } else {

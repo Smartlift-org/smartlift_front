@@ -22,8 +22,6 @@ type CoachHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "CoachHome">;
 };
 
-
-
 const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -37,16 +35,19 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
     try {
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
-      
+
       if (user && user.id) {
         const dashboardData = await trainerService.getDashboard(user.id);
         setDashboard(dashboardData);
-        
+
         const membersResponse = await trainerService.getMembers(user.id, 1, 5);
         setRecentMembers(membersResponse.members || []);
       }
     } catch (error) {
-      AppAlert.error("Error", "No se pudieron cargar los datos del entrenador.");
+      AppAlert.error(
+        "Error",
+        "No se pudieron cargar los datos del entrenador."
+      );
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -57,8 +58,7 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
     setRefreshing(true);
     loadData(false);
   };
-  
-  // Load data on initial mount and when route params change (e.g., after assigning a member)
+
   useEffect(() => {
     loadData();
   }, [route.params?.refresh]);
@@ -87,13 +87,25 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
   const renderMemberItem = ({ item }: { item: Member }): React.ReactElement => (
     <TouchableOpacity
       className="bg-white p-4 rounded-lg mb-3 shadow-sm"
-      onPress={() => navigation.navigate("MemberProfile", { memberId: item.id })}
+      onPress={() =>
+        navigation.navigate("MemberProfile", { memberId: item.id })
+      }
     >
       <View className="flex-row justify-between items-center">
-        <Text className="text-lg font-medium text-gray-800">{item.name || '-'}</Text>
-        <View className={`px-3 py-1 rounded-full ${item.status === 'active' ? 'bg-green-100' : 'bg-red-100'}`}>
-          <Text className={item.status === 'active' ? 'text-green-800' : 'text-red-800'}>
-            {item.status === 'active' ? 'Activo' : 'Inactivo'}
+        <Text className="text-lg font-medium text-gray-800">
+          {item.name || "-"}
+        </Text>
+        <View
+          className={`px-3 py-1 rounded-full ${
+            item.status === "active" ? "bg-green-100" : "bg-red-100"
+          }`}
+        >
+          <Text
+            className={
+              item.status === "active" ? "text-green-800" : "text-red-800"
+            }
+          >
+            {item.status === "active" ? "Activo" : "Inactivo"}
           </Text>
         </View>
       </View>
@@ -109,7 +121,9 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
     return (
       <SafeAreaView className="flex-1 bg-gray-100 justify-center items-center">
         <ActivityIndicator size="large" color="#4f46e5" />
-        <Text className="mt-4 text-gray-600">Cargando datos del entrenador...</Text>
+        <Text className="mt-4 text-gray-600">
+          Cargando datos del entrenador...
+        </Text>
       </SafeAreaView>
     );
   }
@@ -200,7 +214,9 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
               className="bg-indigo-600 py-2 px-4 rounded-lg"
               onPress={() => navigation.navigate("MemberManagement")}
             >
-              <Text className="text-white font-semibold">Gestionar Miembros</Text>
+              <Text className="text-white font-semibold">
+                Gestionar Miembros
+              </Text>
             </TouchableOpacity>
           </View>
 

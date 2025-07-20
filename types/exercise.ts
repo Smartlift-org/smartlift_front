@@ -5,7 +5,7 @@ export interface Exercise {
   primary_muscles: string[];
   level: "beginner" | "intermediate" | "expert";
   images: string[];
-  difficulty_level: number; // Calculado en el backend (1=beginner, 2=intermediate, 3=expert)
+  difficulty_level: number;
 }
 
 export interface ExerciseCategory {

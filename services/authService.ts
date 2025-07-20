@@ -76,8 +76,10 @@ const authService = {
       throw error;
     }
   },
-  
-  forgotPassword: async (email: string): Promise<{ message: string; email: string }> => {
+
+  forgotPassword: async (
+    email: string
+  ): Promise<{ message: string; email: string }> => {
     try {
       const response = await apiClient.post("/auth/forgot-password", { email });
       return response.data;
@@ -85,25 +87,31 @@ const authService = {
       throw error;
     }
   },
-  
-  validateToken: async (token: string): Promise<{ valid: boolean; message?: string; error?: string }> => {
+
+  validateToken: async (
+    token: string
+  ): Promise<{ valid: boolean; message?: string; error?: string }> => {
     try {
-      const response = await apiClient.get(`/auth/validate-token?token=${encodeURIComponent(token)}`);
+      const response = await apiClient.get(
+        `/auth/validate-token?token=${encodeURIComponent(token)}`
+      );
       return response.data;
     } catch (error: any) {
-      // Si hay un error HTTP, devolvemos un objeto con formato consistente
       return {
         valid: false,
-        error: error.response?.data?.error || "Error al validar el token"
+        error: error.response?.data?.error || "Error al validar el token",
       };
     }
   },
-  
+
   resetPassword: async (
     token: string,
     password: string,
     passwordConfirmation: string
-  ): Promise<{ message: string; user: { id: number; email: string; name: string } }> => {
+  ): Promise<{
+    message: string;
+    user: { id: number; email: string; name: string };
+  }> => {
     try {
       const response = await apiClient.post("/auth/reset-password", {
         token,
