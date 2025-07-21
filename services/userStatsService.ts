@@ -1,5 +1,4 @@
-import axios, { AxiosError } from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AxiosError } from "axios";
 import { apiClient } from "./apiClient";
 
 export interface UserStats {
@@ -23,6 +22,11 @@ const userStatsService = {
   getUserStats: async (): Promise<UserStats | null> => {
     try {
       const response = await apiClient.get("/user_stats");
+
+      if (response.data && response.data.error) {
+        return null;
+      }
+
       return response.data;
     } catch (error) {
       if ((error as AxiosError).response?.status === 404) {

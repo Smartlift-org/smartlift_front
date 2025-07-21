@@ -23,6 +23,10 @@ export type RootStackParamList = {
   SelectedExercises: { routineId?: number };
   MemberManagement: undefined;
   MemberProfile: { memberId: string };
+  AdminHome: undefined;
+  AdminRegisterCoach: undefined;
+  AdminCoachList: undefined;
+  AdminUserList: undefined;
 };
 
 export interface User {
@@ -30,7 +34,8 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'user' | 'coach' | 'admin';
+  role: "user" | "coach" | "admin";
+  created_at?: string;
 }
 
 export interface LoginResponse {
@@ -44,7 +49,7 @@ export interface RegisterData {
   password_confirmation: string;
   first_name: string;
   last_name: string;
-  role: 'user' | 'coach' | 'admin';
+  role: "user" | "coach" | "admin";
 }
 
-export * from './types/declarations/trainer';
+export * from "./types/declarations/trainer";

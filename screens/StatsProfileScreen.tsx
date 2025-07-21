@@ -90,19 +90,16 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
 
         if (stats.available_days) {
           setAvailableDaysCount(stats.available_days.toString());
-        } else if (!fromRedirect) {
+        }
+      } else {
+        setUserStats(null);
+        if (!fromRedirect) {
           AppAlert.info(
             "Información no encontrada",
             "No se encontró información de perfil. Por favor completa tu perfil."
           );
           setIsEditing(true);
         }
-      } else if (!fromRedirect) {
-        AppAlert.info(
-          "Información no encontrada",
-          "No se encontró información de perfil. Por favor completa tu perfil."
-        );
-        setIsEditing(true);
       }
     } catch (error) {
       AppAlert.error("Error", "Ocurrió un error al cargar tu información.");
