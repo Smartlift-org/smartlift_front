@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList, User } from "../types";
+import type { RootStackParamList, User } from "../types/index";
 import adminService from "../services/adminService";
 
 type AdminCoachListScreenProps = {
@@ -85,7 +85,12 @@ const AdminCoachListScreen: React.FC<AdminCoachListScreenProps> = ({
             </Text>
           )}
         </View>
-        <TouchableOpacity className="bg-red-100 p-2 rounded-lg">
+        <TouchableOpacity
+          className="bg-red-100 p-2 rounded-lg"
+          onPress={() =>
+            navigation.navigate("AdminCoachDetail", { coachId: coach.id })
+          }
+        >
           <Text className="text-red-800 text-xs font-medium">Ver Detalles</Text>
         </TouchableOpacity>
       </View>

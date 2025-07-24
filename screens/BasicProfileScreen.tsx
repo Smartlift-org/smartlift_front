@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList, User } from "../types";
+import { RootStackParamList, User } from "../types/index";
 import authService from "../services/authService";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";

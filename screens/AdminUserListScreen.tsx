@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList, User } from "../types";
+import type { RootStackParamList, User } from "../types/index";
 import adminService from "../services/adminService";
 
 type AdminUserListScreenProps = {
@@ -115,7 +115,12 @@ const AdminUserListScreen: React.FC<AdminUserListScreenProps> = ({
             </Text>
           )}
         </View>
-        <TouchableOpacity className="bg-red-100 p-2 rounded-lg">
+        <TouchableOpacity
+          className="bg-red-100 p-2 rounded-lg"
+          onPress={() =>
+            navigation.navigate("AdminUserDetail", { userId: user.id })
+          }
+        >
           <Text className="text-red-800 text-xs font-medium">Ver Detalles</Text>
         </TouchableOpacity>
       </View>
@@ -137,13 +142,6 @@ const AdminUserListScreen: React.FC<AdminUserListScreenProps> = ({
     );
   }
 
-  const userStats = {
-    total: users.length,
-    admins: users.filter((u) => u.role === "admin").length,
-    coaches: users.filter((u) => u.role === "coach").length,
-    basicUsers: users.filter((u) => u.role === "user").length,
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
@@ -152,38 +150,6 @@ const AdminUserListScreen: React.FC<AdminUserListScreenProps> = ({
       />
 
       <View className="flex-1 p-4">
-        <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
-          <Text className="text-red-800 font-semibold text-center mb-2">
-            📊 Estadísticas de Usuarios
-          </Text>
-          <View className="flex-row justify-around">
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-gray-800">
-                {userStats.total}
-              </Text>
-              <Text className="text-xs text-gray-600">Total</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-red-600">
-                {userStats.admins}
-              </Text>
-              <Text className="text-xs text-gray-600">Admins</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-green-600">
-                {userStats.coaches}
-              </Text>
-              <Text className="text-xs text-gray-600">Coaches</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-2xl font-bold text-blue-600">
-                {userStats.basicUsers}
-              </Text>
-              <Text className="text-xs text-gray-600">Usuarios</Text>
-            </View>
-          </View>
-        </View>
-
         <ScrollView
           className="flex-1"
           refreshControl={

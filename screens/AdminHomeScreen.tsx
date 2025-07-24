@@ -5,7 +5,7 @@ import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
-import type { RootStackParamList, User } from "../types";
+import type { RootStackParamList, User } from "../types/index";
 
 type AdminHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "AdminHome">;

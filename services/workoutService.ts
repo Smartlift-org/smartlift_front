@@ -71,7 +71,6 @@ class WorkoutService {
     data?: WorkoutCompletionData
   ): Promise<Workout> => {
     try {
-      // Backend expects: workout_rating, notes, total_duration_seconds, perceived_intensity, energy_level, mood
       const response = await apiClient.put(
         `/workouts/${id}/complete`,
         data || {}
@@ -132,7 +131,6 @@ class WorkoutService {
     }
   };
 
-  // Create workout exercise when starting a workout
   createWorkoutExercise = async (workoutId: number, exerciseData: any) => {
     try {
       const response = await apiClient.post(`/workout/exercises`, {
@@ -145,7 +143,6 @@ class WorkoutService {
     }
   };
 
-  // Record a set for a workout exercise (correct method)
   recordExerciseSet = async (workoutExerciseId: number, setData: any) => {
     try {
       const response = await apiClient.post(

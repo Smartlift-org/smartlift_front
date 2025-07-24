@@ -11,7 +11,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import routineService from "../services/routineService";
 
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import { Routine } from "../types/routine";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
@@ -76,7 +76,7 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
               );
             }
           },
-          () => console.log("Acción cancelada")
+          () => {}
         );
       } else {
         navigation.navigate("WorkoutTracker", {

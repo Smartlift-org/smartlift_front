@@ -1,6 +1,6 @@
 import { InternalAxiosRequestConfig } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User, LoginResponse, RegisterData } from "../types";
+import { User, LoginResponse, RegisterData } from "../types/index";
 import { apiClient, TOKEN_KEY, USER_KEY } from "./apiClient";
 
 const authService = {
@@ -11,23 +11,27 @@ const authService = {
         password,
       });
 
+      if (loginResponse.status >= 400) {
+        throw new Error(
+          "Credenciales incorrectas. Verifica tu email y contraseña."
+        );
+      }
+
       const token = loginResponse.data.token;
 
       if (!token) {
-        throw new Error("No token received from server");
+        throw new Error(
+          "No se pudo obtener el token de autenticación del servidor"
+        );
       }
 
       await AsyncStorage.setItem(TOKEN_KEY, token);
 
-      apiClient.interceptors.request.use(
-        (config: InternalAxiosRequestConfig) => {
-          config.headers = config.headers || {};
-          config.headers["Authorization"] = `Bearer ${token}`;
-          return config;
-        }
-      );
-
-      const userResponse = await apiClient.get("/profile");
+      const userResponse = await apiClient.get("/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const userData = userResponse.data;
 
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
@@ -36,8 +40,28 @@ const authService = {
         token,
         user: userData,
       };
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error.response) {
+        const status = error.response.status;
+        const errorMessage =
+          error.response.data?.error || error.response.data?.message;
+
+        if (status === 401 || status === 422) {
+          throw new Error(
+            "Credenciales incorrectas. Verifica tu email y contraseña."
+          );
+        } else if (status === 404) {
+          throw new Error("Usuario no encontrado.");
+        } else if (errorMessage) {
+          throw new Error(errorMessage);
+        } else {
+          throw new Error("Error al iniciar sesión. Inténtalo de nuevo.");
+        }
+      } else if (error.message) {
+        throw error;
+      } else {
+        throw new Error("Error de conexión. Verifica tu conexión a internet.");
+      }
     }
   },
 

@@ -14,7 +14,7 @@ import {
 import AppAlert from "../components/AppAlert";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import authService from "../services/authService";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -23,7 +23,10 @@ type ResetPasswordScreenProps = {
   route: RouteProp<RootStackParamList, "ResetPassword">;
 };
 
-const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, route }) => {
+const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
+  navigation,
+  route,
+}) => {
   const { token } = route.params;
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -47,21 +50,26 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
     setIsLoading(true);
 
     try {
-      const response = await authService.resetPassword(token, password, confirmPassword);
-      
+      const response = await authService.resetPassword(
+        token,
+        password,
+        confirmPassword
+      );
+
       setIsLoading(false);
       setResetSuccess(true);
-      
+
       AppAlert.success(
         "¡Contraseña actualizada!",
         "Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña."
       );
     } catch (error: any) {
       setIsLoading(false);
-      
-      const errorMessage = error.response?.data?.error || 
+
+      const errorMessage =
+        error.response?.data?.error ||
         "No se pudo restablecer tu contraseña. El enlace podría haber expirado. Intenta solicitar un nuevo enlace de restablecimiento.";
-      
+
       AppAlert.error("Error", errorMessage);
     }
   };
@@ -130,7 +138,11 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
             </>
           ) : (
             <View className="items-center my-8">
-              <Ionicons name="checkmark-circle-outline" size={64} color="#4f46e5" />
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={64}
+                color="#4f46e5"
+              />
               <Text className="text-xl font-bold text-center mt-4">
                 ¡Contraseña actualizada!
               </Text>

@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import AppAlert from "../components/AppAlert";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import authService from "../services/authService";
 import { Ionicons } from "@expo/vector-icons";
 

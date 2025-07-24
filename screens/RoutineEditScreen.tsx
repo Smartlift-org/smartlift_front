@@ -16,7 +16,7 @@ import routineService, {
   Routine,
   RoutineFormData,
 } from "../services/routineService";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type Props = {

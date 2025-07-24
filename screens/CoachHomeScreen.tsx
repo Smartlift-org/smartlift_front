@@ -13,7 +13,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRoute } from "@react-navigation/native";
 import authService from "../services/authService";
 import trainerService from "../services/trainerService";
-import type { RootStackParamList, User } from "../types";
+import type { RootStackParamList, User } from "../types/index";
 import type { Member, TrainerDashboard } from "../types/declarations/trainer";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";

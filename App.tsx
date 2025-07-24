@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaView, StatusBar, Text, ActivityIndicator } from "react-native";
@@ -28,16 +27,23 @@ import ActiveWorkoutsScreen from "./screens/ActiveWorkoutsScreen";
 import TrainerRoutinesScreen from "./screens/TrainerRoutinesScreen";
 import MemberSelectionScreen from "./screens/MemberSelectionScreen";
 import RoutineSelectScreen from "./screens/RoutineSelectScreen";
-import WorkoutInProgressScreen from "./screens/WorkoutInProgressScreen";
 import SelectedExercisesScreen from "./screens/SelectedExercisesScreen";
 import MemberManagementScreen from "./screens/MemberManagementScreen";
 import MemberProfileScreen from "./screens/MemberProfileScreen";
 import MemberRoutineEditScreen from "./screens/MemberRoutineEditScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import AdminHomeScreen from "./screens/AdminHomeScreen";
+import AdminCoachListScreen from "./screens/AdminCoachListScreen";
+import AdminUserListScreen from "./screens/AdminUserListScreen";
+import AdminRegisterCoachScreen from "./screens/AdminRegisterCoachScreen";
+import AdminCoachDetailScreen from "./screens/AdminCoachDetailScreen";
+import AdminUserDetailScreen from "./screens/AdminUserDetailScreen";
+import AdminCoachEditScreen from "./screens/AdminCoachEditScreen";
+import AdminAssignUsersScreen from "./screens/AdminAssignUsersScreen";
 import authService from "./services/authService";
 
-import type { RootStackParamList, User } from "./types";
+import type { RootStackParamList, User } from "./types/index";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -85,7 +91,13 @@ export default function App(): React.ReactElement {
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={
-            user ? (user.role === "coach" ? "CoachHome" : "UserHome") : "Login"
+            user
+              ? user.role === "admin"
+                ? "AdminHome"
+                : user.role === "coach"
+                ? "CoachHome"
+                : "UserHome"
+              : "Login"
           }
           screenOptions={navigationConfig.screenOptions}
         >
@@ -128,10 +140,7 @@ export default function App(): React.ReactElement {
             component={ActiveWorkoutsScreen}
           />
           <Stack.Screen name="RoutineSelect" component={RoutineSelectScreen} />
-          <Stack.Screen
-            name="WorkoutInProgress"
-            component={WorkoutInProgressScreen}
-          />
+
           <Stack.Screen
             name="SelectedExercises"
             component={SelectedExercisesScreen}
@@ -140,18 +149,12 @@ export default function App(): React.ReactElement {
             name="MemberManagement"
             component={MemberManagementScreen}
           />
-          <Stack.Screen
-            name="MemberProfile"
-            component={MemberProfileScreen}
-          />
+          <Stack.Screen name="MemberProfile" component={MemberProfileScreen} />
           <Stack.Screen
             name="ForgotPassword"
             component={ForgotPasswordScreen}
           />
-          <Stack.Screen
-            name="ResetPassword"
-            component={ResetPasswordScreen}
-          />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
           <Stack.Screen
             name="TrainerRoutines"
             component={TrainerRoutinesScreen}
@@ -163,6 +166,32 @@ export default function App(): React.ReactElement {
           <Stack.Screen
             name="MemberRoutineEdit"
             component={MemberRoutineEditScreen}
+          />
+          <Stack.Screen name="AdminHome" component={AdminHomeScreen} />
+          <Stack.Screen
+            name="AdminCoachList"
+            component={AdminCoachListScreen}
+          />
+          <Stack.Screen name="AdminUserList" component={AdminUserListScreen} />
+          <Stack.Screen
+            name="AdminRegisterCoach"
+            component={AdminRegisterCoachScreen}
+          />
+          <Stack.Screen
+            name="AdminCoachDetail"
+            component={AdminCoachDetailScreen}
+          />
+          <Stack.Screen
+            name="AdminUserDetail"
+            component={AdminUserDetailScreen}
+          />
+          <Stack.Screen
+            name="AdminCoachEdit"
+            component={AdminCoachEditScreen}
+          />
+          <Stack.Screen
+            name="AdminAssignUsers"
+            component={AdminAssignUsersScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

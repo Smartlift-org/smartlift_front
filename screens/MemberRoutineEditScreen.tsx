@@ -19,7 +19,7 @@ import routineService, {
 } from "../services/routineService";
 import { Exercise } from "../types/exercise";
 import trainerService from "../services/trainerService";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 

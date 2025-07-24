@@ -1,15 +1,13 @@
-import {
-  RoutineExerciseFormData,
-} from "../services/routineService";
+import { RoutineExerciseFormData } from "../services/routineService";
 
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
   ResetPassword: { token: string };
-  
+
   UserHome: undefined;
-  CoachHome: undefined;
+  CoachHome: { refresh?: number } | undefined;
   BasicProfile: undefined;
   StatsProfile: { fromRedirect?: boolean };
   RoutineList: { refresh?: boolean; startWorkout?: boolean };
@@ -18,7 +16,6 @@ export type RootStackParamList = {
   RoutineEdit: { routineId: number; refresh?: boolean };
   ActiveWorkouts: undefined;
   RoutineSelect: { fromActiveWorkouts?: boolean };
-  WorkoutInProgress: { workoutId: number };
   TrainerRoutines: { refresh?: boolean };
   MemberSelection: { routineId: string; customName?: string };
   MemberProfile: { memberId: string; refresh?: boolean };
@@ -33,7 +30,7 @@ export type RootStackParamList = {
       duration: number;
     };
   };
-  WorkoutTracker: { routineId: number };
+  WorkoutTracker: { routineId: number; workoutId?: number; viewMode?: boolean };
   WorkoutStats: { workoutId?: string; message?: string };
   AIRoutineGenerator: undefined;
   WorkoutHistory: undefined;
@@ -59,6 +56,16 @@ export type RootStackParamList = {
       };
     }[];
   };
+
+  AdminHome: undefined;
+  AdminRegisterCoach: undefined;
+  AdminCoachList: undefined;
+  AdminUserList: undefined;
+  AdminUserDetail: { userId: string };
+  AdminCoachDetail: { coachId: string };
+  AdminCoachEdit: { coachId: string };
+  AdminUserEdit: { userId: string };
+  AdminAssignUsers: { coachId: string; coachName: string };
 };
 
 export interface User {
@@ -66,8 +73,10 @@ export interface User {
   first_name: string;
   last_name: string;
   email: string;
-  role: "user" | "coach";
+  role: "user" | "coach" | "admin";
   created_at?: string;
+  password?: string;
+  password_confirmation?: string;
 }
 
 export interface LoginResponse {
@@ -81,5 +90,7 @@ export interface RegisterData {
   email: string;
   password: string;
   password_confirmation: string;
-  role?: "user" | "coach";
+  role?: "user" | "coach" | "admin";
 }
+
+export * from "./declarations/trainer";

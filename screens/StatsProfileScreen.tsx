@@ -10,9 +10,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import AppAlert from "../components/AppAlert";
-import userStatsService from "../services/userStatsService";
+import userStatsService, { UserStats } from "../services/userStatsService";
 import ScreenHeader from "../components/ScreenHeader";
 
 type StatsProfileScreenProps = {
@@ -52,7 +52,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(fromRedirect);
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [userStats, setUserStats] = useState<any>(null);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [height, setHeight] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
   const [age, setAge] = useState<string>("");

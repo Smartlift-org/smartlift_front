@@ -31,12 +31,7 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
-      console.log("API Request:", {
-        url: config.url,
-        baseURL: config.baseURL,
-        method: config.method,
-        headers: config.headers,
-      });
+
       return config;
     } catch (error) {
       console.error("Request interceptor error:", error);
@@ -51,11 +46,6 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response: any) => {
-    console.log("API Response:", {
-      status: response.status,
-      url: response.config.url,
-      data: response.data,
-    });
     return response;
   },
   (error: AxiosError) => {

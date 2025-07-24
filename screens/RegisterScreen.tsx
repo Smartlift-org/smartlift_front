@@ -17,7 +17,7 @@ import PrivacyPolicyModal from "../components/PrivacyPolicyModal";
 import TermsOfServiceModal from "../components/TermsOfServiceModal";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList, RegisterData } from "../types";
+import type { RootStackParamList, RegisterData } from "../types/index";
 import authService from "../services/authService";
 import userStatsService from "../services/userStatsService";
 
@@ -154,13 +154,17 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
           [{ text: "Ir a Login", onPress: () => navigation.navigate("Login") }]
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsLoading(false);
-      const errorMessage =
-        error.response?.data?.errors?.[0] ||
-        error.response?.data?.error ||
-        error.message ||
-        "Error en el registro. Por favor intente nuevamente.";
+      let errorMessage = "Error al registrar usuario";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as any;
+        errorMessage =
+          axiosError.response?.data?.errors?.[0] ||
+          axiosError.response?.data?.message ||
+          errorMessage;
+      }
 
       AppAlert.error("Error de Registro", errorMessage);
     }

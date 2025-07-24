@@ -16,7 +16,7 @@ import ScreenHeader from "../components/ScreenHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../types";
+import type { RootStackParamList } from "../types/index";
 import adminService from "../services/adminService";
 
 type AdminRegisterCoachScreenProps = {
