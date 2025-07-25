@@ -17,7 +17,7 @@ import PrivacyPolicyModal from "../components/PrivacyPolicyModal";
 import TermsOfServiceModal from "../components/TermsOfServiceModal";
 
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList, RegisterData } from "../types";
+import type { RootStackParamList, RegisterData } from "../types/index";
 import authService from "../services/authService";
 import userStatsService from "../services/userStatsService";
 
@@ -39,7 +39,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [termsOfServiceVisible, setTermsOfServiceVisible] =
     useState<boolean>(false);
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
-  const [selectedRole, setSelectedRole] = useState<"user" | "coach">("user");
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
@@ -95,7 +94,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
         email: email.trim().toLowerCase(),
         password: password,
         password_confirmation: confirmPassword,
-        role: selectedRole,
+        role: "user",
       };
 
       await authService.register(userData);
@@ -155,13 +154,17 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
           [{ text: "Ir a Login", onPress: () => navigation.navigate("Login") }]
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsLoading(false);
-      const errorMessage =
-        error.response?.data?.errors?.[0] ||
-        error.response?.data?.error ||
-        error.message ||
-        "Error en el registro. Por favor intente nuevamente.";
+      let errorMessage = "Error al registrar usuario";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as any;
+        errorMessage =
+          axiosError.response?.data?.errors?.[0] ||
+          axiosError.response?.data?.message ||
+          errorMessage;
+      }
 
       AppAlert.error("Error de Registro", errorMessage);
     }
@@ -223,46 +226,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-            </View>
-
-            <View className="mb-4">
-              <Text className="text-sm text-[#495057] mb-2">
-                Tipo de Usuario
-              </Text>
-              <View className="flex-row">
-                <TouchableOpacity
-                  className={`flex-1 border ${
-                    selectedRole === "user"
-                      ? "bg-primary border-primary"
-                      : "bg-white border-border"
-                  } rounded-lg p-4 mr-2 items-center`}
-                  onPress={() => setSelectedRole("user")}
-                >
-                  <Text
-                    className={`text-base ${
-                      selectedRole === "user" ? "text-white" : "text-textLight"
-                    }`}
-                  >
-                    Usuario
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className={`flex-1 border ${
-                    selectedRole === "coach"
-                      ? "bg-primary border-primary"
-                      : "bg-white border-border"
-                  } rounded-lg p-4 ml-2 items-center`}
-                  onPress={() => setSelectedRole("coach")}
-                >
-                  <Text
-                    className={`text-base ${
-                      selectedRole === "coach" ? "text-white" : "text-textLight"
-                    }`}
-                  >
-                    Entrenador
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             <View className="mb-4">

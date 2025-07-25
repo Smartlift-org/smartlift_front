@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
 import routineService from "../services/routineService";

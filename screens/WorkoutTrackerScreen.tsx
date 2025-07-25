@@ -40,6 +40,7 @@ type Props = {
 
 export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const routineId = route.params?.routineId;
+  const existingWorkoutId = route.params?.workoutId;
   const viewMode = route.params?.viewMode === true;
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -81,9 +82,12 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const currentEffectiveTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const loadRoutine = async () => {
+    const loadData = async () => {
       try {
-        if (routineId) {
+        if (existingWorkoutId) {
+          setWorkoutId(existingWorkoutId.toString());
+          await loadWorkoutData(existingWorkoutId);
+        } else if (routineId) {
           const routineData = await routineService.getRoutine(routineId);
 
           setRoutine(routineData);
@@ -109,14 +113,14 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
           navigation.goBack();
         }
       } catch (error) {
-        AppAlert.error("Error", "Error al cargar la rutina");
+        AppAlert.error("Error", "Error al cargar los datos");
       } finally {
         setLoading(false);
       }
     };
 
-    loadRoutine();
-  }, [routineId]);
+    loadData();
+  }, [routineId, existingWorkoutId]);
 
   useEffect(() => {
     const handleBackButton = () => {
@@ -261,31 +265,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         setActiveExerciseIndex(0);
       }
 
-      console.log("Basic workout data:", {
-        id: response.id,
-        status: response.status,
-        exercises_count: response.exercises?.length || 0,
-      });
-      console.log(
-        "Backend workout_exercises:",
-        workoutExercises.map((we: any) => ({
-          id: we.id,
-          exercise_id: we.exercise_id,
-          sets_count: we.sets?.length || 0,
-          completed_sets: we.sets?.filter((s: any) => s.completed).length || 0,
-        }))
-      );
-      console.log(
-        "Mapped exercises with IDs:",
-        mappedExercises.map((e) => ({
-          name: e.exercise.name,
-          workout_exercise_id: e.id,
-          routine_exercise_id: e.routine_exercise_id,
-          sets_count: e.sets?.length || 0,
-          completed_sets: e.sets?.filter((s: any) => s.completed).length || 0,
-        }))
-      );
-
       setLoading(false);
     } catch (error) {
       console.error("Error loading workout data:", error);
@@ -409,9 +388,8 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
       if (workoutId) {
         await workoutService.abandonWorkout(Number(workoutId));
       }
-      navigation.navigate("Routines", {
-        message: "Entrenamiento abandonado",
-        onPress: () => {},
+      navigation.navigate("RoutineList", {
+        refresh: true,
       });
     } catch (error) {
       throw error;

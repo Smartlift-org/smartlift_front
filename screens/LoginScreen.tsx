@@ -15,7 +15,7 @@ import AppAlert from "../components/AppAlert";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 import userStatsService from "../services/userStatsService";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Login">;
@@ -47,6 +47,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           navigation.reset({
             index: 0,
             routes: [{ name: "CoachHome" }],
+          });
+        } else if (userRole === "admin") {
+          setIsLoading(false);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "AdminHome" }],
           });
         } else {
           try {
@@ -92,15 +98,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           "No se pudo obtener la información del usuario"
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsLoading(false);
 
-      const errorMessage =
-        error.response?.data?.error ||
-        error.message ||
-        "Error al iniciar sesión. Por favor intente nuevamente.";
-
-      AppAlert.error("Error de Inicio de Sesión", errorMessage);
+      if (error instanceof Error) {
+        const errorMessage = error.message || "Error al iniciar sesión";
+        AppAlert.error("Error de Inicio de Sesión", errorMessage);
+      } else {
+        AppAlert.error("Error de Inicio de Sesión", "Error desconocido");
+      }
     }
   };
 

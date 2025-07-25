@@ -11,7 +11,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RoutineExerciseFormData } from "../services/routineService";
 import { Exercise } from "../types/exercise";
 import exerciseService from "../services/exerciseService";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import ScreenHeader from "../components/ScreenHeader";
 import { MaterialIcons } from "@expo/vector-icons";
 import AppAlert from "../components/AppAlert";

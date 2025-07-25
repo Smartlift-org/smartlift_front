@@ -16,7 +16,8 @@ import workoutStatsService, {
   WorkoutStatsGeneral,
 } from "../services/workoutStatsService";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types/index";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 
@@ -31,7 +32,7 @@ const formatTotalTime = (seconds: number): string => {
 
 type WorkoutStatsScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "WorkoutStats">;
-  route: any;
+  route: RouteProp<RootStackParamList, "WorkoutStats">;
 };
 
 const WorkoutStatsScreen: React.FC<WorkoutStatsScreenProps> = ({

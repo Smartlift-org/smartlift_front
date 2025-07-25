@@ -12,7 +12,7 @@ import ScreenHeader from "../components/ScreenHeader";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../types/index";
 import workoutService from "../services/workoutService";
 import AppAlert from "../components/AppAlert";
 import { Workout } from "../types/workout";
@@ -50,7 +50,10 @@ const ActiveWorkoutsScreen: React.FC<ActiveWorkoutsScreenProps> = ({
     navigation.navigate("RoutineSelect");
   };
   const handleContinueWorkout = (workout: Workout) => {
-    navigation.navigate("WorkoutInProgress", { workoutId: workout.id });
+    navigation.navigate("WorkoutTracker", {
+      routineId: workout.routine_id,
+      workoutId: workout.id,
+    });
   };
 
   const renderWorkoutItem = ({ item }: { item: Workout }) => {

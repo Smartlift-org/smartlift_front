@@ -15,7 +15,7 @@ import trainerService from "../services/trainerService";
 import authService from "../services/authService";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
-import type { RootStackParamList, Member, AvailableUser } from "../types";
+import type { RootStackParamList, Member, AvailableUser } from "../types/index";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type MemberManagementScreenProps = {
