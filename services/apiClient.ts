@@ -48,7 +48,7 @@ apiClient.interceptors.response.use(
   (response: any) => {
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     console.error("API Error:", {
       message: error.message,
       code: (error as any).code,
@@ -56,6 +56,25 @@ apiClient.interceptors.response.use(
       url: (error as any).config?.url,
       data: error.response?.data,
     });
+
+    if (error.response?.status === 401) {
+      console.warn("Authentication failed - clearing stored credentials");
+      try {
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        await AsyncStorage.removeItem(USER_KEY);
+      } catch (storageError) {
+        console.error("Error clearing storage:", storageError);
+      }
+    }
+
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.data?.retry_after;
+      console.warn(`Rate limited. Retry after: ${retryAfter} seconds`);
+    }
+
+    if (error.response?.status === 503) {
+      console.warn("Service temporarily unavailable");
+    }
 
     if (
       (error as any).code === "NETWORK_ERROR" ||
