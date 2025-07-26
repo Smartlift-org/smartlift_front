@@ -19,6 +19,7 @@
     "axios": "^1.6.7",
     "date-fns": "^4.1.0",
     "expo": "~53.0.9",
+    "expo-image-picker": "^16.1.4",
     "expo-status-bar": "~2.2.3",
     "nativewind": "^4.0.1",
     "react": "19.0.0",

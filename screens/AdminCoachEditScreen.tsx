@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList, User } from "../types/index";
@@ -181,14 +182,20 @@ const AdminCoachEditScreen: React.FC<AdminCoachEditScreenProps> = ({
       <ScrollView className="flex-1 p-4">
         <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
           <View className="flex-row items-center">
-            <View className="bg-green-100 w-12 h-12 rounded-full items-center justify-center mr-3">
-              <Text className="text-green-800 text-lg">🏋️</Text>
-            </View>
-            <View>
+            <Avatar
+              profilePictureUrl={coach.profile_picture_url}
+              firstName={coach.first_name}
+              lastName={coach.last_name}
+              size="medium"
+            />
+            <View className="ml-3">
               <Text className="text-lg font-semibold text-gray-800">
                 Editando: {coach.first_name} {coach.last_name}
               </Text>
               <Text className="text-gray-600 text-sm">ID: {coach.id}</Text>
+              <View className="bg-green-100 px-2 py-1 rounded-full mt-1 self-start">
+                <Text className="text-green-800 text-xs font-medium">🏋️ ENTRENADOR</Text>
+              </View>
             </View>
           </View>
         </View>

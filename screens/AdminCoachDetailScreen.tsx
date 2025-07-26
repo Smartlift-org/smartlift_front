@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList, User } from "../types/index";
@@ -122,24 +123,32 @@ const AdminCoachDetailScreen: React.FC<AdminCoachDetailScreenProps> = ({
   const renderAssignedUser = (user: User) => (
     <View key={user.id} className="bg-white rounded-lg shadow-sm p-4 mb-3">
       <View className="flex-row justify-between items-start">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-800">
-            {user.first_name} {user.last_name}
-          </Text>
-          <Text className="text-gray-600 mt-1">{user.email}</Text>
-          <View className="flex-row items-center mt-2">
-            <View className="bg-blue-100 px-2 py-1 rounded-full">
-              <Text className="text-blue-800 text-xs font-medium">
-                👤 USUARIO
-              </Text>
-            </View>
-            <Text className="text-gray-500 text-xs ml-2">ID: {user.id}</Text>
-          </View>
-          {user.created_at && (
-            <Text className="text-gray-500 text-xs mt-1">
-              Registrado: {formatDate(user.created_at)}
+        <View className="flex-row flex-1">
+          <Avatar
+            profilePictureUrl={user.profile_picture_url}
+            firstName={user.first_name}
+            lastName={user.last_name}
+            size="medium"
+          />
+          <View className="flex-1 ml-3">
+            <Text className="text-lg font-semibold text-gray-800">
+              {user.first_name} {user.last_name}
             </Text>
-          )}
+            <Text className="text-gray-600 mt-1">{user.email}</Text>
+            <View className="flex-row items-center mt-2">
+              <View className="bg-blue-100 px-2 py-1 rounded-full">
+                <Text className="text-blue-800 text-xs font-medium">
+                  👤 USUARIO
+                </Text>
+              </View>
+              <Text className="text-gray-500 text-xs ml-2">ID: {user.id}</Text>
+            </View>
+            {user.created_at && (
+              <Text className="text-gray-500 text-xs mt-1">
+                Registrado: {formatDate(user.created_at)}
+              </Text>
+            )}
+          </View>
         </View>
         <TouchableOpacity
           className="bg-blue-100 p-2 rounded-lg"
@@ -194,10 +203,13 @@ const AdminCoachDetailScreen: React.FC<AdminCoachDetailScreenProps> = ({
       <ScrollView className="flex-1 p-4">
         <View className="bg-white rounded-lg shadow-sm p-6 mb-4">
           <View className="items-center mb-4">
-            <View className="bg-green-100 w-20 h-20 rounded-full items-center justify-center mb-3">
-              <Text className="text-green-800 text-2xl">🏋️</Text>
-            </View>
-            <Text className="text-2xl font-bold text-gray-800">
+            <Avatar
+              profilePictureUrl={coach.profile_picture_url}
+              firstName={coach.first_name}
+              lastName={coach.last_name}
+              size="large"
+            />
+            <Text className="text-2xl font-bold text-gray-800 mt-3">
               {coach.first_name} {coach.last_name}
             </Text>
             <Text className="text-gray-600 mt-1">{coach.email}</Text>

@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList, User } from "../types/index";
 import adminService from "../services/adminService";
@@ -90,30 +91,38 @@ const AdminUserListScreen: React.FC<AdminUserListScreenProps> = ({
   const renderUserItem = (user: User) => (
     <View key={user.id} className="bg-white rounded-lg shadow-sm p-4 mb-3">
       <View className="flex-row justify-between items-start">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-800">
-            {user.first_name} {user.last_name}
-          </Text>
-          <Text className="text-gray-600 mt-1">{user.email}</Text>
-          <View className="flex-row items-center mt-2">
-            <View
-              className={`px-2 py-1 rounded-full ${getRoleColor(user.role)}`}
-            >
-              <Text
-                className={`text-xs font-medium ${
-                  getRoleColor(user.role).split(" ")[1]
-                }`}
-              >
-                {getRoleIcon(user.role)}
-              </Text>
-            </View>
-            <Text className="text-gray-500 text-xs ml-2">ID: {user.id}</Text>
-          </View>
-          {user.created_at && (
-            <Text className="text-gray-500 text-xs mt-1">
-              Registrado: {formatDate(user.created_at)}
+        <View className="flex-row flex-1">
+          <Avatar
+            profilePictureUrl={user.profile_picture_url}
+            firstName={user.first_name}
+            lastName={user.last_name}
+            size="medium"
+          />
+          <View className="flex-1 ml-3">
+            <Text className="text-lg font-semibold text-gray-800">
+              {user.first_name} {user.last_name}
             </Text>
-          )}
+            <Text className="text-gray-600 mt-1">{user.email}</Text>
+            <View className="flex-row items-center mt-2">
+              <View
+                className={`px-2 py-1 rounded-full ${getRoleColor(user.role)}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${
+                    getRoleColor(user.role).split(" ")[1]
+                  }`}
+                >
+                  {getRoleIcon(user.role)}
+                </Text>
+              </View>
+              <Text className="text-gray-500 text-xs ml-2">ID: {user.id}</Text>
+            </View>
+            {user.created_at && (
+              <Text className="text-gray-500 text-xs mt-1">
+                Registrado: {formatDate(user.created_at)}
+              </Text>
+            )}
+          </View>
         </View>
         <TouchableOpacity
           className="bg-red-100 p-2 rounded-lg"

@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList, User } from "../types/index";
@@ -140,52 +141,60 @@ const AdminAssignUsersScreen: React.FC<AdminAssignUsersScreenProps> = ({
         onPress={() => toggleUserSelection(user.id)}
       >
         <View className="flex-row justify-between items-start">
-          <View className="flex-1">
-            <Text
-              className={`text-lg font-semibold ${
-                isSelected ? "text-blue-800" : "text-gray-800"
-              }`}
-            >
-              {user.first_name} {user.last_name}
-            </Text>
-            <Text
-              className={`mt-1 ${
-                isSelected ? "text-blue-600" : "text-gray-600"
-              }`}
-            >
-              {user.email}
-            </Text>
-            <View className="flex-row items-center mt-2">
-              <View
-                className={`px-2 py-1 rounded-full ${
-                  isSelected ? "bg-blue-200" : "bg-gray-100"
+          <View className="flex-row flex-1">
+            <Avatar
+              profilePictureUrl={user.profile_picture_url}
+              firstName={user.first_name}
+              lastName={user.last_name}
+              size="medium"
+            />
+            <View className="flex-1 ml-3">
+              <Text
+                className={`text-lg font-semibold ${
+                  isSelected ? "text-blue-800" : "text-gray-800"
                 }`}
               >
-                <Text
-                  className={`text-xs font-medium ${
-                    isSelected ? "text-blue-800" : "text-gray-600"
+                {user.first_name} {user.last_name}
+              </Text>
+              <Text
+                className={`mt-1 ${
+                  isSelected ? "text-blue-600" : "text-gray-600"
+                }`}
+              >
+                {user.email}
+              </Text>
+              <View className="flex-row items-center mt-2">
+                <View
+                  className={`px-2 py-1 rounded-full ${
+                    isSelected ? "bg-blue-200" : "bg-gray-100"
                   }`}
                 >
-                  👤 USUARIO
+                  <Text
+                    className={`text-xs font-medium ${
+                      isSelected ? "text-blue-800" : "text-gray-600"
+                    }`}
+                  >
+                    👤 USUARIO
+                  </Text>
+                </View>
+                <Text
+                  className={`text-xs ml-2 ${
+                    isSelected ? "text-blue-500" : "text-gray-500"
+                  }`}
+                >
+                  ID: {user.id}
                 </Text>
               </View>
-              <Text
-                className={`text-xs ml-2 ${
-                  isSelected ? "text-blue-500" : "text-gray-500"
-                }`}
-              >
-                ID: {user.id}
-              </Text>
+              {user.created_at && (
+                <Text
+                  className={`text-xs mt-1 ${
+                    isSelected ? "text-blue-500" : "text-gray-500"
+                  }`}
+                >
+                  Registrado: {formatDate(user.created_at)}
+                </Text>
+              )}
             </View>
-            {user.created_at && (
-              <Text
-                className={`text-xs mt-1 ${
-                  isSelected ? "text-blue-500" : "text-gray-500"
-                }`}
-              >
-                Registrado: {formatDate(user.created_at)}
-              </Text>
-            )}
           </View>
           <View
             className={`w-6 h-6 rounded-full border-2 items-center justify-center ${

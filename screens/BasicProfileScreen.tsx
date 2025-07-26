@@ -14,6 +14,7 @@ import { RootStackParamList, User } from "../types/index";
 import authService from "../services/authService";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
+import ProfilePicturePicker from "../components/ProfilePicturePicker";
 
 type BasicProfileScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "BasicProfile">;
@@ -66,6 +67,17 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+    }
+  };
+
+  const handleProfilePictureUpdate = async (imageUri: string): Promise<void> => {
+    try {
+      const updatedUser = await authService.updateProfilePicture(imageUri);
+      setCurrentUser(updatedUser);
+      AppAlert.success("Éxito", "Foto de perfil actualizada correctamente");
+    } catch (error: any) {
+      AppAlert.error("Error", error.message || "No se pudo actualizar la foto de perfil");
+      throw error;
     }
   };
 
@@ -201,6 +213,23 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
             <Text className="text-2xl font-bold text-indigo-900 mb-6">
               Información Personal
             </Text>
+
+            {/* Profile Picture Section */}
+            <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
+              <Text className="text-lg font-semibold text-gray-800 mb-4">
+                Foto de Perfil
+              </Text>
+              <View className="items-center">
+                <ProfilePicturePicker
+                  currentImageUrl={currentUser?.profile_picture_url}
+                  firstName={currentUser?.first_name}
+                  lastName={currentUser?.last_name}
+                  onImageSelected={handleProfilePictureUpdate}
+                  size="xlarge"
+                  disabled={!isEditing}
+                />
+              </View>
+            </View>
 
             <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
               <Text className="text-lg font-semibold text-gray-800 mb-4">

@@ -15,6 +15,7 @@ import trainerService from "../services/trainerService";
 import authService from "../services/authService";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { RootStackParamList, Member, AvailableUser } from "../types/index";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -112,18 +113,42 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
 
   const renderMemberItem = ({ item }: { item: Member }) => {
     const isActive = item.activity?.activity_status !== "inactive";
+    // Parse name to get first and last name for Avatar
+    const nameParts = (item.name || "").split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
 
     return (
       <TouchableOpacity
         className="bg-white p-4 rounded-lg mb-3 shadow-sm"
         onPress={() => handleMemberPress(item.id)}
       >
-        <View className="flex-row justify-between items-center">
-          <View>
-            <Text className="text-lg font-medium text-gray-800">
-              {item.name || "-"}
-            </Text>
-            <Text className="text-sm text-gray-500">{item.email}</Text>
+        <View className="flex-row justify-between items-start">
+          <View className="flex-row flex-1">
+            <Avatar
+              profilePictureUrl={undefined} // Member type doesn't have profile_picture_url
+              firstName={firstName}
+              lastName={lastName}
+              size="medium"
+            />
+            <View className="flex-1 ml-3">
+              <Text className="text-lg font-medium text-gray-800">
+                {item.name || "-"}
+              </Text>
+              <Text className="text-sm text-gray-500">{item.email}</Text>
+              <View className="flex-row mt-2 justify-between">
+                <View className="flex-row items-center">
+                  <Text className="text-gray-600 text-sm">
+                    Entrenamientos: {item.activity?.total_workouts || 0}
+                  </Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Text className="text-gray-600 text-sm">
+                    Consistencia: {item.activity?.consistency_score || 0}%
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
           <View
             className={`px-3 py-1 rounded-full ${
@@ -132,18 +157,6 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
           >
             <Text className={isActive ? "text-green-800" : "text-red-800"}>
               {isActive ? "Activo" : "Inactivo"}
-            </Text>
-          </View>
-        </View>
-        <View className="flex-row mt-2 justify-between">
-          <View className="flex-row items-center">
-            <Text className="text-gray-600">
-              Entrenamientos: {item.activity?.total_workouts || 0}
-            </Text>
-          </View>
-          <View className="flex-row items-center">
-            <Text className="text-gray-600">
-              Consistencia: {item.activity?.consistency_score || 0}%
             </Text>
           </View>
         </View>
@@ -406,14 +419,22 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
                   data={availableUsers}
                   renderItem={({ item }: { item: AvailableUser }) => (
                     <View className="bg-white border border-gray-200 rounded-lg p-4 mb-3">
-                      <View className="flex-row justify-between items-center">
-                        <View>
-                          <Text className="text-lg font-medium text-gray-800">
-                            {item.first_name} {item.last_name}
-                          </Text>
-                          <Text className="text-sm text-gray-500">
-                            {item.email}
-                          </Text>
+                      <View className="flex-row justify-between items-start">
+                        <View className="flex-row flex-1">
+                          <Avatar
+                            profilePictureUrl={item.profile_picture_url}
+                            firstName={item.first_name}
+                            lastName={item.last_name}
+                            size="medium"
+                          />
+                          <View className="flex-1 ml-3">
+                            <Text className="text-lg font-medium text-gray-800">
+                              {item.first_name} {item.last_name}
+                            </Text>
+                            <Text className="text-sm text-gray-500">
+                              {item.email}
+                            </Text>
+                          </View>
                         </View>
                         <TouchableOpacity
                           className="bg-indigo-600 py-2 px-4 rounded-lg"

@@ -17,6 +17,7 @@ import type { RootStackParamList, User } from "../types/index";
 import type { Member, TrainerDashboard } from "../types/declarations/trainer";
 import AppAlert from "../components/AppAlert";
 import ScreenHeader from "../components/ScreenHeader";
+import Avatar from "../components/Avatar";
 
 type CoachHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "CoachHome">;
@@ -84,38 +85,58 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
     }
   };
 
-  const renderMemberItem = ({ item }: { item: Member }): React.ReactElement => (
-    <TouchableOpacity
-      className="bg-white p-4 rounded-lg mb-3 shadow-sm"
-      onPress={() =>
-        navigation.navigate("MemberProfile", { memberId: item.id })
-      }
-    >
-      <View className="flex-row justify-between items-center">
-        <Text className="text-lg font-medium text-gray-800">
-          {item.name || "-"}
-        </Text>
-        <View
-          className={`px-3 py-1 rounded-full ${
-            item.status === "active" ? "bg-green-100" : "bg-red-100"
-          }`}
-        >
-          <Text
-            className={
-              item.status === "active" ? "text-green-800" : "text-red-800"
-            }
+  const renderMemberItem = ({ item }: { item: Member }): React.ReactElement => {
+    // Parse name to get first and last name for Avatar
+    const nameParts = (item.name || "").split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    return (
+      <TouchableOpacity
+        className="bg-white p-4 rounded-lg mb-3 shadow-sm"
+        onPress={() =>
+          navigation.navigate("MemberProfile", { memberId: item.id })
+        }
+      >
+        <View className="flex-row justify-between items-start">
+          <View className="flex-row flex-1">
+            <Avatar
+              profilePictureUrl={undefined} // Member type doesn't have profile_picture_url
+              firstName={firstName}
+              lastName={lastName}
+              size="medium"
+            />
+            <View className="flex-1 ml-3">
+              <Text className="text-lg font-medium text-gray-800">
+                {item.name || "-"}
+              </Text>
+              <Text className="text-gray-600 text-sm">
+                {item.email}
+              </Text>
+              <View className="flex-row mt-2">
+                <Text className="text-gray-600 text-sm">
+                  Consistencia: {item.activity?.consistency_score || 0}%
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            className={`px-3 py-1 rounded-full ${
+              item.status === "active" ? "bg-green-100" : "bg-red-100"
+            }`}
           >
-            {item.status === "active" ? "Activo" : "Inactivo"}
-          </Text>
+            <Text
+              className={
+                item.status === "active" ? "text-green-800" : "text-red-800"
+              }
+            >
+              {item.status === "active" ? "Activo" : "Inactivo"}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View className="flex-row mt-2">
-        <Text className="text-gray-600">
-          Consistencia: {item.activity?.consistency_score || 0}%
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (isLoading) {
     return (
