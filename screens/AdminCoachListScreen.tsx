@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList, User } from "../types/index";
 import adminService from "../services/adminService";
@@ -66,24 +67,32 @@ const AdminCoachListScreen: React.FC<AdminCoachListScreenProps> = ({
   const renderCoachItem = (coach: User) => (
     <View key={coach.id} className="bg-white rounded-lg shadow-sm p-4 mb-3">
       <View className="flex-row justify-between items-start">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-800">
-            {coach.first_name} {coach.last_name}
-          </Text>
-          <Text className="text-gray-600 mt-1">{coach.email}</Text>
-          <View className="flex-row items-center mt-2">
-            <View className="bg-green-100 px-2 py-1 rounded-full">
-              <Text className="text-green-800 text-xs font-medium">
-                🏋️ ENTRENADOR
-              </Text>
-            </View>
-            <Text className="text-gray-500 text-xs ml-2">ID: {coach.id}</Text>
-          </View>
-          {coach.created_at && (
-            <Text className="text-gray-500 text-xs mt-1">
-              Registrado: {formatDate(coach.created_at)}
+        <View className="flex-row flex-1">
+          <Avatar
+            profilePictureUrl={coach.profile_picture_url}
+            firstName={coach.first_name}
+            lastName={coach.last_name}
+            size="medium"
+          />
+          <View className="flex-1 ml-3">
+            <Text className="text-lg font-semibold text-gray-800">
+              {coach.first_name} {coach.last_name}
             </Text>
-          )}
+            <Text className="text-gray-600 mt-1">{coach.email}</Text>
+            <View className="flex-row items-center mt-2">
+              <View className="bg-green-100 px-2 py-1 rounded-full">
+                <Text className="text-green-800 text-xs font-medium">
+                  🏋️ ENTRENADOR
+                </Text>
+              </View>
+              <Text className="text-gray-500 text-xs ml-2">ID: {coach.id}</Text>
+            </View>
+            {coach.created_at && (
+              <Text className="text-gray-500 text-xs mt-1">
+                Registrado: {formatDate(coach.created_at)}
+              </Text>
+            )}
+          </View>
         </View>
         <TouchableOpacity
           className="bg-red-100 p-2 rounded-lg"

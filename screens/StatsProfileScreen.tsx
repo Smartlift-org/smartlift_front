@@ -10,10 +10,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types/index";
+import { RootStackParamList, User } from "../types/index";
 import AppAlert from "../components/AppAlert";
 import userStatsService, { UserStats } from "../services/userStatsService";
+import authService from "../services/authService";
 import ScreenHeader from "../components/ScreenHeader";
+import ProfilePicturePicker from "../components/ProfilePicturePicker";
 
 type StatsProfileScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "StatsProfile">;
@@ -53,6 +55,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
   const [isEditing, setIsEditing] = useState<boolean>(fromRedirect);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [height, setHeight] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
   const [age, setAge] = useState<string>("");
@@ -73,6 +76,10 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
   const loadUserStats = async (): Promise<void> => {
     setIsLoading(true);
     try {
+      // Load current user data
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+      
       const stats = await userStatsService.getUserStats();
       if (stats) {
         setUserStats(stats);
@@ -118,10 +125,20 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
   };
 
   const handleAvailableDaysChange = (value: string): void => {
-    if (value === "" || /^[0-9]+$/.test(value)) {
-      if (value === "" || value.length <= 1) {
-        setAvailableDaysCount(value);
-      }
+    const numericValue = value.replace(/[^0-9]/g, "");
+    if (numericValue === "" || (parseInt(numericValue) >= 1 && parseInt(numericValue) <= 7)) {
+      setAvailableDaysCount(numericValue);
+    }
+  };
+
+  const handleProfilePictureUpdate = async (imageUri: string): Promise<void> => {
+    try {
+      const updatedUser = await authService.updateProfilePicture(imageUri);
+      setCurrentUser(updatedUser);
+      AppAlert.success("Éxito", "Foto de perfil actualizada correctamente");
+    } catch (error: any) {
+      AppAlert.error("Error", error.message || "No se pudo actualizar la foto de perfil");
+      throw error;
     }
   };
 
@@ -247,6 +264,23 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
             <Text className="text-2xl font-bold text-indigo-900 mb-6">
               Mi Información Fitness
             </Text>
+
+            {/* Profile Picture Section */}
+            <View className="mb-6">
+              <Text className="text-lg font-semibold text-gray-800 mb-4">
+                Foto de Perfil
+              </Text>
+              <View className="items-center">
+                <ProfilePicturePicker
+                  currentImageUrl={currentUser?.profile_picture_url}
+                  firstName={currentUser?.first_name}
+                  lastName={currentUser?.last_name}
+                  onImageSelected={handleProfilePictureUpdate}
+                  size="xlarge"
+                  disabled={!isEditing}
+                />
+              </View>
+            </View>
 
             <View className="mb-6">
               <Text className="text-lg font-semibold text-gray-800 mb-4">

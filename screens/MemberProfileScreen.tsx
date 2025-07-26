@@ -13,6 +13,7 @@ import authService from "../services/authService";
 import trainerService from "../services/trainerService";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { RootStackParamList } from "../types/index";
 import type { MemberProfile } from "../types/declarations/trainer";
 import { MaterialCommunityIcons, Feather, AntDesign } from "@expo/vector-icons";
@@ -257,7 +258,13 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
             <View className="items-center mb-4">
               {memberProfile && (
                 <>
-                  <Text className="text-2xl font-bold text-gray-800">
+                  <Avatar
+                    profilePictureUrl={memberProfile.profile_picture_url}
+                    firstName={memberProfile.first_name}
+                    lastName={memberProfile.last_name}
+                    size="large"
+                  />
+                  <Text className="text-2xl font-bold text-gray-800 mt-3">
                     {memberProfile.first_name} {memberProfile.last_name}
                   </Text>
                   <Text className="text-gray-600">{memberProfile.email}</Text>

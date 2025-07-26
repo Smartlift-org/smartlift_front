@@ -16,6 +16,7 @@ import trainerService from "../services/trainerService";
 import authService from "../services/authService";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
+import Avatar from "../components/Avatar";
 import type { RootStackParamList } from "../types/index";
 import type { Member } from "../types/declarations/trainer";
 
@@ -143,19 +144,32 @@ const MemberSelectionScreen: React.FC<MemberSelectionScreenProps> = ({
   };
 
   const renderMemberItem = ({ item }: { item: Member }) => {
+    // Parse name to get first and last name for Avatar
+    const nameParts = (item.name || "").split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
     return (
       <View className="bg-white rounded-lg p-4 mb-3 shadow-sm">
-        <View className="flex-row justify-between items-center">
-          <View>
-            <Text className="text-lg font-medium text-gray-800">
-              {item.name || "-"}
-            </Text>
-            <Text className="text-gray-600">{item.email}</Text>
-            {item.activity && (
-              <Text className="text-gray-600 mt-1">
-                Consistencia: {item.activity.consistency_score || 0}%
+        <View className="flex-row justify-between items-start">
+          <View className="flex-row flex-1">
+            <Avatar
+              profilePictureUrl={undefined} // Member type doesn't have profile_picture_url
+              firstName={firstName}
+              lastName={lastName}
+              size="medium"
+            />
+            <View className="flex-1 ml-3">
+              <Text className="text-lg font-medium text-gray-800">
+                {item.name || "-"}
               </Text>
-            )}
+              <Text className="text-gray-600">{item.email}</Text>
+              {item.activity && (
+                <Text className="text-gray-600 mt-1">
+                  Consistencia: {item.activity.consistency_score || 0}%
+                </Text>
+              )}
+            </View>
           </View>
           <TouchableOpacity
             className="bg-indigo-600 py-2 px-4 rounded-lg"

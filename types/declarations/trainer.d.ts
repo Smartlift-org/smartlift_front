@@ -117,6 +117,7 @@ export interface MemberProfile {
   first_name: string;
   last_name: string;
   email: string;
+  profile_picture_url?: string;
   stats: {
     consistency_score: number;
     recent_workouts: number;
@@ -143,6 +144,7 @@ export interface AvailableUser {
   last_name: string;
   email: string;
   created_at: string;
+  profile_picture_url?: string;
 }
 
 export interface TrainerRoutine {

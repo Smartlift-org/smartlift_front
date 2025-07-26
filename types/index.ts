@@ -74,6 +74,7 @@ export interface User {
   last_name: string;
   email: string;
   role: "user" | "coach" | "admin";
+  profile_picture_url?: string | null;
   created_at?: string;
   password?: string;
   password_confirmation?: string;
