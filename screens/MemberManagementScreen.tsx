@@ -113,7 +113,6 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
 
   const renderMemberItem = ({ item }: { item: Member }) => {
     const isActive = item.activity?.activity_status !== "inactive";
-    // Parse name to get first and last name for Avatar
     const nameParts = (item.name || "").split(" ");
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
@@ -126,7 +125,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
         <View className="flex-row justify-between items-start">
           <View className="flex-row flex-1">
             <Avatar
-              profilePictureUrl={undefined} // Member type doesn't have profile_picture_url
+              profilePictureUrl={undefined}
               firstName={firstName}
               lastName={lastName}
               size="medium"

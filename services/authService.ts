@@ -150,33 +150,40 @@ const authService = {
 
   updateProfilePicture: async (imageUri: string): Promise<User> => {
     try {
-      // Create FormData to send file
       const formData = new FormData();
-      
-      // Add the image file to FormData
-      formData.append('profile_picture', {
+
+      formData.append("profile_picture", {
         uri: imageUri,
-        type: 'image/jpeg', // Default to JPEG, could be detected from URI
-        name: 'profile.jpg',
+        type: "image/jpeg",
+        name: "profile.jpg",
       } as any);
-      
-      const response = await apiClient.post("/users/profile-picture", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      // Update stored user data
+
+      const response = await apiClient.post(
+        "/users/profile-picture",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
       const updatedUser = response.data.user;
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-      
+
       return updatedUser;
     } catch (error) {
       throw error;
     }
   },
 
-  getProfilePicture: async (userId: string): Promise<{ profile_picture_url: string | null; user_id: string; full_name: string }> => {
+  getProfilePicture: async (
+    userId: string
+  ): Promise<{
+    profile_picture_url: string | null;
+    user_id: string;
+    full_name: string;
+  }> => {
     try {
       const response = await apiClient.get(`/users/${userId}/profile-picture`);
       return response.data;
