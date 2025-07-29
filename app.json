@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/smartlift_logo.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/smartlift_logo.png",
       "resizeMode": "contain",
@@ -20,11 +20,17 @@
         "foregroundImage": "./assets/smartlift_logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.fcavallo.smartliftfront"
     },
     "web": {
       "favicon": "./assets/smartlift_logo.png",
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "77b630ba-5812-4fd7-8edf-ad6a7a315fc1"
+      }
     }
   }
 }

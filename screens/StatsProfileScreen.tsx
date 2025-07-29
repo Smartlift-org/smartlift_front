@@ -76,10 +76,9 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
   const loadUserStats = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      // Load current user data
       const user = await authService.getCurrentUser();
       setCurrentUser(user);
-      
+
       const stats = await userStatsService.getUserStats();
       if (stats) {
         setUserStats(stats);
@@ -126,18 +125,26 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
 
   const handleAvailableDaysChange = (value: string): void => {
     const numericValue = value.replace(/[^0-9]/g, "");
-    if (numericValue === "" || (parseInt(numericValue) >= 1 && parseInt(numericValue) <= 7)) {
+    if (
+      numericValue === "" ||
+      (parseInt(numericValue) >= 1 && parseInt(numericValue) <= 7)
+    ) {
       setAvailableDaysCount(numericValue);
     }
   };
 
-  const handleProfilePictureUpdate = async (imageUri: string): Promise<void> => {
+  const handleProfilePictureUpdate = async (
+    imageUri: string
+  ): Promise<void> => {
     try {
       const updatedUser = await authService.updateProfilePicture(imageUri);
       setCurrentUser(updatedUser);
       AppAlert.success("Éxito", "Foto de perfil actualizada correctamente");
     } catch (error: any) {
-      AppAlert.error("Error", error.message || "No se pudo actualizar la foto de perfil");
+      AppAlert.error(
+        "Error",
+        error.message || "No se pudo actualizar la foto de perfil"
+      );
       throw error;
     }
   };
