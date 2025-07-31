@@ -41,6 +41,8 @@ import AdminCoachDetailScreen from "./screens/AdminCoachDetailScreen";
 import AdminUserDetailScreen from "./screens/AdminUserDetailScreen";
 import AdminCoachEditScreen from "./screens/AdminCoachEditScreen";
 import AdminAssignUsersScreen from "./screens/AdminAssignUsersScreen";
+import RoutineValidationScreen from "./screens/RoutineValidationScreen";
+import RoutineValidationDetailScreen from "./screens/RoutineValidationDetailScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types/index";
@@ -192,6 +194,14 @@ export default function App(): React.ReactElement {
           <Stack.Screen
             name="AdminAssignUsers"
             component={AdminAssignUsersScreen}
+          />
+          <Stack.Screen
+            name="RoutineValidation"
+            component={RoutineValidationScreen}
+          />
+          <Stack.Screen
+            name="RoutineValidationDetail"
+            component={RoutineValidationDetailScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

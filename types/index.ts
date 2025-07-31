@@ -34,6 +34,8 @@ export type RootStackParamList = {
   WorkoutStats: { workoutId?: string; message?: string };
   AIRoutineGenerator: undefined;
   WorkoutHistory: undefined;
+  RoutineValidation: undefined;
+  RoutineValidationDetail: { routineId: number };
   SelectedExercises: {
     selectedExercises: RoutineExerciseFormData[];
     onReturn: (updatedExercises: RoutineExerciseFormData[] | null) => void;

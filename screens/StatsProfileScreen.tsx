@@ -89,7 +89,12 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
         setFitnessGoal(stats.fitness_goal || "");
         setExperienceLevel(stats.experience_level || "");
         setActivityLevel(stats.activity_level || "");
-        setEquipmentAvailable(stats.equipment_available || false);
+        const equipmentAvailableValue =
+          stats.equipment_available === true ||
+          (typeof stats.equipment_available === "string" &&
+            (stats.equipment_available === "t" ||
+              stats.equipment_available === "true"));
+        setEquipmentAvailable(equipmentAvailableValue);
 
         setPhysicalLimitations(stats.physical_limitations || "");
         setHasPhysicalLimitations(stats.physical_limitations !== "Ninguna");
@@ -225,7 +230,7 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
           "Tus estadísticas han sido actualizadas correctamente."
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       AppAlert.error(
         "Error",
         "No se pudo actualizar tu información. Intenta más tarde."
@@ -272,7 +277,6 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
               Mi Información Fitness
             </Text>
 
-            {/* Profile Picture Section */}
             <View className="mb-6">
               <Text className="text-lg font-semibold text-gray-800 mb-4">
                 Foto de Perfil

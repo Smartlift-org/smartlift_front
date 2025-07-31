@@ -19,6 +19,19 @@ export interface Routine {
   image_url?: string;
   exercises?: RoutineExercise[];
   routine_exercises?: RoutineExercise[];
+  // AI validation fields
+  source_type?: "manual" | "ai_generated";
+  ai_generated?: boolean;
+  validation_status?: "pending" | "approved" | "rejected";
+  validated_by_id?: number;
+  validated_by?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
+  validated_at?: string;
+  validation_notes?: string;
+  ai_prompt_data?: any;
 }
 
 export interface RoutineExercise {

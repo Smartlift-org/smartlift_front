@@ -50,11 +50,14 @@ const userStatsService = {
 
   updateUserStats: async (userStatsData: UserStats): Promise<UserStats> => {
     try {
-      const response = await apiClient.put("/user_stats", {
+      const requestPayload = {
         user_stat: userStatsData,
-      });
+      };
+
+      const response = await apiClient.put("/user_stats", requestPayload);
+
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   },

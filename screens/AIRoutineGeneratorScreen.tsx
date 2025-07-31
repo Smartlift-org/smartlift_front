@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  TextInput,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,22 +20,10 @@ type Props = {
   route: any;
 };
 
-const FOCUS_AREAS = [
-  "Pecho",
-  "Espalda",
-  "Brazos",
-  "Hombros",
-  "Piernas",
-  "Core",
-  "Cardio",
-  "Funcional",
-];
-
 const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [generatePerDay, setGeneratePerDay] = useState(false);
-  const [focusAreas, setFocusAreas] = useState<string[]>([]);
-  const [additionalNotes, setAdditionalNotes] = useState("");
+  const [timePerSession, setTimePerSession] = useState(60);
+  const [generatePerDay, setGeneratePerDay] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loadingUserData, setLoadingUserData] = useState(true);
 
@@ -58,46 +45,106 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
     loadUserData();
   }, []);
 
-  const toggleFocusArea = (area: string) => {
-    if (focusAreas.includes(area)) {
-      setFocusAreas(focusAreas.filter((a) => a !== area));
-    } else {
-      setFocusAreas([...focusAreas, area]);
-    }
-  };
-
   const handleGenerate = async () => {
     if (!userStats) {
       AppAlert.error("Error", "No se pudo acceder a tus datos de perfil.");
       return;
     }
 
+    const validateUserData = () => {
+      const errors = [];
+
+      if (!userStats.age || userStats.age < 13 || userStats.age > 100) {
+        errors.push("Edad debe estar entre 13 y 100 años");
+      }
+
+      if (
+        !userStats.weight ||
+        userStats.weight <= 0 ||
+        userStats.weight > 300
+      ) {
+        errors.push("Peso debe estar entre 1 y 300 kg");
+      }
+
+      if (
+        !userStats.height ||
+        userStats.height < 100 ||
+        userStats.height > 250
+      ) {
+        errors.push("Altura debe estar entre 100 y 250 cm");
+      }
+
+      if (errors.length > 0) {
+        AppAlert.error(
+          "Datos incompletos",
+          `Por favor completa tu perfil:\n${errors.join("\n")}`
+        );
+        return false;
+      }
+
+      return true;
+    };
+
+    if (!validateUserData()) {
+      return;
+    }
+
     setLoading(true);
     try {
-      const request: AIRoutineRequest = {
-        userStats,
-        generatePerDay,
-        preferences: {
-          focusAreas,
-          equipment:
-            typeof userStats.equipment_available === "boolean"
-              ? userStats.equipment_available
-                ? "Sí"
-                : "No"
-              : typeof userStats.equipment_available === "string"
-              ? userStats.equipment_available
-              : "",
-          additionalNotes,
-        },
+      const aiParams = {
+        age: userStats.age || 25,
+        gender:
+          (userStats.gender?.toLowerCase() as "male" | "female" | "other") ||
+          "other",
+        weight: userStats.weight ? parseFloat(userStats.weight.toString()) : 70,
+        height: userStats.height
+          ? parseFloat(userStats.height.toString())
+          : 170,
+        experience_level:
+          (userStats.experience_level as
+            | "beginner"
+            | "intermediate"
+            | "advanced") || "beginner",
+        frequency_per_week: generatePerDay ? userStats.available_days || 3 : 1,
+        time_per_session: timePerSession,
+        goal: userStats.fitness_goal || "Mejorar condición física general",
       };
 
-      const result = await aiRoutineService.generateRoutines(request);
+      const result = await aiRoutineService.generateAndSaveRoutines(aiParams);
+      const { routines, savedResults } = result;
 
-      navigation.navigate("ReviewRoutines", { routines: result });
-    } catch (error) {
+      if (savedResults.failed === 0) {
+        const successMessage = generatePerDay
+          ? `Se crearon ${routines.length} rutinas exitosamente (una para cada día disponible). Ya están disponibles en tu lista de rutinas.`
+          : "Se creó 1 rutina exitosamente. Ya está disponible en tu lista de rutinas.";
+
+        AppAlert.success("¡Rutinas creadas!", successMessage);
+
+        navigation.reset({
+          index: 1,
+          routes: [{ name: "UserHome" }, { name: "RoutineList" }],
+        });
+      } else if (savedResults.success > 0) {
+        AppAlert.info(
+          "Rutinas parcialmente creadas",
+          `Se crearon ${savedResults.success} rutinas exitosamente, pero ${savedResults.failed} fallaron. Revisa tu lista de rutinas.`
+        );
+        navigation.reset({
+          index: 1,
+          routes: [{ name: "UserHome" }, { name: "RoutineList" }],
+        });
+      } else {
+        AppAlert.error(
+          "Error al guardar rutinas",
+          "Las rutinas se generaron correctamente pero no se pudieron guardar. Intenta nuevamente."
+        );
+        navigation.navigate("ReviewRoutines", { routines });
+      }
+    } catch (error: any) {
       AppAlert.error(
         "Error",
-        "No se pudieron generar las rutinas. Intenta de nuevo más tarde."
+        error.message ||
+          "No se pudieron generar las rutinas. Intenta de nuevo más tarde."
       );
     } finally {
       setLoading(false);
@@ -151,13 +198,6 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
                   </Text>
                 </View>
 
-                <View className="flex-row justify-between mb-2">
-                  <Text className="text-gray-600">Equipo disponible:</Text>
-                  <Text className="font-medium">
-                    {userStats.equipment_available || "No especificado"}
-                  </Text>
-                </View>
-
                 <TouchableOpacity
                   className="mt-2 flex-row items-center"
                   onPress={() => navigation.navigate("StatsProfile")}
@@ -192,50 +232,58 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text className="text-sm text-gray-500 mb-4">
               {generatePerDay
                 ? `Se generarán ${
-                    userStats?.available_days || 0
+                    userStats?.available_days || 1
                   } rutinas diferentes, una para cada día`
                 : "Se generará una rutina completa para todos tus días de entrenamiento"}
             </Text>
           </View>
 
-          <View className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <Text className="text-lg font-semibold text-gray-800 mb-4">
-              Áreas de enfoque (opcional)
-            </Text>
-
-            <View className="flex-row flex-wrap">
-              {FOCUS_AREAS.map((area) => (
-                <TouchableOpacity
-                  key={area}
-                  className={`px-3 py-2 rounded-lg mr-2 mb-2 ${
-                    focusAreas.includes(area) ? "bg-indigo-600" : "bg-gray-200"
-                  }`}
-                  onPress={() => toggleFocusArea(area)}
-                >
-                  <Text
-                    className={`${
-                      focusAreas.includes(area) ? "text-white" : "text-gray-700"
-                    }`}
-                  >
-                    {area}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
           <View className="bg-white rounded-lg shadow-sm p-4 mb-8">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
-              Notas adicionales (opcional)
+              Duración por sesión
             </Text>
 
-            <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-gray-700 min-h-[100px]"
-              multiline
-              placeholder="Agrega instrucciones específicas o preferencias (ej: 'Quiero entrenar en casa', 'Prefiero ejercicios con mancuernas', etc.)"
-              value={additionalNotes}
-              onChangeText={setAdditionalNotes}
-            />
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-gray-600">15 min</Text>
+              <Text className="text-gray-600">180 min</Text>
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-center text-lg font-semibold text-indigo-600 mb-2">
+                {timePerSession} minutos
+              </Text>
+
+              <View className="flex-row justify-center items-center">
+                <TouchableOpacity
+                  className="bg-gray-200 px-4 py-2 rounded-lg mr-3"
+                  onPress={() =>
+                    setTimePerSession(Math.max(15, timePerSession - 15))
+                  }
+                >
+                  <Text className="text-gray-700 font-semibold">-15</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="bg-indigo-600 px-6 py-2 rounded-lg mx-3"
+                  onPress={() => setTimePerSession(60)}
+                >
+                  <Text className="text-white font-semibold">60 min</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="bg-gray-200 px-4 py-2 rounded-lg ml-3"
+                  onPress={() =>
+                    setTimePerSession(Math.min(180, timePerSession + 15))
+                  }
+                >
+                  <Text className="text-gray-700 font-semibold">+15</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <Text className="text-sm text-gray-500 text-center">
+              Ajusta la duración ideal para cada sesión de entrenamiento
+            </Text>
           </View>
 
           <TouchableOpacity

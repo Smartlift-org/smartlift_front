@@ -88,53 +88,142 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
     return routine.routine_exercises.length;
   };
 
-  const renderRoutineItem = ({ item }: { item: Routine }) => (
-    <TouchableOpacity
-      className="bg-white rounded-xl p-4 mb-4 shadow-sm"
-      onPress={() => {
-        navigation.navigate("WorkoutTracker", {
-          routineId: item.id,
-          viewMode: true,
-        });
-      }}
-    >
-      <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-lg font-bold text-gray-800 flex-1">
-          {item.name}
-        </Text>
-        <View
-          style={{ backgroundColor: getDifficultyColor(item.difficulty) }}
-          className="px-2 py-1 rounded"
-        >
-          <Text className="text-white text-xs font-medium">
-            {translateDifficulty(item.difficulty)}
-          </Text>
-        </View>
-      </View>
+  const getValidationStatusInfo = (routine: Routine) => {
+    if (routine.source_type === "ai_generated") {
+      switch (routine.validation_status) {
+        case "pending":
+          return {
+            color: "bg-yellow-100 border-yellow-200",
+            textColor: "text-yellow-800",
+            icon: "exclamation-triangle",
+            text: "Pendiente de validación",
+            showWarning: true
+          };
+        case "approved":
+          return {
+            color: "bg-green-100 border-green-200",
+            textColor: "text-green-800",
+            icon: "check-circle",
+            text: "Validada por entrenador",
+            showWarning: false
+          };
+        case "rejected":
+          return {
+            color: "bg-red-100 border-red-200",
+            textColor: "text-red-800",
+            icon: "times-circle",
+            text: "Rechazada",
+            showWarning: true
+          };
+        default:
+          return null;
+      }
+    }
+    return null;
+  };
 
-      <Text className="text-sm text-gray-600 mb-3" numberOfLines={2}>
-        {item.description}
-      </Text>
+  const handleRoutinePress = (routine: Routine) => {
+    const validationInfo = getValidationStatusInfo(routine);
+    
+    if (validationInfo?.showWarning) {
+      AppAlert.confirm(
+        "Rutina no validada",
+        validationInfo.text === "Pendiente de validación" 
+          ? "Esta rutina fue generada por IA y aún no ha sido validada por un entrenador. Su uso es bajo tu propia responsabilidad. ¿Deseas continuar?"
+          : "Esta rutina fue rechazada por un entrenador. Su uso es bajo tu propia responsabilidad. ¿Deseas continuar?",
+        () => {
+          navigation.navigate("WorkoutTracker", {
+            routineId: routine.id,
+            viewMode: true,
+          });
+        },
+        () => {}
+      );
+    } else {
+      navigation.navigate("WorkoutTracker", {
+        routineId: routine.id,
+        viewMode: true,
+      });
+    }
+  };
 
-      <View className="flex-row justify-between border-t border-gray-100 pt-3">
-        <View className="flex-row items-center">
-          <FontAwesome5 name="dumbbell" size={14} color="#666" />
-          <Text className="text-sm text-gray-600 ml-1">
-            {getExerciseCount(item)} ejercicios
+  const renderRoutineItem = ({ item }: { item: Routine }) => {
+    const validationInfo = getValidationStatusInfo(item);
+    
+    return (
+      <TouchableOpacity
+        className="bg-white rounded-xl p-4 mb-4 shadow-sm"
+        onPress={() => handleRoutinePress(item)}
+      >
+        <View className="flex-row justify-between items-center mb-2">
+          <Text className="text-lg font-bold text-gray-800 flex-1">
+            {item.name}
           </Text>
+          <View className="flex-row items-center space-x-2">
+            {item.source_type === "ai_generated" && (
+              <View className="flex-row items-center bg-indigo-100 px-2 py-1 rounded">
+                <FontAwesome5 name="robot" size={10} color="#4f46e5" />
+                <Text className="text-indigo-700 text-xs font-medium ml-1">
+                  IA
+                </Text>
+              </View>
+            )}
+            <View
+              style={{ backgroundColor: getDifficultyColor(item.difficulty) }}
+              className="px-2 py-1 rounded"
+            >
+              <Text className="text-white text-xs font-medium">
+                {translateDifficulty(item.difficulty)}
+              </Text>
+            </View>
+          </View>
         </View>
-        <View className="flex-row items-center">
-          <AntDesign name="clockcircle" size={14} color="#666" />
-          <Text className="text-sm text-gray-600 ml-1">
-            {item.duration} min
-          </Text>
-        </View>
-        <Text className="text-sm text-gray-600">
-          Creada: {item.formatted_created_at.split(" ")[0]}
+
+        <Text className="text-sm text-gray-600 mb-3" numberOfLines={2}>
+          {item.description}
         </Text>
-      </View>
-    </TouchableOpacity>
-  );
+
+        {/* Estado de validación para rutinas IA */}
+        {validationInfo && (
+          <View className={`${validationInfo.color} border rounded-lg p-2 mb-3`}>
+            <View className="flex-row items-center">
+              <FontAwesome5 
+                name={validationInfo.icon} 
+                size={12} 
+                color={validationInfo.textColor.replace('text-', '').replace('-800', '')} 
+              />
+              <Text className={`${validationInfo.textColor} text-xs font-medium ml-2`}>
+                {validationInfo.text}
+              </Text>
+              {validationInfo.showWarning && (
+                <Text className={`${validationInfo.textColor} text-xs ml-2`}>
+                  - Usar bajo tu responsabilidad
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
+
+        <View className="flex-row justify-between border-t border-gray-100 pt-3">
+          <View className="flex-row items-center">
+            <FontAwesome5 name="dumbbell" size={14} color="#666" />
+            <Text className="text-sm text-gray-600 ml-1">
+              {getExerciseCount(item)} ejercicios
+            </Text>
+          </View>
+          <View className="flex-row items-center">
+            <AntDesign name="clockcircle" size={14} color="#666" />
+            <Text className="text-sm text-gray-600 ml-1">
+              {item.duration} min
+            </Text>
+          </View>
+          <Text className="text-sm text-gray-600">
+            Creada: {item.formatted_created_at.split(" ")[0]}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>

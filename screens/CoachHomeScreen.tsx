@@ -262,7 +262,7 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
 
           <View className="flex-row justify-around mb-4">
             <TouchableOpacity
-              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 mr-2"
+              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 mr-1"
               onPress={() => navigation.navigate("TrainerRoutines")}
             >
               <Text className="text-indigo-800 font-medium text-center">
@@ -271,7 +271,16 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 ml-2"
+              className="bg-yellow-50 p-4 rounded-lg shadow-sm items-center flex-1 mx-1 border border-yellow-200"
+              onPress={() => navigation.navigate("RoutineValidation")}
+            >
+              <Text className="text-yellow-800 font-medium text-center">
+                Validar Rutinas IA
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 ml-1"
               onPress={() => {
                 AppAlert.info(
                   "Estadísticas",
