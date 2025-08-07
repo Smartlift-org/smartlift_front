@@ -38,11 +38,16 @@ import AdminCoachListScreen from "./screens/AdminCoachListScreen";
 import AdminUserListScreen from "./screens/AdminUserListScreen";
 import AdminRegisterCoachScreen from "./screens/AdminRegisterCoachScreen";
 import AdminCoachDetailScreen from "./screens/AdminCoachDetailScreen";
+import RoutineModificationScreen from "./screens/RoutineModificationScreen";
+import ModifiedRoutineResultScreen from "./screens/ModifiedRoutineResultScreen";
 import AdminUserDetailScreen from "./screens/AdminUserDetailScreen";
 import AdminCoachEditScreen from "./screens/AdminCoachEditScreen";
 import AdminAssignUsersScreen from "./screens/AdminAssignUsersScreen";
 import RoutineValidationScreen from "./screens/RoutineValidationScreen";
 import RoutineValidationDetailScreen from "./screens/RoutineValidationDetailScreen";
+import PublicProfilesExploreScreen from "./screens/PublicProfilesExploreScreen";
+import PublicProfileDetailScreen from "./screens/PublicProfileDetailScreen";
+import PrivacySettingsScreen from "./screens/PrivacySettingsScreen";
 import authService from "./services/authService";
 
 import type { RootStackParamList, User } from "./types/index";
@@ -202,6 +207,26 @@ export default function App(): React.ReactElement {
           <Stack.Screen
             name="RoutineValidationDetail"
             component={RoutineValidationDetailScreen}
+          />
+          <Stack.Screen
+            name="RoutineModification"
+            component={RoutineModificationScreen}
+          />
+          <Stack.Screen
+            name="ModifiedRoutineResult"
+            component={ModifiedRoutineResultScreen}
+          />
+          <Stack.Screen
+            name="PublicProfilesExplore"
+            component={PublicProfilesExploreScreen}
+          />
+          <Stack.Screen
+            name="PublicProfileDetail"
+            component={PublicProfileDetailScreen}
+          />
+          <Stack.Screen
+            name="PrivacySettings"
+            component={PrivacySettingsScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
