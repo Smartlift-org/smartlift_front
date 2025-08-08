@@ -1,4 +1,5 @@
 import { RoutineExerciseFormData } from "../services/routineService";
+import { AIRoutine } from "./routineModification";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -67,7 +68,18 @@ export type RootStackParamList = {
   AdminCoachDetail: { coachId: string };
   AdminCoachEdit: { coachId: string };
   AdminUserEdit: { userId: string };
+
+  // Routine Modification
+  RoutineModification: { routineId: number };
+  ModifiedRoutineResult: {
+    originalRoutine: any;
+    modifiedRoutine: any;
+    appliedModifications: any;
+  };
   AdminAssignUsers: { coachId: string; coachName: string };
+  PublicProfilesExplore: undefined;
+  PublicProfileDetail: { userId: number };
+  PrivacySettings: undefined;
 };
 
 export interface User {
