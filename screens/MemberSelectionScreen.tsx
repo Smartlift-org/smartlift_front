@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRoute } from "@react-navigation/native";
+import { RouteProp } from "@react-navigation/native";
 import trainerService from "../services/trainerService";
 import authService from "../services/authService";
 import ScreenHeader from "../components/ScreenHeader";
@@ -22,10 +22,12 @@ import type { Member } from "../types/declarations/trainer";
 
 type MemberSelectionScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "MemberSelection">;
+  route: RouteProp<RootStackParamList, "MemberSelection">;
 };
 
 const MemberSelectionScreen: React.FC<MemberSelectionScreenProps> = ({
   navigation,
+  route,
 }) => {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -36,11 +38,7 @@ const MemberSelectionScreen: React.FC<MemberSelectionScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [assigning, setAssigning] = useState<Record<string, boolean>>({});
 
-  const route = useRoute();
-  const { routineId, customName } = route.params as {
-    routineId: string;
-    customName: string;
-  };
+  const { routineId, customName } = route.params;
 
   useEffect(() => {
     const loadUser = async () => {

@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRoute } from "@react-navigation/native";
+import { RouteProp } from "@react-navigation/native";
 import authService from "../services/authService";
 import trainerService from "../services/trainerService";
 import ScreenHeader from "../components/ScreenHeader";
@@ -20,10 +20,12 @@ import { MaterialCommunityIcons, Feather, AntDesign } from "@expo/vector-icons";
 
 type MemberProfileScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "MemberProfile">;
+  route: RouteProp<RootStackParamList, "MemberProfile">;
 };
 
 const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
   navigation,
+  route,
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [memberProfile, setMemberProfile] = useState<MemberProfile | null>(
@@ -32,8 +34,7 @@ const MemberProfileScreen: React.FC<MemberProfileScreenProps> = ({
   const [trainerId, setTrainerId] = useState<string>("");
   const [routines, setRoutines] = useState<any[]>([]);
   const [loadingRoutines, setLoadingRoutines] = useState<boolean>(false);
-  const route = useRoute();
-  const { memberId } = route.params as { memberId: string };
+  const { memberId } = route.params;
 
   useLayoutEffect(() => {
     navigation.setOptions({

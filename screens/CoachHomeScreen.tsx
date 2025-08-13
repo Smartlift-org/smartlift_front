@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRoute } from "@react-navigation/native";
+import { RouteProp } from "@react-navigation/native";
 import authService from "../services/authService";
 import trainerService from "../services/trainerService";
 import type { RootStackParamList, User } from "../types/index";
@@ -21,15 +21,15 @@ import Avatar from "../components/Avatar";
 
 type CoachHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "CoachHome">;
+  route: RouteProp<RootStackParamList, "CoachHome">;
 };
 
-const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
+const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [dashboard, setDashboard] = useState<TrainerDashboard | null>(null);
   const [recentMembers, setRecentMembers] = useState<Member[]>([]);
-  const route = useRoute();
 
   const loadData = async (showFullLoading = true) => {
     if (showFullLoading) setIsLoading(true);
@@ -259,6 +259,33 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation }) => {
               </Text>
             </View>
           )}
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              Comunicación con Miembros
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Mantente en contacto con tus miembros a través del chat integrado.
+            </Text>
+            <View className="flex-row justify-between">
+              <TouchableOpacity
+                className="bg-green-100 p-3 rounded-lg flex-1 mr-2"
+                onPress={() => navigation.navigate("ConversationList")}
+              >
+                <Text className="text-green-800 font-medium text-center">
+                  💬 Mis Chats
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="bg-blue-100 p-3 rounded-lg flex-1 ml-2"
+                onPress={() => navigation.navigate("StartConversation")}
+              >
+                <Text className="text-blue-800 font-medium text-center">
+                  ➕ Nuevo Chat
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View className="flex-row justify-around mb-4">
             <TouchableOpacity

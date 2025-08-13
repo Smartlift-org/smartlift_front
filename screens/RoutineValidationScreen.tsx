@@ -6,21 +6,26 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import routineValidationService from "../services/routineValidationService";
 import { RoutineValidation } from "../types/aiRoutines";
 
-type Props = {
-  navigation: any;
+type RoutineValidationScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "RoutineValidation">;
+  route: RouteProp<RootStackParamList, "RoutineValidation">;
 };
 
-const RoutineValidationScreen: React.FC<Props> = ({ navigation }) => {
-  const [pendingRoutines, setPendingRoutines] = useState<RoutineValidation[]>([]);
+const RoutineValidationScreen: React.FC<RoutineValidationScreenProps> = ({ navigation, route }) => {
+  const [pendingRoutines, setPendingRoutines] = useState<RoutineValidation[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -104,10 +109,15 @@ const RoutineValidationScreen: React.FC<Props> = ({ navigation }) => {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
-        <ScreenHeader title="Validar Rutinas IA" onBack={() => navigation.goBack()} />
+        <ScreenHeader
+          title="Validar Rutinas IA"
+          onBack={() => navigation.goBack()}
+        />
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#4f46e5" />
-          <Text className="text-gray-600 mt-4">Cargando rutinas pendientes...</Text>
+          <Text className="text-gray-600 mt-4">
+            Cargando rutinas pendientes...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -115,8 +125,11 @@ const RoutineValidationScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScreenHeader title="Validar Rutinas IA" onBack={() => navigation.goBack()} />
-      
+      <ScreenHeader
+        title="Validar Rutinas IA"
+        onBack={() => navigation.goBack()}
+      />
+
       <ScrollView
         className="flex-1 px-4"
         refreshControl={
@@ -157,7 +170,11 @@ const RoutineValidationScreen: React.FC<Props> = ({ navigation }) => {
                     <Text className="text-lg font-semibold text-gray-800 flex-1 mr-2">
                       {routine.name}
                     </Text>
-                    <View className={`px-2 py-1 rounded-full ${getDifficultyColor(routine.difficulty)}`}>
+                    <View
+                      className={`px-2 py-1 rounded-full ${getDifficultyColor(
+                        routine.difficulty
+                      )}`}
+                    >
                       <Text className="text-xs font-medium">
                         {getDifficultyText(routine.difficulty)}
                       </Text>
@@ -177,13 +194,21 @@ const RoutineValidationScreen: React.FC<Props> = ({ navigation }) => {
                         </Text>
                       </View>
                       <View className="flex-row items-center">
-                        <FontAwesome5 name="dumbbell" size={14} color="#6b7280" />
+                        <FontAwesome5
+                          name="dumbbell"
+                          size={14}
+                          color="#6b7280"
+                        />
                         <Text className="text-gray-600 ml-1 text-sm">
                           {routine.exercises_count} ejercicios
                         </Text>
                       </View>
                     </View>
-                    <Text className={`text-sm font-medium ${getStatusColor(routine.validation_status)}`}>
+                    <Text
+                      className={`text-sm font-medium ${getStatusColor(
+                        routine.validation_status
+                      )}`}
+                    >
                       {getStatusText(routine.validation_status)}
                     </Text>
                   </View>
@@ -209,7 +234,11 @@ const RoutineValidationScreen: React.FC<Props> = ({ navigation }) => {
                         Generada por IA
                       </Text>
                     </View>
-                    <FontAwesome5 name="chevron-right" size={14} color="#9ca3af" />
+                    <FontAwesome5
+                      name="chevron-right"
+                      size={14}
+                      color="#9ca3af"
+                    />
                   </View>
                 </TouchableOpacity>
               ))}

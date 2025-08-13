@@ -6,31 +6,34 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import routineValidationService from "../services/routineValidationService";
 
-type Props = {
-  navigation: any;
-  route: {
-    params: {
-      routineId: number;
-    };
-  };
+type RoutineValidationDetailScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "RoutineValidationDetail">;
+  route: RouteProp<RootStackParamList, "RoutineValidationDetail">;
 };
 
-const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) => {
+const RoutineValidationDetailScreen: React.FC<RoutineValidationDetailScreenProps> = ({
+  navigation,
+  route,
+}) => {
   const { routineId } = route.params;
   const [routine, setRoutine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [validating, setValidating] = useState(false);
   const [notes, setNotes] = useState("");
   const [showNotesInput, setShowNotesInput] = useState(false);
-  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(
+    null
+  );
 
   useEffect(() => {
     loadRoutineDetails();
@@ -38,7 +41,9 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
 
   const loadRoutineDetails = async () => {
     try {
-      const routineData = await routineValidationService.getRoutineDetails(routineId);
+      const routineData = await routineValidationService.getRoutineDetails(
+        routineId
+      );
       setRoutine(routineData);
     } catch (error: any) {
       AppAlert.error("Error", error.message);
@@ -60,20 +65,29 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
 
   const confirmAction = async () => {
     if (actionType === "reject" && !notes.trim()) {
-      AppAlert.error("Error", "Las notas son obligatorias para rechazar una rutina");
+      AppAlert.error(
+        "Error",
+        "Las notas son obligatorias para rechazar una rutina"
+      );
       return;
     }
 
     setValidating(true);
     try {
       if (actionType === "approve") {
-        await routineValidationService.approveRoutine(routineId, notes.trim() || undefined);
-        AppAlert.success("¡Rutina aprobada!", "La rutina ha sido aprobada exitosamente");
+        await routineValidationService.approveRoutine(
+          routineId,
+          notes.trim() || undefined
+        );
+        AppAlert.success(
+          "¡Rutina aprobada!",
+          "La rutina ha sido aprobada exitosamente"
+        );
       } else if (actionType === "reject") {
         await routineValidationService.rejectRoutine(routineId, notes.trim());
         AppAlert.success("Rutina rechazada", "La rutina ha sido rechazada");
       }
-      
+
       navigation.goBack();
     } catch (error: any) {
       AppAlert.error("Error", error.message);
@@ -120,7 +134,10 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
-        <ScreenHeader title="Validar Rutina" onBack={() => navigation.goBack()} />
+        <ScreenHeader
+          title="Validar Rutina"
+          onBack={() => navigation.goBack()}
+        />
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#4f46e5" />
           <Text className="text-gray-600 mt-4">Cargando detalles...</Text>
@@ -132,7 +149,10 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
   if (!routine) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
-        <ScreenHeader title="Validar Rutina" onBack={() => navigation.goBack()} />
+        <ScreenHeader
+          title="Validar Rutina"
+          onBack={() => navigation.goBack()}
+        />
         <View className="flex-1 justify-center items-center">
           <Text className="text-gray-600">No se pudo cargar la rutina</Text>
         </View>
@@ -143,7 +163,7 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <ScreenHeader title="Validar Rutina" onBack={() => navigation.goBack()} />
-      
+
       <ScrollView className="flex-1 px-4">
         <View className="py-4">
           {/* Header de la rutina */}
@@ -152,16 +172,18 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
               <Text className="text-xl font-bold text-gray-800 flex-1 mr-2">
                 {routine.name}
               </Text>
-              <View className={`px-3 py-1 rounded-full ${getDifficultyColor(routine.difficulty)}`}>
+              <View
+                className={`px-3 py-1 rounded-full ${getDifficultyColor(
+                  routine.difficulty
+                )}`}
+              >
                 <Text className="text-sm font-medium">
                   {getDifficultyText(routine.difficulty)}
                 </Text>
               </View>
             </View>
 
-            <Text className="text-gray-600 mb-4">
-              {routine.description}
-            </Text>
+            <Text className="text-gray-600 mb-4">{routine.description}</Text>
 
             <View className="flex-row items-center justify-between mb-4">
               <View className="flex-row items-center space-x-4">
@@ -203,39 +225,43 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Ejercicios de la rutina
             </Text>
-            
-            {routine.routine_exercises?.map((routineExercise: any, index: number) => (
-              <View key={index} className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-base font-medium text-gray-800 flex-1">
-                    {routineExercise.exercise?.name || `Ejercicio ID: ${routineExercise.exercise_id}`}
-                  </Text>
-                  <Text className="text-sm text-gray-500">
-                    #{routineExercise.order}
-                  </Text>
-                </View>
-                
-                <View className="flex-row items-center space-x-4">
-                  <Text className="text-sm text-gray-600">
-                    {routineExercise.sets} series
-                  </Text>
-                  <Text className="text-sm text-gray-600">
-                    {routineExercise.reps} repeticiones
-                  </Text>
-                  <Text className="text-sm text-gray-600">
-                    {routineExercise.rest_time}s descanso
-                  </Text>
-                </View>
 
-                {routineExercise.exercise?.primary_muscles && (
-                  <View className="mt-2">
-                    <Text className="text-xs text-gray-500">
-                      Músculos: {routineExercise.exercise.primary_muscles.join(", ")}
+            {routine.routine_exercises?.map(
+              (routineExercise: any, index: number) => (
+                <View key={index} className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <View className="flex-row justify-between items-start mb-2">
+                    <Text className="text-base font-medium text-gray-800 flex-1">
+                      {routineExercise.exercise?.name ||
+                        `Ejercicio ID: ${routineExercise.exercise_id}`}
+                    </Text>
+                    <Text className="text-sm text-gray-500">
+                      #{routineExercise.order}
                     </Text>
                   </View>
-                )}
-              </View>
-            ))}
+
+                  <View className="flex-row items-center space-x-4">
+                    <Text className="text-sm text-gray-600">
+                      {routineExercise.sets} series
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      {routineExercise.reps} repeticiones
+                    </Text>
+                    <Text className="text-sm text-gray-600">
+                      {routineExercise.rest_time}s descanso
+                    </Text>
+                  </View>
+
+                  {routineExercise.exercise?.primary_muscles && (
+                    <View className="mt-2">
+                      <Text className="text-xs text-gray-500">
+                        Músculos:{" "}
+                        {routineExercise.exercise.primary_muscles.join(", ")}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )
+            )}
           </View>
 
           {/* Información de validación */}
@@ -245,10 +271,10 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
                 Estado de validación
               </Text>
               <View className="flex-row items-center">
-                <FontAwesome5 
-                  name="exclamation-triangle" 
-                  size={16} 
-                  color="#f59e0b" 
+                <FontAwesome5
+                  name="exclamation-triangle"
+                  size={16}
+                  color="#f59e0b"
                 />
                 <Text className="text-yellow-600 ml-2 font-medium">
                   Pendiente de validación
@@ -261,12 +287,14 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
           {showNotesInput && (
             <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-800 mb-3">
-                {actionType === "approve" ? "Notas de aprobación (opcional)" : "Notas de rechazo (obligatorio)"}
+                {actionType === "approve"
+                  ? "Notas de aprobación (opcional)"
+                  : "Notas de rechazo (obligatorio)"}
               </Text>
               <TextInput
                 className="border border-gray-300 rounded-lg p-3 text-gray-800 min-h-[100px]"
                 placeholder={
-                  actionType === "approve" 
+                  actionType === "approve"
                     ? "Agrega comentarios sobre la rutina (opcional)..."
                     : "Explica por qué rechazas esta rutina..."
                 }
@@ -330,7 +358,9 @@ const RoutineValidationDetailScreen: React.FC<Props> = ({ navigation, route }) =
                       <ActivityIndicator color="white" />
                     ) : (
                       <Text className="text-white font-semibold text-center">
-                        {actionType === "approve" ? "Confirmar Aprobación" : "Confirmar Rechazo"}
+                        {actionType === "approve"
+                          ? "Confirmar Aprobación"
+                          : "Confirmar Rechazo"}
                       </Text>
                     )}
                   </TouchableOpacity>

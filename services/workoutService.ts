@@ -133,9 +133,32 @@ class WorkoutService {
 
   createWorkoutExercise = async (workoutId: number, exerciseData: any) => {
     try {
+      const workoutExerciseData: any = {
+        exercise_id: exerciseData.exercise_id,
+        order: exerciseData.order,
+        target_sets: exerciseData.target_sets,
+        target_reps: exerciseData.target_reps,
+        group_type: exerciseData.group_type || "regular",
+      };
+
+      if (workoutExerciseData.group_type !== "regular") {
+        workoutExerciseData.group_order = exerciseData.group_order || 1;
+      }
+
+      if (
+        exerciseData.suggested_weight !== null &&
+        exerciseData.suggested_weight !== undefined
+      ) {
+        workoutExerciseData.suggested_weight = exerciseData.suggested_weight;
+      }
+
+      if (exerciseData.notes) {
+        workoutExerciseData.notes = exerciseData.notes;
+      }
+
       const response = await apiClient.post(`/workout/exercises`, {
         workout_id: workoutId,
-        workout_exercise: exerciseData,
+        workout_exercise: workoutExerciseData,
       });
       return response.data;
     } catch (error) {

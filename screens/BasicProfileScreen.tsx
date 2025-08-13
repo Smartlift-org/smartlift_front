@@ -70,13 +70,18 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
     }
   };
 
-  const handleProfilePictureUpdate = async (imageUri: string): Promise<void> => {
+  const handleProfilePictureUpdate = async (
+    imageUri: string
+  ): Promise<void> => {
     try {
       const updatedUser = await authService.updateProfilePicture(imageUri);
       setCurrentUser(updatedUser);
       AppAlert.success("Éxito", "Foto de perfil actualizada correctamente");
     } catch (error: any) {
-      AppAlert.error("Error", error.message || "No se pudo actualizar la foto de perfil");
+      AppAlert.error(
+        "Error",
+        error.message || "No se pudo actualizar la foto de perfil"
+      );
       throw error;
     }
   };
@@ -197,14 +202,24 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
             onBack={() => navigation.goBack()}
             rightComponent={
               !isEditing ? (
-                <TouchableOpacity
-                  className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
-                  onPress={() => setIsEditing(true)}
-                >
-                  <Text className="text-white text-center font-medium">
-                    Editar Perfil
-                  </Text>
-                </TouchableOpacity>
+                <View className="flex-row">
+                  <TouchableOpacity
+                    className="bg-blue-100 rounded-lg py-2 px-3 shadow-sm mr-2"
+                    onPress={() => navigation.navigate("PrivacySettings")}
+                  >
+                    <Text className="text-blue-800 text-center font-medium text-sm">
+                      Privacidad
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
+                    onPress={() => setIsEditing(true)}
+                  >
+                    <Text className="text-white text-center font-medium">
+                      Editar
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               ) : null
             }
           />
@@ -214,7 +229,6 @@ const BasicProfileScreen: React.FC<BasicProfileScreenProps> = ({
               Información Personal
             </Text>
 
-            {/* Profile Picture Section */}
             <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
               <Text className="text-lg font-semibold text-gray-800 mb-4">
                 Foto de Perfil

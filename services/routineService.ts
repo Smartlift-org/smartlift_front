@@ -25,7 +25,6 @@ export interface Routine {
   routine_exercises: RoutineExercise[];
   formatted_created_at: string;
   formatted_updated_at: string;
-  // AI validation fields
   source_type?: "manual" | "ai_generated";
   ai_generated?: boolean;
   validation_status?: "pending" | "approved" | "rejected";

@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
-import Avatar from "../components/Avatar";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
 import type { RootStackParamList, User } from "../types/index";
@@ -96,31 +95,6 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             Panel de Usuario
           </Text>
 
-          {/* User Profile Section */}
-          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
-            <View className="flex-row items-center">
-              <Avatar
-                profilePictureUrl={currentUser?.profile_picture_url}
-                firstName={currentUser?.first_name || ""}
-                lastName={currentUser?.last_name || ""}
-                size="large"
-              />
-              <View className="flex-1 ml-4">
-                <Text className="text-xl font-bold text-gray-800">
-                  {currentUser?.first_name} {currentUser?.last_name}
-                </Text>
-                <Text className="text-gray-600 mt-1">
-                  {currentUser?.email}
-                </Text>
-                <View className="bg-blue-100 px-3 py-1 rounded-full mt-2 self-start">
-                  <Text className="text-blue-800 text-sm font-medium">
-                    USUARIO
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <Text className="text-lg text-gray-600 font-medium italic">
               "{quote}"
@@ -205,15 +179,48 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              Comunidad y Privacidad
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Explora perfiles públicos de otros usuarios y configura tu
+              privacidad.
+            </Text>
+
+            <View className="flex-row justify-between">
+              <TouchableOpacity
+                className="bg-green-100 p-3 rounded-lg flex-1 mr-2"
+                onPress={() => navigation.navigate("PublicProfilesExplore")}
+              >
+                <Text className="text-green-800 font-medium text-center">
+                  Explorar Perfiles
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="bg-blue-100 p-3 rounded-lg flex-1 ml-2"
+                onPress={() => navigation.navigate("PrivacySettings")}
+              >
+                <Text className="text-blue-800 font-medium text-center">
+                  Mi Privacidad
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
               Contactar a mi Entrenador
             </Text>
             <Text className="text-gray-600 mb-4">
               Comunícate con tu entrenador para resolver dudas o solicitar
               cambios.
             </Text>
-            <TouchableOpacity className="bg-indigo-100 p-3 rounded-lg">
+            <TouchableOpacity 
+              className="bg-indigo-100 p-3 rounded-lg"
+              onPress={() => navigation.navigate("ConversationList")}
+            >
               <Text className="text-indigo-800 font-medium text-center">
-                Enviar mensaje
+                💬 Chat con mi Entrenador
               </Text>
             </TouchableOpacity>
           </View>
