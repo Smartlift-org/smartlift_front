@@ -103,6 +103,23 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              💬 Chat con mi Entrenador
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Comunícate directamente con tu entrenador personal para resolver dudas y recibir orientación.
+            </Text>
+            <TouchableOpacity
+              className="bg-green-600 p-3 rounded-lg mb-2"
+              onPress={() => navigation.navigate("ConversationList")}
+            >
+              <Text className="text-white font-medium text-center">
+                💬 Abrir Chat
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
               Mi Progreso
             </Text>
             <Text className="text-gray-600 mb-4">

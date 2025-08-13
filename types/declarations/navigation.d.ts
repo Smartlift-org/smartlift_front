@@ -4,6 +4,7 @@ declare module "@react-navigation/native" {
   export type NavigationContainerRef<T = any> = any;
   export function useRoute(): any;
   export type RouteProp<T, K extends keyof T> = any;
+  export function useFocusEffect(callback: () => void | (() => void)): void;
 }
 
 declare module "@react-navigation/native-stack" {

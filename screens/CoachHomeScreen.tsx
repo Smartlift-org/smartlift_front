@@ -208,6 +208,23 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) 
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              💬 Mensajes de Usuarios
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Comunícate con tus usuarios asignados, responde sus consultas y brinda orientación personalizada.
+            </Text>
+            <TouchableOpacity
+              className="bg-green-600 p-3 rounded-lg"
+              onPress={() => navigation.navigate("ConversationList")}
+            >
+              <Text className="text-white font-medium text-center">
+                💬 Ver Conversaciones
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
               Mi Información Profesional
             </Text>
             <Text className="text-gray-600 mb-4">

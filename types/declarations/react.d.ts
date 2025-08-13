@@ -17,4 +17,8 @@ declare module "react" {
   ): void;
   export function useRef<T>(initialValue: T): { current: T };
   export function useRef<T = undefined>(): { current: T | undefined };
+  export function useCallback<T extends (...args: any[]) => any>(
+    callback: T,
+    deps: ReadonlyArray<any>
+  ): T;
 }

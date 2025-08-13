@@ -81,6 +81,10 @@ export type RootStackParamList = {
   PublicProfileDetail: { userId: number };
   PrivacySettings: undefined;
 
+  // Chat screens
+  ConversationList: undefined;
+  Chat: { conversationId: number; participantName: string };
+  ChatUserSelection: undefined;
 
 };
 
