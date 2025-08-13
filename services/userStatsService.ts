@@ -18,6 +18,28 @@ export interface UserStats {
   updated_at?: string;
 }
 
+export const GENDER_TO_BACKEND: { [key: string]: string } = {
+  Hombre: "male",
+  Mujer: "female",
+  Otro: "other",
+};
+
+export const GENDER_TO_FRONTEND: { [key: string]: string } = {
+  male: "Hombre",
+  female: "Mujer",
+  other: "Otro",
+};
+
+export const GENDER_OPTIONS = ["Hombre", "Mujer", "Otro"];
+
+export const translateGenderToBackend = (frontendGender: string): string => {
+  return GENDER_TO_BACKEND[frontendGender] || frontendGender;
+};
+
+export const translateGenderToFrontend = (backendGender: string): string => {
+  return GENDER_TO_FRONTEND[backendGender] || backendGender;
+};
+
 const userStatsService = {
   getUserStats: async (): Promise<UserStats | null> => {
     try {
@@ -25,6 +47,10 @@ const userStatsService = {
 
       if (response.data && response.data.error) {
         return null;
+      }
+
+      if (response.data && response.data.gender) {
+        response.data.gender = translateGenderToFrontend(response.data.gender);
       }
 
       return response.data;
@@ -39,9 +65,19 @@ const userStatsService = {
 
   createUserStats: async (userStatsData: UserStats): Promise<UserStats> => {
     try {
+      const dataToSend = { ...userStatsData };
+      if (dataToSend.gender) {
+        dataToSend.gender = translateGenderToBackend(dataToSend.gender);
+      }
+
       const response = await apiClient.post("/user_stats", {
-        user_stat: userStatsData,
+        user_stat: dataToSend,
       });
+
+      if (response.data && response.data.gender) {
+        response.data.gender = translateGenderToFrontend(response.data.gender);
+      }
+
       return response.data;
     } catch (error) {
       throw error;
@@ -50,11 +86,20 @@ const userStatsService = {
 
   updateUserStats: async (userStatsData: UserStats): Promise<UserStats> => {
     try {
+      const dataToSend = { ...userStatsData };
+      if (dataToSend.gender) {
+        dataToSend.gender = translateGenderToBackend(dataToSend.gender);
+      }
+
       const requestPayload = {
-        user_stat: userStatsData,
+        user_stat: dataToSend,
       };
 
       const response = await apiClient.put("/user_stats", requestPayload);
+
+      if (response.data && response.data.gender) {
+        response.data.gender = translateGenderToFrontend(response.data.gender);
+      }
 
       return response.data;
     } catch (error: any) {

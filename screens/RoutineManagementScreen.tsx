@@ -6,24 +6,24 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  AntDesign,
-  MaterialCommunityIcons,
-  FontAwesome5,
-  Feather,
-} from "@expo/vector-icons";
+import { AntDesign, MaterialCommunityIcons, FontAwesome5, Feather } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import routineService, { Routine } from "../services/routineService";
+import workoutService from "../services/workoutService";
 
-type Props = {
-  navigation: any;
-  route: any;
+type RoutineManagementScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "RoutineManagement">;
+  route: RouteProp<RootStackParamList, "RoutineManagement">;
 };
 
-const RoutineManagementScreen: React.FC<Props> = ({ navigation, route }) => {
+const RoutineManagementScreen: React.FC<RoutineManagementScreenProps> = ({ navigation, route }) => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);

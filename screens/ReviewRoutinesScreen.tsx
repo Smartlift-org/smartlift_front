@@ -8,17 +8,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import aiRoutineService from "../services/aiRoutineService";
 import { AIRoutineResponse } from "../types/aiRoutines";
 
-type Props = {
-  navigation: any;
-  route: any;
+type ReviewRoutinesScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "ReviewRoutines">;
+  route: RouteProp<RootStackParamList, "ReviewRoutines">;
 };
 
-const ReviewRoutinesScreen: React.FC<Props> = ({ navigation, route }) => {
+const ReviewRoutinesScreen: React.FC<ReviewRoutinesScreenProps> = ({ navigation, route }) => {
   const { routines } = route.params as { routines: AIRoutineResponse[] };
   const [selectedRoutineIndex, setSelectedRoutineIndex] = useState(0);
   const [saving, setSaving] = useState(false);

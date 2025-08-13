@@ -8,6 +8,9 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import routineService, { Routine } from "../services/routineService";
 import {
   AntDesign,
@@ -17,12 +20,12 @@ import {
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 
-type Props = {
-  navigation: any;
-  route: any;
+type RoutineListScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "RoutineList">;
+  route: RouteProp<RootStackParamList, "RoutineList">;
 };
 
-const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
+const RoutineListScreen: React.FC<RoutineListScreenProps> = ({ navigation, route }) => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -89,15 +92,20 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const getValidationStatusInfo = (routine: Routine) => {
-    if (routine.source_type === "ai_generated") {
-      switch (routine.validation_status) {
+    const isAIGenerated =
+      routine.source_type === "ai_generated" ||
+      (routine.ai_generated === true && routine.source_type !== "manual");
+
+    if (isAIGenerated) {
+      const status = routine.validation_status || "pending";
+      switch (status) {
         case "pending":
           return {
             color: "bg-yellow-100 border-yellow-200",
             textColor: "text-yellow-800",
             icon: "exclamation-triangle",
             text: "Pendiente de validación",
-            showWarning: true
+            showWarning: true,
           };
         case "approved":
           return {
@@ -105,7 +113,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             textColor: "text-green-800",
             icon: "check-circle",
             text: "Validada por entrenador",
-            showWarning: false
+            showWarning: false,
           };
         case "rejected":
           return {
@@ -113,7 +121,7 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             textColor: "text-red-800",
             icon: "times-circle",
             text: "Rechazada",
-            showWarning: true
+            showWarning: true,
           };
         default:
           return null;
@@ -124,17 +132,17 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleRoutinePress = (routine: Routine) => {
     const validationInfo = getValidationStatusInfo(routine);
-    
+
     if (validationInfo?.showWarning) {
       AppAlert.confirm(
         "Rutina no validada",
-        validationInfo.text === "Pendiente de validación" 
+        validationInfo.text === "Pendiente de validación"
           ? "Esta rutina fue generada por IA y aún no ha sido validada por un entrenador. Su uso es bajo tu propia responsabilidad. ¿Deseas continuar?"
           : "Esta rutina fue rechazada por un entrenador. Su uso es bajo tu propia responsabilidad. ¿Deseas continuar?",
         () => {
           navigation.navigate("WorkoutTracker", {
             routineId: routine.id,
-            viewMode: true,
+            viewMode: false,
           });
         },
         () => {}
@@ -142,14 +150,14 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
     } else {
       navigation.navigate("WorkoutTracker", {
         routineId: routine.id,
-        viewMode: true,
+        viewMode: false,
       });
     }
   };
 
   const renderRoutineItem = ({ item }: { item: Routine }) => {
     const validationInfo = getValidationStatusInfo(item);
-    
+
     return (
       <TouchableOpacity
         className="bg-white rounded-xl p-4 mb-4 shadow-sm"
@@ -183,16 +191,21 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
           {item.description}
         </Text>
 
-        {/* Estado de validación para rutinas IA */}
         {validationInfo && (
-          <View className={`${validationInfo.color} border rounded-lg p-2 mb-3`}>
+          <View
+            className={`${validationInfo.color} border rounded-lg p-2 mb-3`}
+          >
             <View className="flex-row items-center">
-              <FontAwesome5 
-                name={validationInfo.icon} 
-                size={12} 
-                color={validationInfo.textColor.replace('text-', '').replace('-800', '')} 
+              <FontAwesome5
+                name={validationInfo.icon}
+                size={12}
+                color={validationInfo.textColor
+                  .replace("text-", "")
+                  .replace("-800", "")}
               />
-              <Text className={`${validationInfo.textColor} text-xs font-medium ml-2`}>
+              <Text
+                className={`${validationInfo.textColor} text-xs font-medium ml-2`}
+              >
                 {validationInfo.text}
               </Text>
               {validationInfo.showWarning && (
@@ -221,6 +234,26 @@ const RoutineListScreen: React.FC<Props> = ({ navigation, route }) => {
             Creada: {item.formatted_created_at.split(" ")[0]}
           </Text>
         </View>
+
+        {(item.source_type === "ai_generated" ||
+          item.ai_generated === true) && (
+          <View className="border-t border-gray-100 pt-3 mt-3">
+            <TouchableOpacity
+              className="bg-indigo-600 rounded-lg py-2 px-4 flex-row items-center justify-center"
+              onPress={(e: any) => {
+                e.stopPropagation();
+                navigation.navigate("RoutineModification", {
+                  routineId: item.id,
+                });
+              }}
+            >
+              <FontAwesome5 name="robot" size={14} color="white" />
+              <Text className="text-white font-medium ml-2">
+                Modificar con IA
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };

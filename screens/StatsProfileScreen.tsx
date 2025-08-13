@@ -260,14 +260,24 @@ const StatsProfileScreen: React.FC<StatsProfileScreenProps> = ({
             onBack={() => navigation.goBack()}
             rightComponent={
               !isEditing ? (
-                <TouchableOpacity
-                  className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
-                  onPress={() => setIsEditing(true)}
-                >
-                  <Text className="text-white text-center font-medium">
-                    {fromRedirect ? "Completar Perfil" : "Editar Estadísticas"}
-                  </Text>
-                </TouchableOpacity>
+                <View className="flex-row">
+                  <TouchableOpacity
+                    className="bg-blue-100 rounded-lg py-2 px-3 shadow-sm mr-2"
+                    onPress={() => navigation.navigate("PrivacySettings")}
+                  >
+                    <Text className="text-blue-800 text-center font-medium text-sm">
+                      Privacidad
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
+                    onPress={() => setIsEditing(true)}
+                  >
+                    <Text className="text-white text-center font-medium">
+                      {fromRedirect ? "Completar Perfil" : "Editar"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               ) : null
             }
           />

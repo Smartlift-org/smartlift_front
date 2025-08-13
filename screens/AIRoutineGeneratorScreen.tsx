@@ -4,23 +4,34 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Switch,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
-import userStatsService, { UserStats } from "../services/userStatsService";
+import userStatsService, {
+  UserStats,
+  translateGenderToBackend,
+} from "../services/userStatsService";
 import aiRoutineService from "../services/aiRoutineService";
-import { AIRoutineRequest, AIRoutineResponse } from "../types/aiRoutines";
 import { FontAwesome5 } from "@expo/vector-icons";
 
-type Props = {
-  navigation: any;
-  route: any;
+type AIRoutineGeneratorScreenProps = {
+  navigation: NativeStackNavigationProp<
+    RootStackParamList,
+    "AIRoutineGenerator"
+  >;
+  route: RouteProp<RootStackParamList, "AIRoutineGenerator">;
 };
 
-const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
+const AIRoutineGeneratorScreen: React.FC<AIRoutineGeneratorScreenProps> = ({
+  navigation,
+  route,
+}) => {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [timePerSession, setTimePerSession] = useState(60);
   const [generatePerDay, setGeneratePerDay] = useState(true);
@@ -93,9 +104,12 @@ const AIRoutineGeneratorScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       const aiParams = {
         age: userStats.age || 25,
-        gender:
-          (userStats.gender?.toLowerCase() as "male" | "female" | "other") ||
-          "other",
+        gender: userStats.gender
+          ? (translateGenderToBackend(userStats.gender) as
+              | "male"
+              | "female"
+              | "other")
+          : "other",
         weight: userStats.weight ? parseFloat(userStats.weight.toString()) : 70,
         height: userStats.height
           ? parseFloat(userStats.height.toString())

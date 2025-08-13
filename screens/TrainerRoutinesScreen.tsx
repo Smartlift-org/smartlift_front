@@ -10,14 +10,9 @@ import {
   TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  AntDesign,
-  MaterialCommunityIcons,
-  FontAwesome5,
-  Feather,
-} from "@expo/vector-icons";
+import { AntDesign, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRoute } from "@react-navigation/native";
+import { RouteProp } from "@react-navigation/native";
 import trainerService from "../services/trainerService";
 import authService from "../services/authService";
 import ScreenHeader from "../components/ScreenHeader";
@@ -27,10 +22,12 @@ import type { TrainerRoutine } from "../types/declarations/trainer";
 
 type TrainerRoutinesScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "TrainerRoutines">;
+  route: RouteProp<RootStackParamList, "TrainerRoutines">;
 };
 
 const TrainerRoutinesScreen: React.FC<TrainerRoutinesScreenProps> = ({
   navigation,
+  route,
 }) => {
   const [routines, setRoutines] = useState<TrainerRoutine[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -46,7 +43,7 @@ const TrainerRoutinesScreen: React.FC<TrainerRoutinesScreenProps> = ({
   );
   const [customName, setCustomName] = useState<string>("");
 
-  const route = useRoute();
+
 
   useEffect(() => {
     const loadUser = async () => {

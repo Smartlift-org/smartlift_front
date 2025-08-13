@@ -80,6 +80,8 @@ export type RootStackParamList = {
   PublicProfilesExplore: undefined;
   PublicProfileDetail: { userId: number };
   PrivacySettings: undefined;
+
+
 };
 
 export interface User {

@@ -11,6 +11,9 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../types";
 import ScreenHeader from "../components/ScreenHeader";
 import routineService, {
   Routine,
@@ -31,14 +34,27 @@ const AppAlert = {
   error: (title: string, message: string) => Alert.alert(title, message),
   success: (title: string, message: string) => Alert.alert(title, message),
   info: (title: string, message: string) => Alert.alert(title, message),
+  confirm: (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    onCancel: () => void,
+    confirmText: string = "Confirmar",
+    cancelText: string = "Cancelar"
+  ) => {
+    Alert.alert(title, message, [
+      { text: cancelText, onPress: onCancel, style: "cancel" },
+      { text: confirmText, onPress: onConfirm },
+    ]);
+  },
 };
 
-type Props = {
-  navigation: any;
-  route: any;
+type WorkoutTrackerScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "WorkoutTracker">;
+  route: RouteProp<RootStackParamList, "WorkoutTracker">;
 };
 
-export default function WorkoutTrackerScreen({ navigation, route }: Props) {
+export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrackerScreenProps) {
   const routineId = route.params?.routineId;
   const existingWorkoutId = route.params?.workoutId;
   const viewMode = route.params?.viewMode === true;
@@ -149,9 +165,31 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   };
 
   const startWorkout = async () => {
-    setWorkoutStatus("in_progress");
-
     try {
+      const activeWorkouts = await workoutService.getActiveWorkouts();
+
+      if (activeWorkouts.length > 0) {
+        const activeWorkout = activeWorkouts[0];
+        AppAlert.confirm(
+          "Workout Activo Encontrado",
+          `Ya tienes un workout activo. ¿Qué deseas hacer?`,
+          () => {
+            navigation.navigate("WorkoutTracker", {
+              workoutId: activeWorkout.id,
+              viewMode: false,
+            });
+          },
+          () => {
+            handleAbandonActiveWorkout(activeWorkout.id);
+          },
+          "Continuar Existente",
+          "Abandonar y Crear Nuevo"
+        );
+        return;
+      }
+
+      setWorkoutStatus("in_progress");
+
       const result = await workoutService.createWorkout({
         routine_id: Number(routine!.id),
         name: routine!.name,
@@ -165,38 +203,27 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
 
       setWorkoutId(String(result.id));
 
-      const updatedExercises = [...workoutExercises];
+      try {
+        const workoutExercises = await workoutService.getWorkoutExercises(
+          result.id
+        );
 
-      for (let i = 0; i < updatedExercises.length; i++) {
-        const exercise = updatedExercises[i];
+        const formattedExercises = workoutExercises.map(
+          (workoutExercise: any) => ({
+            ...workoutExercise,
+            exercise: workoutExercise.exercise,
+            sets: workoutExercise.sets || [],
+            planned_sets: workoutExercise.target_sets,
+            planned_reps: workoutExercise.target_reps,
+          })
+        );
 
-        try {
-          const workoutExercise = await workoutService.createWorkoutExercise(
-            result.id,
-            {
-              exercise_id: exercise.exercise.id,
-              order: i + 1,
-              target_sets: exercise.planned_sets,
-              target_reps: exercise.planned_reps,
-            }
-          );
-
-          updatedExercises[i] = {
-            ...exercise,
-            id: workoutExercise.id,
-          } as WorkoutExercise;
-        } catch (exerciseError) {
-          console.error(`Error creating workout exercise ${i}:`, exerciseError);
-          throw new Error(
-            `No se pudo crear el ejercicio ${exercise.exercise.name}`
-          );
-        }
+        setWorkoutExercises(formattedExercises);
+        startTimer();
+      } catch (error) {
+        throw new Error("No se pudieron cargar los ejercicios del workout");
       }
-
-      setWorkoutExercises(updatedExercises);
-      startTimer();
     } catch (error) {
-      console.error("Error starting workout:", error);
       AppAlert.error("Error", "No se pudo iniciar el entrenamiento");
       setWorkoutStatus("not_started");
       return;
@@ -392,6 +419,16 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
         refresh: true,
       });
     } catch (error) {
+      AppAlert.error("Error", "No se pudo abandonar el entrenamiento");
+      setWorkoutStatus("abandoned");
+      setShowConfirmModal(false);
+
+      if (workoutId) {
+        await workoutService.abandonWorkout(Number(workoutId));
+      }
+      navigation.navigate("RoutineList", {
+        refresh: true,
+      });
       throw error;
     }
   };
@@ -399,6 +436,20 @@ export default function WorkoutTrackerScreen({ navigation, route }: Props) {
   const closeConfirmModal = () => {
     setShowConfirmModal(false);
     setConfirmAction(null);
+  };
+
+  const handleAbandonActiveWorkout = async (activeWorkoutId: number) => {
+    try {
+      await workoutService.abandonWorkout(activeWorkoutId);
+      AppAlert.success("Éxito", "Workout anterior abandonado");
+      await startWorkout();
+    } catch (error) {
+      AppAlert.error(
+        "Error",
+        "No se pudo abandonar el workout anterior o crear el nuevo"
+      );
+      setWorkoutStatus("not_started");
+    }
   };
 
   const updateSetDetails = (

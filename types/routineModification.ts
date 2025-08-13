@@ -7,6 +7,13 @@ export interface AIRoutine {
   ai_generated: boolean;
   validation_status: 'pending' | 'approved' | 'rejected';
   created_at: string;
+  formatted_created_at: string;
+  formatted_updated_at: string;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+  };
   routine_exercises: RoutineExercise[];
 }
 
@@ -16,73 +23,50 @@ export interface RoutineExercise {
   exercise: {
     id: number;
     name: string;
-    muscle_group: string;
+    primary_muscles: string;
+    images: string[];
+    difficulty_level: string;
   };
   sets: number;
   reps: number;
   rest_time: number;
   order: number;
-  group_type: 'regular' | 'superset' | 'circuit';
+  needs_modification?: boolean; // Para marcar ejercicios que necesitan modificación
   weight?: number;
 }
 
-export interface RoutineModificationRequest {
-  difficulty: {
-    increase: boolean;
-    decrease: boolean;
-    maintain: boolean;
-  };
-  duration: {
-    shorter: boolean;
-    longer: boolean;
-    maintain: boolean;
-    specific?: number;
-  };
-  focus: {
-    strength?: boolean;
-    endurance?: boolean;
-    hypertrophy?: boolean;
-    cardio?: boolean;
-  };
-  exercises: {
-    addMoreFor: string[];
-    removeBodyParts: string[];
-    replaceSpecific: number[];
-  };
-  volume: {
-    moreSets: boolean;
-    fewerSets: boolean;
-    moreReps: boolean;
-    fewerReps: boolean;
-    maintain: boolean;
-  };
-  restTime: {
-    shorter: boolean;
-    longer: boolean;
-    maintain: boolean;
-  };
-  specificInstructions: string;
-}
-
+// Estructura simplificada para el backend
 export interface RoutineModificationPayload {
-  routineId: number;
-  originalRoutine: AIRoutine;
-  modifications: RoutineModificationRequest;
+  routine: {
+    name: string;
+    routine_exercises_attributes: {
+      exercise_id: number;
+      sets: number;
+      reps: number;
+      rest_time: number;
+      order: number;
+      needs_modification: boolean;
+    }[];
+  };
+  modification_message: string;
 }
 
+// Respuesta del backend para modificación
 export interface ModifiedRoutineResponse {
   success: boolean;
   data: {
-    modifiedRoutine: AIRoutine;
-    appliedModifications: {
-      difficulty?: string;
-      duration?: string;
-      exercisesAdded?: string[];
-      exercisesReplaced?: string[];
-      volumeChanges?: string;
-      restTimeChanges?: string;
-    };
+    routines: Array<{
+      routine: AIRoutine;
+    }>;
+    generated_at: string;
   };
+}
+
+// Interface para la UI de selección de ejercicios
+export interface ExerciseModificationSelection {
+  exerciseId: number;
+  exerciseName: string;
+  needsModification: boolean;
 }
 
 export const MUSCLE_GROUPS = [

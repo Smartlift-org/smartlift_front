@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import routineService from "../services/routineService";
 
 import { RootStackParamList } from "../types/index";
@@ -92,58 +92,154 @@ const RoutineSelectScreen: React.FC<RoutineSelectScreenProps> = ({
     }
   };
 
-  const navigateToRoutineDetail = (routineId: number) => {
-    checkActiveWorkoutsAndProceed(routineId);
+  const getValidationStatusInfo = (routine: Routine) => {
+    const isAIGenerated =
+      routine.source_type === "ai_generated" ||
+      (routine.ai_generated === true && routine.source_type !== "manual");
+
+    if (isAIGenerated) {
+      const status = routine.validation_status || "pending";
+      switch (status) {
+        case "pending":
+          return {
+            color: "bg-yellow-100 border-yellow-200",
+            textColor: "text-yellow-800",
+            icon: "exclamation-triangle",
+            text: "Pendiente de validación",
+            showWarning: true,
+          };
+        case "approved":
+          return {
+            color: "bg-green-100 border-green-200",
+            textColor: "text-green-800",
+            icon: "check-circle",
+            text: "Validada por entrenador",
+            showWarning: false,
+          };
+        case "rejected":
+          return {
+            color: "bg-red-100 border-red-200",
+            textColor: "text-red-800",
+            icon: "times-circle",
+            text: "Rechazada",
+            showWarning: true,
+          };
+        default:
+          return null;
+      }
+    }
+    return null;
   };
 
-  const renderRoutineItem = ({ item }: { item: Routine }) => (
-    <TouchableOpacity
-      className="bg-white mb-4 rounded-lg overflow-hidden shadow-sm"
-      onPress={() => navigateToRoutineDetail(item.id)}
-    >
-      <View className="p-4">
-        <Text className="text-lg font-bold text-gray-800">{item.name}</Text>
+  const handleRoutinePress = (routine: Routine) => {
+    const validationInfo = getValidationStatusInfo(routine);
 
-        <View className="flex-row flex-wrap mt-1">
-          <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
-            <Text className="text-xs text-gray-700">
-              {item.difficulty === "beginner"
-                ? "Principiante"
-                : item.difficulty === "intermediate"
-                ? "Intermedio"
-                : "Avanzado"}
+    if (validationInfo?.showWarning) {
+      AppAlert.confirm(
+        "Rutina no validada",
+        validationInfo.text === "Pendiente de validación"
+          ? "Esta rutina fue generada por IA y aún no ha sido validada por un entrenador. Su uso es bajo tu propia responsabilidad. ¿Deseas continuar?"
+          : "Esta rutina fue rechazada por un entrenador. Su uso es bajo tu propia responsabilidad. ¿Deseas continuar?",
+        () => {
+          checkActiveWorkoutsAndProceed(routine.id);
+        },
+        () => {}
+      );
+    } else {
+      checkActiveWorkoutsAndProceed(routine.id);
+    }
+  };
+
+  const renderRoutineItem = ({ item }: { item: Routine }) => {
+    const validationInfo = getValidationStatusInfo(item);
+
+    return (
+      <TouchableOpacity
+        className="bg-white mb-4 rounded-lg overflow-hidden shadow-sm"
+        onPress={() => handleRoutinePress(item)}
+      >
+        <View className="p-4">
+          <View className="flex-row justify-between items-start mb-2">
+            <Text className="text-lg font-bold text-gray-800 flex-1 mr-2">
+              {item.name}
             </Text>
+            {(item.source_type === "ai_generated" ||
+              item.ai_generated === true) && (
+              <View className="bg-purple-100 px-2 py-1 rounded-full flex-row items-center">
+                <FontAwesome5 name="robot" size={10} color="#7c3aed" />
+                <Text className="text-xs text-purple-700 ml-1 font-medium">
+                  IA
+                </Text>
+              </View>
+            )}
           </View>
 
-          <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
-            <Text className="text-xs text-gray-700">{item.duration} min</Text>
+          <View className="flex-row flex-wrap mt-1">
+            <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
+              <Text className="text-xs text-gray-700">
+                {item.difficulty === "beginner"
+                  ? "Principiante"
+                  : item.difficulty === "intermediate"
+                  ? "Intermedio"
+                  : "Avanzado"}
+              </Text>
+            </View>
+
+            <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
+              <Text className="text-xs text-gray-700">{item.duration} min</Text>
+            </View>
+
+            <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
+              <Text className="text-xs text-gray-700">
+                {(item.routine_exercises && item.routine_exercises.length) ||
+                  (item.exercises && item.exercises.length) ||
+                  0}{" "}
+                ejercicios
+              </Text>
+            </View>
           </View>
 
-          <View className="bg-gray-100 px-2 py-1 rounded-full mr-2 mb-1">
-            <Text className="text-xs text-gray-700">
-              {(item.routine_exercises && item.routine_exercises.length) ||
-                (item.exercises && item.exercises.length) ||
-                0}{" "}
-              ejercicios
-            </Text>
-          </View>
-        </View>
-
-        <Text className="text-gray-600 mt-2" numberOfLines={2}>
-          {item.description}
-        </Text>
-
-        <TouchableOpacity
-          className="mt-3 bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
-          onPress={() => navigateToRoutineDetail(item.id)}
-        >
-          <Text className="text-white text-center font-semibold">
-            Ver rutina
+          <Text className="text-gray-600 mt-2" numberOfLines={2}>
+            {item.description}
           </Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+
+          {validationInfo && (
+            <View
+              className={`${validationInfo.color} border rounded-lg p-2 mt-3`}
+            >
+              <View className="flex-row items-center">
+                <FontAwesome5
+                  name={validationInfo.icon}
+                  size={12}
+                  color={
+                    validationInfo.textColor.includes("yellow")
+                      ? "#d97706"
+                      : validationInfo.textColor.includes("green")
+                      ? "#059669"
+                      : "#dc2626"
+                  }
+                />
+                <Text
+                  className={`${validationInfo.textColor} text-xs font-medium ml-2`}
+                >
+                  {validationInfo.text}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            className="mt-3 bg-indigo-600 rounded-lg py-2 px-4 shadow-sm"
+            onPress={() => handleRoutinePress(item)}
+          >
+            <Text className="text-white text-center font-semibold">
+              Iniciar Entrenamiento
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
