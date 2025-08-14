@@ -9,51 +9,51 @@ import { setupNativeWind } from "./nativewind-setup";
 
 setupNativeWind();
 
-import LoginScreen from "./screens/LoginScreen";
-import RegisterScreen from "./screens/RegisterScreen";
-import UserHomeScreen from "./screens/UserHomeScreen";
-import CoachHomeScreen from "./screens/CoachHomeScreen";
-import BasicProfileScreen from "./screens/BasicProfileScreen";
-import StatsProfileScreen from "./screens/StatsProfileScreen";
-import RoutineListScreen from "./screens/RoutineListScreen";
-import RoutineCreateScreen from "./screens/RoutineCreateScreen";
-import ExerciseSelectScreen from "./screens/ExerciseSelectScreen";
-import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
-import WorkoutDetailScreen from "./screens/WorkoutDetailScreen";
-import WorkoutStatsScreen from "./screens/WorkoutStatsScreen";
-import WorkoutHistoryScreen from "./screens/WorkoutHistoryScreen";
-import AIRoutineGeneratorScreen from "./screens/AIRoutineGeneratorScreen";
-import ReviewRoutinesScreen from "./screens/ReviewRoutinesScreen";
-import RoutineManagementScreen from "./screens/RoutineManagementScreen";
-import RoutineEditScreen from "./screens/RoutineEditScreen";
-import ActiveWorkoutsScreen from "./screens/ActiveWorkoutsScreen";
-import TrainerRoutinesScreen from "./screens/TrainerRoutinesScreen";
-import MemberSelectionScreen from "./screens/MemberSelectionScreen";
-import RoutineSelectScreen from "./screens/RoutineSelectScreen";
-import SelectedExercisesScreen from "./screens/SelectedExercisesScreen";
-import MemberManagementScreen from "./screens/MemberManagementScreen";
-import MemberProfileScreen from "./screens/MemberProfileScreen";
-import MemberRoutineEditScreen from "./screens/MemberRoutineEditScreen";
-import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
-import ResetPasswordScreen from "./screens/ResetPasswordScreen";
-import AdminHomeScreen from "./screens/AdminHomeScreen";
-import AdminCoachListScreen from "./screens/AdminCoachListScreen";
-import AdminUserListScreen from "./screens/AdminUserListScreen";
-import AdminRegisterCoachScreen from "./screens/AdminRegisterCoachScreen";
-import AdminCoachDetailScreen from "./screens/AdminCoachDetailScreen";
-import RoutineModificationScreen from "./screens/RoutineModificationScreen";
-import ModifiedRoutineResultScreen from "./screens/ModifiedRoutineResultScreen";
-import AdminUserDetailScreen from "./screens/AdminUserDetailScreen";
-import AdminCoachEditScreen from "./screens/AdminCoachEditScreen";
-import AdminAssignUsersScreen from "./screens/AdminAssignUsersScreen";
-import RoutineValidationScreen from "./screens/RoutineValidationScreen";
-import RoutineValidationDetailScreen from "./screens/RoutineValidationDetailScreen";
-import PublicProfilesExploreScreen from "./screens/PublicProfilesExploreScreen";
-import PublicProfileDetailScreen from "./screens/PublicProfileDetailScreen";
-import PrivacySettingsScreen from "./screens/PrivacySettingsScreen";
-import ConversationListScreen from "./screens/ConversationListScreen";
-import ChatScreen from "./screens/ChatScreen";
-import ChatUserSelectionScreen from "./screens/ChatUserSelectionScreen";
+import LoginScreen from "./screens/auth/LoginScreen";
+import RegisterScreen from "./screens/auth/RegisterScreen";
+import UserHomeScreen from "./screens/user/UserHomeScreen";
+import CoachHomeScreen from "./screens/coach/CoachHomeScreen";
+import BasicProfileScreen from "./screens/user/BasicProfileScreen";
+import StatsProfileScreen from "./screens/user/StatsProfileScreen";
+import RoutineListScreen from "./screens/routines/RoutineListScreen";
+import RoutineCreateScreen from "./screens/routines/RoutineCreateScreen";
+import ExerciseSelectScreen from "./screens/routines/ExerciseSelectScreen";
+import WorkoutTrackerScreen from "./screens/workouts/WorkoutTrackerScreen";
+import WorkoutDetailScreen from "./screens/workouts/WorkoutDetailScreen";
+import WorkoutStatsScreen from "./screens/workouts/WorkoutStatsScreen";
+import WorkoutHistoryScreen from "./screens/workouts/WorkoutHistoryScreen";
+import AIRoutineGeneratorScreen from "./screens/routines/AIRoutineGeneratorScreen";
+import ReviewRoutinesScreen from "./screens/coach/ReviewRoutinesScreen";
+import RoutineManagementScreen from "./screens/routines/RoutineManagementScreen";
+import RoutineEditScreen from "./screens/routines/RoutineEditScreen";
+import ActiveWorkoutsScreen from "./screens/workouts/ActiveWorkoutsScreen";
+import TrainerRoutinesScreen from "./screens/coach/TrainerRoutinesScreen";
+import MemberSelectionScreen from "./screens/coach/MemberSelectionScreen";
+import RoutineSelectScreen from "./screens/routines/RoutineSelectScreen";
+import SelectedExercisesScreen from "./screens/routines/SelectedExercisesScreen";
+import MemberManagementScreen from "./screens/coach/MemberManagementScreen";
+import MemberProfileScreen from "./screens/coach/MemberProfileScreen";
+import MemberRoutineEditScreen from "./screens/coach/MemberRoutineEditScreen";
+import ForgotPasswordScreen from "./screens/auth/ForgotPasswordScreen";
+import ResetPasswordScreen from "./screens/auth/ResetPasswordScreen";
+import AdminHomeScreen from "./screens/admin/AdminHomeScreen";
+import AdminCoachListScreen from "./screens/admin/AdminCoachListScreen";
+import AdminUserListScreen from "./screens/admin/AdminUserListScreen";
+import AdminRegisterCoachScreen from "./screens/admin/AdminRegisterCoachScreen";
+import AdminCoachDetailScreen from "./screens/admin/AdminCoachDetailScreen";
+import RoutineModificationScreen from "./screens/routines/RoutineModificationScreen";
+import ModifiedRoutineResultScreen from "./screens/routines/ModifiedRoutineResultScreen";
+import AdminUserDetailScreen from "./screens/admin/AdminUserDetailScreen";
+import AdminCoachEditScreen from "./screens/admin/AdminCoachEditScreen";
+import AdminAssignUsersScreen from "./screens/admin/AdminAssignUsersScreen";
+import RoutineValidationScreen from "./screens/coach/RoutineValidationScreen";
+import RoutineValidationDetailScreen from "./screens/coach/RoutineValidationDetailScreen";
+import PublicProfilesExploreScreen from "./screens/user/PublicProfilesExploreScreen";
+import PublicProfileDetailScreen from "./screens/user/PublicProfileDetailScreen";
+import PrivacySettingsScreen from "./screens/user/PrivacySettingsScreen";
+import ConversationListScreen from "./screens/chat/ConversationListScreen";
+import ChatScreen from "./screens/chat/ChatScreen";
+import ChatUserSelectionScreen from "./screens/chat/ChatUserSelectionScreen";
 import { ChatProvider } from "./contexts/ChatContext";
 import authService from "./services/authService";
 import notificationService from "./services/notificationService";
@@ -97,7 +97,10 @@ export default function App(): React.ReactElement {
           try {
             await notificationService.initialize();
           } catch (notificationError) {
-            console.warn('Failed to initialize notifications:', notificationError);
+            console.warn(
+              "Failed to initialize notifications:",
+              notificationError
+            );
           }
         }
       } catch (error) {
@@ -115,20 +118,22 @@ export default function App(): React.ReactElement {
       if (!user || !navigationRef.current) return;
 
       try {
-        const pendingNavigation = await AsyncStorage.getItem('pending_navigation');
+        const pendingNavigation = await AsyncStorage.getItem(
+          "pending_navigation"
+        );
         if (pendingNavigation) {
           const navigationData = JSON.parse(pendingNavigation);
 
           // Clear the pending navigation
-          await AsyncStorage.removeItem('pending_navigation');
+          await AsyncStorage.removeItem("pending_navigation");
 
           // Navigate to the specified screen
-          if (navigationData.screen === 'Chat' && navigationData.params) {
-            navigationRef.current.navigate('Chat', navigationData.params);
+          if (navigationData.screen === "Chat" && navigationData.params) {
+            navigationRef.current.navigate("Chat", navigationData.params);
           }
         }
       } catch (error) {
-        console.error('Error handling pending navigation:', error);
+        console.error("Error handling pending navigation:", error);
       }
     };
 
@@ -180,7 +185,10 @@ export default function App(): React.ReactElement {
               name="WorkoutTracker"
               component={WorkoutTrackerScreen}
             />
-            <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
+            <Stack.Screen
+              name="WorkoutDetail"
+              component={WorkoutDetailScreen}
+            />
             <Stack.Screen name="WorkoutStats" component={WorkoutStatsScreen} />
             <Stack.Screen
               name="WorkoutHistory"
