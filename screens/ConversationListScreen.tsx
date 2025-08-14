@@ -7,8 +7,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RootStackParamList } from "../types";
 import { useChatContext } from "../contexts/ChatContext";
 import ConversationList from "../components/ConversationList";
+import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import { Conversation } from "../types/chat";
+import logger from "../utils/logger";
 
 type ConversationListScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -25,7 +27,6 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
     isLoading,
     error,
     loadConversations,
-    connectWebSocket,
   } = useChatContext();
 
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -41,12 +42,19 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
           setCurrentUser(userData);
         }
       } catch (error) {
-        console.error("Error loading user data:", error);
+        logger.error("Error loading user data:", error);
       }
     };
 
     loadUserInfo();
   }, []);
+
+  // Hide default navigation header to use custom ScreenHeader
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   // Handle errors from context
   useEffect(() => {
@@ -59,14 +67,18 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       loadConversations();
-      connectWebSocket();
-    }, [loadConversations, connectWebSocket])
+    }, [loadConversations])
   );
 
   const handleConversationPress = (conversation: Conversation) => {
+    const participant = conversation.other_participant;
+    const participantName = participant?.first_name && participant?.last_name 
+      ? `${participant.first_name} ${participant.last_name}` 
+      : participant?.email || 'Usuario';
+      
     navigation.navigate("Chat", {
       conversationId: conversation.id,
-      participantName: `${conversation.other_participant.first_name} ${conversation.other_participant.last_name}`,
+      participantName: participantName,
     });
   };
 
@@ -101,40 +113,27 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const getScreenTitle = (): string => {
-    if (currentUser?.role === "coach") {
-      return "Mensajes de Usuarios";
-    } else {
-      return "Chat con Entrenador";
-    }
-  };
+  // Screen title now managed by navigation header
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      {/* Header */}
-      <View className="bg-white border-b border-gray-200 px-4 py-4">
-        <Text className="text-xl font-bold text-gray-900">
-          {getScreenTitle()}
-        </Text>
-
-        {currentUser?.role === "coach" && conversations.length > 0 && (
-          <Text className="text-sm text-gray-600 mt-1">
-            Gestiona las conversaciones con tus usuarios asignados
-          </Text>
-        )}
-      </View>
+      {/* Custom Header */}
+      <ScreenHeader
+        title="Conversaciones"
+        onBack={() => navigation.goBack()}
+      />
 
       {/* Loading State */}
-      {isLoading && conversations.length === 0 && (
+      {isLoading && (!conversations || conversations.length === 0) && (
         <View className="flex-1 items-center justify-center">
           <Text className="text-gray-500">Cargando conversaciones...</Text>
         </View>
       )}
 
       {/* Conversations List */}
-      {!isLoading || conversations.length > 0 ? (
+      {!isLoading || (conversations && conversations.length > 0) ? (
         <ConversationList
           conversations={conversations}
           onConversationPress={handleConversationPress}

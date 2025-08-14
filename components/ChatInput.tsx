@@ -1,14 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  Text, 
-  KeyboardAvoidingView, 
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  KeyboardAvoidingView,
   Platform,
-  Alert 
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -25,30 +25,33 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onStopTyping,
   placeholder = "Escribe un mensaje...",
   disabled = false,
-  maxLength = 1000
-}) => {
-  const [message, setMessage] = useState('');
+  maxLength = 1000,
+}: ChatInputProps) => {
+  const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const inputRef = useRef<TextInput>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<TextInput | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSendMessage = () => {
     const trimmedMessage = message.trim();
-    
+
     if (!trimmedMessage) {
-      Alert.alert('Error', 'El mensaje no puede estar vacío');
+      Alert.alert("Error", "El mensaje no puede estar vacío");
       return;
     }
 
     if (trimmedMessage.length > maxLength) {
-      Alert.alert('Error', `El mensaje no puede exceder ${maxLength} caracteres`);
+      Alert.alert(
+        "Error",
+        `El mensaje no puede exceder ${maxLength} caracteres`
+      );
       return;
     }
 
     onSendMessage(trimmedMessage);
-    setMessage('');
+    setMessage("");
     handleStopTyping();
-    
+
     // Focus back to input after sending
     setTimeout(() => {
       inputRef.current?.focus();
@@ -57,7 +60,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const handleTextChange = (text: string) => {
     setMessage(text);
-    
+
     // Handle typing indicators
     if (text.trim() && !isTyping) {
       handleStartTyping();
@@ -90,7 +93,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
       setIsTyping(false);
       onStopTyping?.();
     }
-    
+
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = null;
@@ -121,8 +124,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
       <View className="bg-white border-t border-gray-200 px-4 py-3">
         <View className="flex-row items-end space-x-3">
@@ -140,22 +143,26 @@ const ChatInput: React.FC<ChatInputProps> = ({
               maxLength={maxLength}
               editable={!disabled}
               className={`border border-gray-300 rounded-2xl px-4 py-3 text-base max-h-24 ${
-                disabled ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-800'
+                disabled
+                  ? "bg-gray-100 text-gray-400"
+                  : "bg-white text-gray-800"
               }`}
               style={{
-                textAlignVertical: 'top',
+                textAlignVertical: "top",
                 minHeight: 44,
               }}
               returnKeyType="send"
               onSubmitEditing={handleSendMessage}
               blurOnSubmit={false}
             />
-            
+
             {/* Character count */}
             {message.length > maxLength * 0.8 && (
-              <Text className={`text-xs mt-1 text-right ${
-                message.length > maxLength ? 'text-red-500' : 'text-gray-500'
-              }`}>
+              <Text
+                className={`text-xs mt-1 text-right ${
+                  message.length > maxLength ? "text-red-500" : "text-gray-500"
+                }`}
+              >
                 {message.length}/{maxLength}
               </Text>
             )}
@@ -166,16 +173,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
             onPress={handleSendMessage}
             disabled={!canSend}
             className={`w-11 h-11 rounded-full items-center justify-center ${
-              canSend 
-                ? 'bg-blue-500' 
-                : 'bg-gray-300'
+              canSend ? "bg-blue-500" : "bg-gray-300"
             }`}
             activeOpacity={0.7}
           >
             <Ionicons
               name="send"
               size={20}
-              color={canSend ? 'white' : '#9CA3AF'}
+              color={canSend ? "white" : "#9CA3AF"}
             />
           </TouchableOpacity>
         </View>

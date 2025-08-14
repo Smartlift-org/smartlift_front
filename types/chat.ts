@@ -78,6 +78,7 @@ export interface ChatContextType {
   messages: Message[];
   isLoading: boolean;
   error?: string;
+  typingIndicators: TypingIndicator[];
   
   // Actions
   loadConversations: () => Promise<void>;

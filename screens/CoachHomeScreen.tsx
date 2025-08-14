@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -150,18 +151,28 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) 
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#f3f4f6" />
       <SafeAreaView className="flex-1 bg-gray-100">
-        <View className="flex-1 p-4">
-          <ScreenHeader
-            title="Panel de Entrenador"
-            rightComponent={
-              <TouchableOpacity
-                className="bg-indigo-600 py-2 px-4 rounded-lg"
-                onPress={handleLogout}
-              >
-                <Text className="text-white font-semibold">Salir</Text>
-              </TouchableOpacity>
-            }
-          />
+        <ScreenHeader
+          title="Panel de Entrenador"
+          rightComponent={
+            <TouchableOpacity
+              className="bg-indigo-600 py-2 px-4 rounded-lg"
+              onPress={handleLogout}
+            >
+              <Text className="text-white font-semibold">Salir</Text>
+            </TouchableOpacity>
+          }
+        />
+        <ScrollView 
+          className="flex-1" 
+          contentContainerStyle={{ padding: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#4f46e5"]}
+            />
+          }
+        >
           <View className="mb-6">
             <Text className="text-lg text-gray-600 mt-2">
               ¡Hola, {currentUser?.first_name || "Entrenador"}!
@@ -206,22 +217,7 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) 
             </View>
           </View>
 
-          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
-            <Text className="text-lg font-semibold text-indigo-800 mb-2">
-              💬 Mensajes de Usuarios
-            </Text>
-            <Text className="text-gray-600 mb-4">
-              Comunícate con tus usuarios asignados, responde sus consultas y brinda orientación personalizada.
-            </Text>
-            <TouchableOpacity
-              className="bg-green-600 p-3 rounded-lg"
-              onPress={() => navigation.navigate("ConversationList")}
-            >
-              <Text className="text-white font-medium text-center">
-                💬 Ver Conversaciones
-              </Text>
-            </TouchableOpacity>
-          </View>
+
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
@@ -241,48 +237,12 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) 
             </TouchableOpacity>
           </View>
 
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-xl font-bold text-indigo-900">
-              Miembros Recientes
-            </Text>
-            <TouchableOpacity
-              className="bg-indigo-600 py-2 px-4 rounded-lg"
-              onPress={() => navigation.navigate("MemberManagement")}
-            >
-              <Text className="text-white font-semibold">
-                Gestionar Miembros
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {recentMembers.length > 0 ? (
-            <FlatList
-              data={recentMembers}
-              renderItem={renderMemberItem}
-              keyExtractor={(item: Member) => item.id.toString()}
-              className="mb-4"
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={["#4f46e5"]}
-                />
-              }
-            />
-          ) : (
-            <View className="bg-white rounded-lg p-6 items-center justify-center mb-4">
-              <Text className="text-gray-600 text-center">
-                No tienes miembros asignados aún
-              </Text>
-            </View>
-          )}
-
           <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
-              Comunicación con Miembros
+              💬 Comunicación con Miembros
             </Text>
             <Text className="text-gray-600 mb-4">
-              Mantente en contacto con tus miembros a través del chat integrado.
+              Mantente en contacto con tus miembros a través del chat integrado y gestiona tu lista de usuarios asignados.
             </Text>
             <View className="flex-row justify-between">
               <TouchableOpacity
@@ -290,23 +250,23 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) 
                 onPress={() => navigation.navigate("ConversationList")}
               >
                 <Text className="text-green-800 font-medium text-center">
-                  💬 Mis Chats
+                  💬 Ver Chats
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="bg-blue-100 p-3 rounded-lg flex-1 ml-2"
-                onPress={() => navigation.navigate("StartConversation")}
+                className="bg-indigo-100 p-3 rounded-lg flex-1 ml-2"
+                onPress={() => navigation.navigate("MemberManagement")}
               >
-                <Text className="text-blue-800 font-medium text-center">
-                  ➕ Nuevo Chat
+                <Text className="text-indigo-800 font-medium text-center">
+                  👥 Mis Miembros
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <View className="flex-row justify-around mb-4">
+          <View className="flex-row justify-between mb-4">
             <TouchableOpacity
-              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 mr-1"
+              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 mr-2"
               onPress={() => navigation.navigate("TrainerRoutines")}
             >
               <Text className="text-indigo-800 font-medium text-center">
@@ -315,29 +275,15 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({ navigation, route }) 
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-yellow-50 p-4 rounded-lg shadow-sm items-center flex-1 mx-1 border border-yellow-200"
+              className="bg-yellow-50 p-4 rounded-lg shadow-sm items-center flex-1 ml-2 border border-yellow-200"
               onPress={() => navigation.navigate("RoutineValidation")}
             >
               <Text className="text-yellow-800 font-medium text-center">
                 Validar Rutinas IA
               </Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              className="bg-white p-4 rounded-lg shadow-sm items-center flex-1 ml-1"
-              onPress={() => {
-                AppAlert.info(
-                  "Estadísticas",
-                  "Aquí podrás ver estadísticas detalladas de tus usuarios"
-                );
-              }}
-            >
-              <Text className="text-indigo-800 font-medium text-center">
-                Ver Estadísticas
-              </Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </>
   );

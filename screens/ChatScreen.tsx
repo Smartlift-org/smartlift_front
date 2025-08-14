@@ -18,6 +18,7 @@ import { RootStackParamList } from "../types";
 import { useChatContext } from "../contexts/ChatContext";
 import ChatBubble from "../components/ChatBubble";
 import ChatInput from "../components/ChatInput";
+import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import { Message } from "../types/chat";
 
@@ -41,10 +42,12 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
     isLoading,
     error,
     loadConversation,
+    connectWebSocket,
     sendMessage,
     markAsRead,
     sendTyping,
     sendStopTyping,
+    typingIndicators,
   } = useChatContext();
 
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -70,6 +73,11 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
   // Load conversation when screen focuses
   useFocusEffect(
     React.useCallback(() => {
+      // Ensure WS is connected (idempotent)
+      try {
+        connectWebSocket && connectWebSocket();
+      } catch {}
+
       loadConversation(conversationId);
 
       // Mark conversation as read when entering
@@ -79,7 +87,7 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
         // Clean up typing indicators when leaving
         sendStopTyping(conversationId);
       };
-    }, [conversationId, loadConversation, markAsRead, sendStopTyping])
+    }, [conversationId, loadConversation, markAsRead, sendStopTyping, connectWebSocket])
   );
 
   // Handle errors from context
@@ -98,36 +106,12 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [messages]);
 
-  // Set up navigation header
+  // Hide default navigation header to use custom ScreenHeader
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: participantName,
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="flex-row items-center ml-2"
-        >
-          <Ionicons name="chevron-back" size={24} color="#3B82F6" />
-          <Text className="text-blue-500 text-base ml-1">Atrás</Text>
-        </TouchableOpacity>
-      ),
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => {
-            // TODO: Add chat options menu (clear chat, block user, etc.)
-            Alert.alert(
-              "Opciones de Chat",
-              "Funciones adicionales próximamente",
-              [{ text: "OK", style: "default" }]
-            );
-          }}
-          className="mr-4"
-        >
-          <Ionicons name="ellipsis-vertical" size={20} color="#3B82F6" />
-        </TouchableOpacity>
-      ),
+      headerShown: false,
     });
-  }, [navigation, participantName]);
+  }, [navigation]);
 
   const handleSendMessage = async (messageText: string) => {
     try {
@@ -150,19 +134,57 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const isCurrentUser = item.sender_id === currentUser?.id;
-    const previousMessage = index > 0 ? messages[index - 1] : null;
-    const showAvatar =
-      !previousMessage || previousMessage.sender_id !== item.sender_id;
-    const showTimestamp = true; // Could be optimized to show only for certain intervals
+    // Normalize IDs to numbers to avoid string/number mismatches
+    const currentUserIdNum = currentUser?.id != null ? Number(currentUser.id) : undefined;
+    const senderIdRaw: any = (item as any).sender_id ?? (item as any).sender?.id;
+    const senderIdNum = senderIdRaw != null ? Number(senderIdRaw) : undefined;
+    const isCurrentUser =
+      typeof currentUserIdNum === "number" &&
+      !Number.isNaN(currentUserIdNum) &&
+      typeof senderIdNum === "number" &&
+      !Number.isNaN(senderIdNum) &&
+      currentUserIdNum === senderIdNum;
+
+    const thisDate = new Date(item.created_at);
+    const prev = index > 0 ? messages[index - 1] : null;
+    const next = index < messages.length - 1 ? messages[index + 1] : null;
+
+    const sameSender = (a?: Message | null, b?: Message | null) => {
+      if (!a || !b) return false;
+      const aId = (a as any).sender_id ?? (a as any).sender?.id;
+      const bId = (b as any).sender_id ?? (b as any).sender?.id;
+      return Number(aId) === Number(bId);
+    };
+
+    const withinMinutes = (a: Date, b: Date, minutes: number) => {
+      return Math.abs(a.getTime() - b.getTime()) <= minutes * 60 * 1000;
+    };
+
+    const isFirstInGroup = !prev || !sameSender(prev, item) || !withinMinutes(new Date(prev.created_at), thisDate, 5);
+    const isLastInGroup = !next || !sameSender(next, item) || !withinMinutes(new Date(next.created_at), thisDate, 5);
+
+    const isDifferentDayFromPrev = !prev || new Date(prev.created_at).toDateString() !== thisDate.toDateString();
+
+    const DateSeparator = ({ date }: { date: Date }) => (
+      <View style={{ paddingVertical: 6 }}>
+        <Text style={{ fontSize: 12, color: '#6B7280', textAlign: 'center' }}>
+          {date.toDateString()}
+        </Text>
+      </View>
+    );
 
     return (
-      <ChatBubble
-        message={item}
-        isCurrentUser={isCurrentUser}
-        showAvatar={showAvatar}
-        showTimestamp={showTimestamp}
-      />
+      <View>
+        {isDifferentDayFromPrev && <DateSeparator date={thisDate} />}
+        <ChatBubble
+          message={item}
+          isCurrentUser={isCurrentUser}
+          showAvatar={isFirstInGroup}
+          showTimestamp={isLastInGroup}
+          isFirstInGroup={isFirstInGroup}
+          isLastInGroup={isLastInGroup}
+        />
+      </View>
     );
   };
 
@@ -183,7 +205,7 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
       <Text className="text-xs text-gray-500 text-center">
         Chat con {participantName}
       </Text>
-      {currentConversation && (
+      {currentConversation && currentConversation.other_participant && (
         <Text className="text-xs text-gray-400 text-center mt-1">
           {currentConversation.other_participant.role === "coach"
             ? "👨‍💼 Entrenador"
@@ -192,6 +214,21 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
       )}
     </View>
   );
+
+  const renderTypingIndicator = () => {
+    if (!currentConversation) return null;
+    const convId = currentConversation.id;
+    const activeIndicators = typingIndicators.filter(
+      (t) => t.conversationId === convId && t.userId !== currentUser?.id
+    );
+    if (activeIndicators.length === 0) return null;
+    const names = activeIndicators.map((t) => t.userName).join(", ");
+    return (
+      <View className="px-4 py-1">
+        <Text className="text-xs text-blue-500">{names} está escribiendo…</Text>
+      </View>
+    );
+  };
 
   if (isLoading && messages.length === 0) {
     return (
@@ -207,6 +244,12 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
+
+      {/* Custom Header */}
+      <ScreenHeader
+        title={participantName}
+        onBack={() => navigation.goBack()}
+      />
 
       <KeyboardAvoidingView
         className="flex-1"
@@ -236,8 +279,7 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
               }}
             />
           )}
-
-          {/* TODO: Typing Indicator - needs typingIndicators from context */}
+          {renderTypingIndicator()}
         </View>
 
         {/* Chat Input */}

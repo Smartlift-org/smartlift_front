@@ -54,7 +54,10 @@ type WorkoutTrackerScreenProps = {
   route: RouteProp<RootStackParamList, "WorkoutTracker">;
 };
 
-export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrackerScreenProps) {
+export default function WorkoutTrackerScreen({
+  navigation,
+  route,
+}: WorkoutTrackerScreenProps) {
   const routineId = route.params?.routineId;
   const existingWorkoutId = route.params?.workoutId;
   const viewMode = route.params?.viewMode === true;
@@ -91,7 +94,7 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
     "Otro",
   ];
 
-  const timerInterval = useRef<NodeJS.Timeout | null>(null);
+  const timerInterval = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pauseStartTime = useRef<Date | null>(null);
 
   const currentElapsedTimeRef = useRef<number>(0);
@@ -209,13 +212,28 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
         );
 
         const formattedExercises = workoutExercises.map(
-          (workoutExercise: any) => ({
-            ...workoutExercise,
-            exercise: workoutExercise.exercise,
-            sets: workoutExercise.sets || [],
-            planned_sets: workoutExercise.target_sets,
-            planned_reps: workoutExercise.target_reps,
-          })
+          (workoutExercise: any) => {
+            // Si no hay sets del backend, crear sets iniciales basados en la rutina
+            let sets = workoutExercise.sets || [];
+            if (sets.length === 0 && workoutExercise.target_sets) {
+              sets = Array.from({ length: workoutExercise.target_sets }).map(
+                (_, idx) => ({
+                  set_number: idx + 1,
+                  weight: 0,
+                  reps: workoutExercise.target_reps || 0,
+                  completed: false,
+                })
+              );
+            }
+
+            return {
+              ...workoutExercise,
+              exercise: workoutExercise.exercise,
+              sets: sets,
+              planned_sets: workoutExercise.target_sets,
+              planned_reps: workoutExercise.target_reps,
+            };
+          }
         );
 
         setWorkoutExercises(formattedExercises);
@@ -248,32 +266,46 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
         Number(id)
       );
 
-      const mappedExercises =
-        response.exercises?.map((routineExercise: any) => {
-          const workoutExercise = workoutExercises.find(
-            (we: any) => we.exercise_id === routineExercise.exercise.id
+      let mappedExercises: any[] = [];
+
+      // Si response.exercises existe, es un WorkoutSession (workout completado)
+      if (response.exercises && Array.isArray(response.exercises)) {
+        mappedExercises = response.exercises.map((workoutExercise: any) => {
+          // Buscar los sets del backend
+          const backendExercise = workoutExercises.find(
+            (we: any) => we.exercise_id === workoutExercise.exercise?.id
           );
 
-          let mappedSets = routineExercise.sets || [];
+          let mappedSets = workoutExercise.sets || [];
 
-          if (workoutExercise?.sets && workoutExercise.sets.length > 0) {
-            mappedSets = workoutExercise.sets.map((backendSet: any) => ({
+          if (backendExercise?.sets && backendExercise.sets.length > 0) {
+            mappedSets = backendExercise.sets.map((backendSet: any) => ({
               set_number: backendSet.set_number || backendSet.order,
-              reps: backendSet.reps || routineExercise.planned_reps,
+              reps: backendSet.reps || workoutExercise.planned_reps || 0,
               weight: backendSet.weight || 0,
               completed: backendSet.completed || false,
-              rest_time: routineExercise.rest_time || 60,
+              rest_time: workoutExercise.rest_time || 60,
             }));
           }
 
           return {
-            ...routineExercise,
-            id: workoutExercise?.id,
-            routine_exercise_id:
-              routineExercise.id || routineExercise.routine_exercise_id,
+            ...workoutExercise,
+            id: backendExercise?.id,
+            routine_exercise_id: workoutExercise.routine_exercise_id,
             sets: mappedSets,
-          } as any;
-        }) || [];
+          };
+        });
+      } else {
+        // Si no tiene exercises, probablemente sea una rutina (caso anterior)
+        // Mantener la lógica original para compatibilidad
+        mappedExercises = workoutExercises.map((workoutExercise: any) => ({
+          ...workoutExercise,
+          exercise: workoutExercise.exercise,
+          sets: workoutExercise.sets || [],
+          planned_sets: workoutExercise.target_sets,
+          planned_reps: workoutExercise.target_reps,
+        }));
+      }
 
       setElapsedTime(response.total_duration || 0);
       setEffectiveTime(response.effective_duration || 0);
@@ -339,7 +371,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
                   weight: set.weight,
                   reps: set.reps,
                   set_type: "normal",
-                  rpe: undefined,
                 });
               }
             } catch (error) {
@@ -415,8 +446,9 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
       if (workoutId) {
         await workoutService.abandonWorkout(Number(workoutId));
       }
-      navigation.navigate("RoutineList", {
-        refresh: true,
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "UserHome" }],
       });
     } catch (error) {
       AppAlert.error("Error", "No se pudo abandonar el entrenamiento");
@@ -426,8 +458,9 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
       if (workoutId) {
         await workoutService.abandonWorkout(Number(workoutId));
       }
-      navigation.navigate("RoutineList", {
-        refresh: true,
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "UserHome" }],
       });
       throw error;
     }
@@ -485,7 +518,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
           weight: set.weight,
           reps: set.reps,
           set_type: "normal",
-          rpe: undefined,
         });
       } catch (error) {
         console.error("Error saving set data:", error);
@@ -526,7 +558,6 @@ export default function WorkoutTrackerScreen({ navigation, route }: WorkoutTrack
                   weight: set.weight,
                   reps: set.reps,
                   set_type: "normal",
-                  rpe: undefined,
                 });
               }
             } catch (error) {

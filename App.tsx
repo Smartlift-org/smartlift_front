@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import "./services/ws-polyfill";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaView, StatusBar, Text, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import "./global.css";
 import { setupNativeWind } from "./nativewind-setup";
 
@@ -17,6 +19,7 @@ import RoutineListScreen from "./screens/RoutineListScreen";
 import RoutineCreateScreen from "./screens/RoutineCreateScreen";
 import ExerciseSelectScreen from "./screens/ExerciseSelectScreen";
 import WorkoutTrackerScreen from "./screens/WorkoutTrackerScreen";
+import WorkoutDetailScreen from "./screens/WorkoutDetailScreen";
 import WorkoutStatsScreen from "./screens/WorkoutStatsScreen";
 import WorkoutHistoryScreen from "./screens/WorkoutHistoryScreen";
 import AIRoutineGeneratorScreen from "./screens/AIRoutineGeneratorScreen";
@@ -50,8 +53,10 @@ import PublicProfileDetailScreen from "./screens/PublicProfileDetailScreen";
 import PrivacySettingsScreen from "./screens/PrivacySettingsScreen";
 import ConversationListScreen from "./screens/ConversationListScreen";
 import ChatScreen from "./screens/ChatScreen";
+import ChatUserSelectionScreen from "./screens/ChatUserSelectionScreen";
 import { ChatProvider } from "./contexts/ChatContext";
 import authService from "./services/authService";
+import notificationService from "./services/notificationService";
 
 import type { RootStackParamList, User } from "./types/index";
 
@@ -65,9 +70,20 @@ const navigationConfig = {
   },
 };
 
+// Unified header style for chat-related screens
+const chatHeaderOptions = {
+  headerShown: true,
+  headerBackTitleVisible: false,
+  headerStyle: { backgroundColor: "#ffffff" },
+  headerTitleStyle: { color: "#111827", fontWeight: "600" as const },
+  headerTintColor: "#111827",
+  headerShadowVisible: true,
+};
+
 export default function App(): React.ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
+  const navigationRef = useRef<any>(null);
 
   useEffect(() => {
     const checkAuthentication = async () => {
@@ -76,8 +92,16 @@ export default function App(): React.ReactElement {
         if (isAuthenticated) {
           const userData = await authService.getCurrentUser();
           setUser(userData);
+
+          // Initialize notifications for authenticated users
+          try {
+            await notificationService.initialize();
+          } catch (notificationError) {
+            console.warn('Failed to initialize notifications:', notificationError);
+          }
         }
       } catch (error) {
+        console.error("Error checking authentication:", error);
       } finally {
         setIsLoading(false);
       }
@@ -85,6 +109,31 @@ export default function App(): React.ReactElement {
 
     checkAuthentication();
   }, []);
+
+  useEffect(() => {
+    const handlePendingNavigation = async () => {
+      if (!user || !navigationRef.current) return;
+
+      try {
+        const pendingNavigation = await AsyncStorage.getItem('pending_navigation');
+        if (pendingNavigation) {
+          const navigationData = JSON.parse(pendingNavigation);
+
+          // Clear the pending navigation
+          await AsyncStorage.removeItem('pending_navigation');
+
+          // Navigate to the specified screen
+          if (navigationData.screen === 'Chat' && navigationData.params) {
+            navigationRef.current.navigate('Chat', navigationData.params);
+          }
+        }
+      } catch (error) {
+        console.error('Error handling pending navigation:', error);
+      }
+    };
+
+    handlePendingNavigation();
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -99,7 +148,7 @@ export default function App(): React.ReactElement {
     <ChatProvider>
       <SafeAreaView className="flex-1 bg-background">
         <StatusBar barStyle="dark-content" backgroundColor="white" />
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Stack.Navigator
             initialRouteName={
               user
@@ -131,6 +180,7 @@ export default function App(): React.ReactElement {
               name="WorkoutTracker"
               component={WorkoutTrackerScreen}
             />
+            <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
             <Stack.Screen name="WorkoutStats" component={WorkoutStatsScreen} />
             <Stack.Screen
               name="WorkoutHistory"
@@ -251,17 +301,22 @@ export default function App(): React.ReactElement {
               name="ConversationList"
               component={ConversationListScreen}
               options={{
+                ...chatHeaderOptions,
                 title: "Conversaciones",
-                headerShown: true,
-                headerBackTitleVisible: false,
               }}
             />
             <Stack.Screen
               name="Chat"
               component={ChatScreen}
               options={{
-                headerShown: true,
-                headerBackTitleVisible: false,
+                ...chatHeaderOptions,
+              }}
+            />
+            <Stack.Screen
+              name="ChatUserSelection"
+              component={ChatUserSelectionScreen}
+              options={{
+                headerShown: false,
               }}
             />
           </Stack.Navigator>

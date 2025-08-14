@@ -88,9 +88,8 @@ const WorkoutHistoryScreen: React.FC<WorkoutHistoryScreenProps> = ({
     <TouchableOpacity
       className="bg-white rounded-xl p-4 mb-4 shadow-sm"
       onPress={() =>
-        navigation.navigate("WorkoutTracker", {
-          routineId: item.routine_id,
-          viewMode: true,
+        navigation.navigate("WorkoutDetail", {
+          workoutId: item.id,
         })
       }
     >
@@ -103,35 +102,7 @@ const WorkoutHistoryScreen: React.FC<WorkoutHistoryScreenProps> = ({
         </Text>
       </View>
 
-      <View className="flex-row justify-between mb-3">
-        <View className="flex-row items-center">
-          <FontAwesome5
-            name="clock"
-            size={16}
-            color="#0066CC"
-            className="mr-1.5"
-          />
-          <Text className="text-base text-gray-600">
-            {formatDuration(item.routine?.duration || 0)}
-          </Text>
-        </View>
 
-        <View className="flex-row items-center">
-          <MaterialCommunityIcons
-            name="weight-lifter"
-            size={18}
-            color="#0066CC"
-            className="mr-1.5"
-          />
-          <Text className="text-base text-gray-600">
-            {item.exercises?.filter((ex) =>
-              ex.sets?.some((set) => set.completed)
-            )?.length || 0}
-            /{item.routine?.exercises?.length || item.exercises?.length || 0}{" "}
-            ejercicios
-          </Text>
-        </View>
-      </View>
 
       <View className="border-t border-gray-100 pt-3 items-end">
         <Text className="text-indigo-600 font-medium text-sm">

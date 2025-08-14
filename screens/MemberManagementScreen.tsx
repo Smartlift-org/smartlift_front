@@ -245,17 +245,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <View className="flex-1 p-4">
-        <ScreenHeader
-          title="Gestión de Miembros"
-          rightComponent={
-            <TouchableOpacity
-              className="bg-indigo-600 p-2 rounded-lg"
-              onPress={() => navigation.navigate("CoachHome")}
-            >
-              <Text className="text-white font-medium">Volver</Text>
-            </TouchableOpacity>
-          }
-        />
+        <ScreenHeader title="Mis Miembros" onBack={() => navigation.goBack()} />
 
         <View className="flex-row bg-white rounded-lg shadow-sm mb-4 mt-2">
           <TextInput

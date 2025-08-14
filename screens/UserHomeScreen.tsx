@@ -5,6 +5,7 @@ import ScreenHeader from "../components/ScreenHeader";
 import AppAlert from "../components/AppAlert";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../services/authService";
+import chatService from "../services/chatService";
 import type { RootStackParamList, User } from "../types/index";
 
 type UserHomeScreenProps = {
@@ -68,6 +69,54 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
     }
   };
 
+  const handleOpenChat = async () => {
+    try {
+      // 1) Buscar conversación existente (usuario solo tendrá una con su coach)
+      const { conversations } = await chatService.getConversations();
+
+      if (conversations && conversations.length > 0) {
+        const conv = conversations[0];
+        const name = conv.other_participant
+          ? `${conv.other_participant.first_name} ${conv.other_participant.last_name}`
+          : "Entrenador";
+        navigation.navigate("Chat", {
+          conversationId: conv.id,
+          participantName: name,
+        });
+        return;
+      }
+
+      // 2) Si no hay conversación, intentar crearla con el coach asignado
+      // Intentamos obtener el coach asignado desde la info del usuario almacenada
+      const user = currentUser || (await authService.getCurrentUser());
+      const assignedCoachId =
+        // formatos posibles según backend/serializador
+        (user as any)?.assigned_coach?.id ||
+        (user as any)?.coach?.id ||
+        (user as any)?.coach_id ||
+        (user as any)?.assignedCoachId;
+
+      if (!assignedCoachId) {
+        AppAlert.info(
+          "Sin entrenador",
+          "Aún no tienes un entrenador asignado. Cuando tengas uno, podrás chatear desde aquí."
+        );
+        return;
+      }
+
+      const newConv = await chatService.createConversation({ coach_id: assignedCoachId });
+      const name = newConv.other_participant
+        ? `${newConv.other_participant.first_name} ${newConv.other_participant.last_name}`
+        : "Entrenador";
+      navigation.navigate("Chat", {
+        conversationId: newConv.id,
+        participantName: name,
+      });
+    } catch (e: any) {
+      AppAlert.error("Error", e?.message || "No se pudo abrir el chat");
+    }
+  };
+
   return (
     <>
       <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
@@ -110,7 +159,7 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             </Text>
             <TouchableOpacity
               className="bg-green-600 p-3 rounded-lg mb-2"
-              onPress={() => navigation.navigate("ConversationList")}
+              onPress={handleOpenChat}
             >
               <Text className="text-white font-medium text-center">
                 💬 Abrir Chat
@@ -118,22 +167,7 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
-            <Text className="text-lg font-semibold text-indigo-800 mb-2">
-              Mi Progreso
-            </Text>
-            <Text className="text-gray-600 mb-4">
-              Aquí verás tu progreso y estadísticas de entrenamientos.
-            </Text>
-            <TouchableOpacity
-              className="bg-indigo-100 p-3 rounded-lg mb-2"
-              onPress={() => navigation.navigate("WorkoutStats")}
-            >
-              <Text className="text-indigo-800 font-medium text-center">
-                Ver estadísticas
-              </Text>
-            </TouchableOpacity>
-          </View>
+
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
@@ -224,23 +258,7 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             </View>
           </View>
 
-          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
-            <Text className="text-lg font-semibold text-indigo-800 mb-2">
-              Contactar a mi Entrenador
-            </Text>
-            <Text className="text-gray-600 mb-4">
-              Comunícate con tu entrenador para resolver dudas o solicitar
-              cambios.
-            </Text>
-            <TouchableOpacity 
-              className="bg-indigo-100 p-3 rounded-lg"
-              onPress={() => navigation.navigate("ConversationList")}
-            >
-              <Text className="text-indigo-800 font-medium text-center">
-                💬 Chat con mi Entrenador
-              </Text>
-            </TouchableOpacity>
-          </View>
+
         </ScrollView>
       </SafeAreaView>
     </>

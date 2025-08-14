@@ -1,8 +1,17 @@
-import { createConsumer, Consumer, Subscription } from '@rails/actioncable';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { WebSocketMessage, Message, ChatUser } from '../types/chat';
+import "./ws-polyfill";
+import { createConsumer, Consumer, Subscription } from "@rails/actioncable";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { WebSocketMessage } from "../types/chat";
+import { WEBSOCKET_URL, TOKEN_KEY } from "./apiClient";
+import logger from "../utils/logger";
 
-export type WebSocketEventType = 'new_message' | 'typing' | 'stop_typing' | 'connected' | 'disconnected' | 'error';
+export type WebSocketEventType =
+  | "new_message"
+  | "typing"
+  | "stop_typing"
+  | "connected"
+  | "disconnected"
+  | "error";
 
 export interface WebSocketEventHandler {
   (type: WebSocketEventType, data?: any): void;
@@ -15,12 +24,9 @@ class WebSocketService {
   private eventHandlers: WebSocketEventHandler[] = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000; // Start with 1 second
+  private reconnectDelay = 1000;
   private isConnecting = false;
-
-  /**
-   * Initialize WebSocket connection with JWT token
-   */
+  private manualUnsubscribe = false;
   async connect(): Promise<void> {
     if (this.isConnecting || this.consumer) {
       return;
@@ -29,53 +35,41 @@ class WebSocketService {
     this.isConnecting = true;
 
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
       if (!token) {
-        throw new Error('No authentication token found');
+        logger.debug(
+          "WebSocket: No authentication token found, user not logged in"
+        );
+        this.isConnecting = false;
+        return;
       }
 
-      // Backend expects token as query parameter for WebSocket connection
-      const wsUrl = `ws://10.0.2.2:3000/cable?token=${encodeURIComponent(token)}`;
-      
+      const wsUrl = `${WEBSOCKET_URL}?token=${encodeURIComponent(token)}`;
+
       this.consumer = createConsumer(wsUrl);
-      
-      this.consumer.connection.monitor.on('connected', () => {
-        console.log('WebSocket connected successfully');
-        this.reconnectAttempts = 0;
-        this.reconnectDelay = 1000;
-        this.notifyHandlers('connected');
-      });
 
-      this.consumer.connection.monitor.on('disconnected', () => {
-        console.log('WebSocket disconnected');
-        this.notifyHandlers('disconnected');
-        this.handleReconnection();
-      });
-
-      this.consumer.connection.monitor.on('rejected', () => {
-        console.error('WebSocket connection rejected');
-        this.notifyHandlers('error', 'Connection rejected - check authentication');
-      });
-
+      // Simple connection success logging
+      logger.info("WebSocket consumer created successfully");
+      this.reconnectAttempts = 0;
+      this.reconnectDelay = 1000;
+      this.notifyHandlers("connected");
     } catch (error) {
-      console.error('Error connecting to WebSocket:', error);
-      this.notifyHandlers('error', error);
+      logger.error("Error connecting to WebSocket:", error);
+      this.notifyHandlers("error", error);
     } finally {
       this.isConnecting = false;
     }
   }
 
-  /**
-   * Subscribe to a specific conversation channel
-   */
   subscribeToConversation(conversationId: number): void {
     if (!this.consumer) {
-      console.error('WebSocket not connected. Call connect() first.');
+      logger.error("WebSocket not connected. Call connect() first.");
       return;
     }
 
-    // Unsubscribe from previous conversation if any
     if (this.subscription) {
+      // Mark as manual to avoid triggering auto-reconnect when switching conversations
+      this.manualUnsubscribe = true;
       this.subscription.unsubscribe();
     }
 
@@ -83,16 +77,26 @@ class WebSocketService {
 
     this.subscription = this.consumer.subscriptions.create(
       {
-        channel: 'ChatChannel',
-        conversation_id: conversationId
+        channel: "ChatChannel",
+        conversation_id: conversationId,
       },
       {
         connected: () => {
-          console.log(`Subscribed to conversation ${conversationId}`);
+          logger.debug(`Subscribed to conversation ${conversationId}`);
+          this.notifyHandlers("connected");
         },
 
         disconnected: () => {
-          console.log(`Unsubscribed from conversation ${conversationId}`);
+          logger.debug(`Unsubscribed from conversation ${conversationId}`);
+          // If this was a manual unsubscribe (switching conversations or intentional disconnect),
+          // do not emit a global disconnected event or trigger reconnection.
+          if (this.manualUnsubscribe) {
+            this.manualUnsubscribe = false;
+            return;
+          }
+
+          this.notifyHandlers("disconnected");
+          this.handleReconnection();
         },
 
         received: (data: WebSocketMessage) => {
@@ -100,50 +104,47 @@ class WebSocketService {
         },
 
         rejected: () => {
-          console.error(`Subscription to conversation ${conversationId} was rejected`);
-          this.notifyHandlers('error', 'Subscription rejected - check permissions');
-        }
+          logger.error(
+            `Subscription to conversation ${conversationId} was rejected`
+          );
+          this.notifyHandlers(
+            "error",
+            "Subscription rejected - check permissions"
+          );
+        },
       }
     );
   }
 
-  /**
-   * Unsubscribe from current conversation
-   */
   unsubscribeFromConversation(): void {
     if (this.subscription) {
+      // Mark as manual so we don't auto-reconnect from the subscription callback
+      this.manualUnsubscribe = true;
       this.subscription.unsubscribe();
       this.subscription = null;
       this.currentConversationId = null;
     }
   }
 
-  /**
-   * Send typing indicator
-   */
   sendTyping(): void {
     if (this.subscription && this.currentConversationId) {
-      this.subscription.perform('typing', {
-        conversation_id: this.currentConversationId
+      this.subscription.perform("typing", {
+        conversation_id: this.currentConversationId,
       });
     }
   }
 
-  /**
-   * Send stop typing indicator
-   */
   sendStopTyping(): void {
     if (this.subscription && this.currentConversationId) {
-      this.subscription.perform('stop_typing', {
-        conversation_id: this.currentConversationId
+      this.subscription.perform("stop_typing", {
+        conversation_id: this.currentConversationId,
       });
     }
   }
 
-  /**
-   * Disconnect WebSocket
-   */
   disconnect(): void {
+    // Prevent auto-reconnect on intentional disconnects
+    this.manualUnsubscribe = true;
     if (this.subscription) {
       this.subscription.unsubscribe();
       this.subscription = null;
@@ -156,102 +157,121 @@ class WebSocketService {
 
     this.currentConversationId = null;
     this.reconnectAttempts = 0;
-    this.notifyHandlers('disconnected');
+    this.notifyHandlers("disconnected");
   }
 
-  /**
-   * Add event handler
-   */
   addEventListener(handler: WebSocketEventHandler): void {
+    if (!this.eventHandlers) {
+      this.eventHandlers = [];
+    }
     this.eventHandlers.push(handler);
   }
 
-  /**
-   * Remove event handler
-   */
   removeEventListener(handler: WebSocketEventHandler): void {
+    if (!this.eventHandlers) {
+      this.eventHandlers = [];
+      return;
+    }
     const index = this.eventHandlers.indexOf(handler);
     if (index > -1) {
       this.eventHandlers.splice(index, 1);
     }
   }
 
-  /**
-   * Check if WebSocket is connected
-   */
   isConnected(): boolean {
-    return this.consumer?.connection?.isOpen() || false;
+    try {
+      return this.consumer?.connection?.isOpen() || false;
+    } catch (error) {
+      // Fallback if isOpen() method is not available
+      return this.consumer !== null;
+    }
   }
 
-  /**
-   * Get current conversation ID
-   */
   getCurrentConversationId(): number | null {
     return this.currentConversationId;
   }
 
   private handleWebSocketMessage(data: WebSocketMessage): void {
-    console.log('Received WebSocket message:', data);
+    logger.debug("Received WebSocket message:", data);
 
     switch (data.type) {
-      case 'new_message':
+      case "new_message":
         if (data.message) {
-          this.notifyHandlers('new_message', data.message);
+          this.notifyHandlers("new_message", data.message);
         }
         break;
 
-      case 'typing':
+      case "typing":
         if (data.user) {
-          this.notifyHandlers('typing', {
+          this.notifyHandlers("typing", {
             user: data.user,
-            timestamp: data.timestamp
+            timestamp: data.timestamp,
           });
         }
         break;
 
-      case 'stop_typing':
+      case "stop_typing":
         if (data.user) {
-          this.notifyHandlers('stop_typing', {
+          this.notifyHandlers("stop_typing", {
             user: data.user,
-            timestamp: data.timestamp
+            timestamp: data.timestamp,
           });
         }
         break;
 
       default:
-        console.log('Unknown WebSocket message type:', data.type);
+        logger.debug("Unknown WebSocket message type:", data.type);
     }
   }
 
   private notifyHandlers(type: WebSocketEventType, data?: any): void {
-    this.eventHandlers.forEach(handler => {
+    if (!this.eventHandlers || !Array.isArray(this.eventHandlers)) {
+      logger.warn("WebSocket event handlers not properly initialized");
+      return;
+    }
+    
+    this.eventHandlers.forEach((handler) => {
       try {
-        handler(type, data);
+        if (typeof handler === 'function') {
+          handler(type, data);
+        }
       } catch (error) {
-        console.error('Error in WebSocket event handler:', error);
+        logger.error("Error in WebSocket event handler:", error);
       }
     });
   }
 
   private handleReconnection(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
-      this.notifyHandlers('error', 'Connection lost - max reconnection attempts reached');
+      logger.error("Max reconnection attempts reached");
+      this.notifyHandlers(
+        "error",
+        "Connection lost - max reconnection attempts reached"
+      );
       return;
     }
 
     this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1); // Exponential backoff
+    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
-    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    logger.info(
+      `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`
+    );
 
     setTimeout(() => {
       if (!this.isConnected()) {
-        console.log('Attempting to reconnect...');
-        this.consumer = null; // Reset consumer
-        this.connect().catch(error => {
-          console.error('Reconnection failed:', error);
-        });
+        logger.info("Attempting to reconnect...");
+        const previousConversationId = this.currentConversationId;
+        this.consumer = null;
+        this.connect()
+          .then(() => {
+            if (previousConversationId) {
+              this.subscribeToConversation(previousConversationId);
+            }
+          })
+          .catch((error) => {
+            logger.error("Reconnection failed:", error);
+          });
       }
     }, delay);
   }
