@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/smartlift_logo.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/smartlift_logo.png",
       "resizeMode": "contain",
@@ -21,7 +21,19 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.fcavallo.smartliftfront"
+      "package": "com.fcavallo.smartliftfront",
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK"
+      ]
+    },
+    "notification": {
+      "icon": "./assets/smartlift_logo.png",
+      "color": "#000000",
+      "sounds": ["./assets/notification.wav"],
+      "androidMode": "default",
+      "androidCollapsedTitle": "SmartLift"
     },
     "web": {
       "favicon": "./assets/smartlift_logo.png",

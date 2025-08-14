@@ -2,6 +2,8 @@ import { InternalAxiosRequestConfig } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User, LoginResponse, RegisterData } from "../types/index";
 import { apiClient, TOKEN_KEY, USER_KEY } from "./apiClient";
+import notificationService from "./notificationService";
+import logger from "../utils/logger";
 
 const authService = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
@@ -35,6 +37,16 @@ const authService = {
       const userData = userResponse.data;
 
       await AsyncStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      try {
+        await notificationService.initialize();
+        await notificationService.registerForPushNotifications();
+      } catch (notificationError) {
+        logger.warn(
+          "Failed to register push notifications:",
+          notificationError
+        );
+      }
 
       return {
         token,
@@ -76,6 +88,16 @@ const authService = {
 
   logout: async (): Promise<void> => {
     try {
+      try {
+        await notificationService.unregister();
+        notificationService.cleanup();
+      } catch (notificationError) {
+        logger.warn(
+          "Failed to cleanup push notifications:",
+          notificationError
+        );
+      }
+
       await AsyncStorage.removeItem(TOKEN_KEY);
       await AsyncStorage.removeItem(USER_KEY);
     } catch (error) {

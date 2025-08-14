@@ -32,6 +32,7 @@ export type RootStackParamList = {
     };
   };
   WorkoutTracker: { routineId: number; workoutId?: number; viewMode?: boolean };
+  WorkoutDetail: { workoutId: number };
   WorkoutStats: { workoutId?: string; message?: string };
   AIRoutineGenerator: undefined;
   WorkoutHistory: undefined;
@@ -81,6 +82,10 @@ export type RootStackParamList = {
   PublicProfileDetail: { userId: number };
   PrivacySettings: undefined;
 
+  // Chat screens
+  ConversationList: undefined;
+  Chat: { conversationId: number; participantName: string };
+  ChatUserSelection: undefined;
 
 };
 

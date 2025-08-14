@@ -8,11 +8,16 @@ import {
   API_URL as ENV_API_URL,
   TOKEN_KEY as ENV_TOKEN_KEY,
   USER_KEY as ENV_USER_KEY,
+  WEBSOCKET_URL as ENV_WEBSOCKET_URL,
+  EXPO_PROJECT_ID as ENV_EXPO_PROJECT_ID,
 } from "@env";
+import logger from "../utils/logger";
 
 export const API_URL = ENV_API_URL;
 export const TOKEN_KEY = ENV_TOKEN_KEY;
 export const USER_KEY = ENV_USER_KEY;
+export const WEBSOCKET_URL = ENV_WEBSOCKET_URL;
+export const EXPO_PROJECT_ID = ENV_EXPO_PROJECT_ID;
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -31,15 +36,14 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
-
       return config;
     } catch (error) {
-      console.error("Request interceptor error:", error);
+      logger.error("Request interceptor error:", error);
       throw error;
     }
   },
   (error: AxiosError) => {
-    console.error("Request error:", error);
+    logger.error("Request error:", error);
     return Promise.reject(error);
   }
 );
@@ -49,7 +53,7 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    console.error("API Error:", {
+    logger.error("API Error:", {
       message: error.message,
       code: (error as any).code,
       status: error.response?.status,
@@ -58,29 +62,29 @@ apiClient.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      console.warn("Authentication failed - clearing stored credentials");
+      logger.warn("Authentication failed - clearing stored credentials");
       try {
         await AsyncStorage.removeItem(TOKEN_KEY);
         await AsyncStorage.removeItem(USER_KEY);
       } catch (storageError) {
-        console.error("Error clearing storage:", storageError);
+        logger.error("Error clearing storage:", storageError);
       }
     }
 
     if (error.response?.status === 429) {
       const retryAfter = error.response.data?.retry_after;
-      console.warn(`Rate limited. Retry after: ${retryAfter} seconds`);
+      logger.warn(`Rate limited. Retry after: ${retryAfter} seconds`);
     }
 
     if (error.response?.status === 503) {
-      console.warn("Service temporarily unavailable");
+      logger.warn("Service temporarily unavailable");
     }
 
     if (
       (error as any).code === "NETWORK_ERROR" ||
       error.message === "Network Error"
     ) {
-      console.error("Network connectivity issue detected");
+      logger.error("Network connectivity issue detected");
     }
 
     return Promise.reject(error);
