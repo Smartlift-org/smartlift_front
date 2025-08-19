@@ -54,6 +54,7 @@ import PrivacySettingsScreen from "./screens/user/PrivacySettingsScreen";
 import ConversationListScreen from "./screens/chat/ConversationListScreen";
 import ChatScreen from "./screens/chat/ChatScreen";
 import ChatUserSelectionScreen from "./screens/chat/ChatUserSelectionScreen";
+import ExerciseManagementScreen from "./screens/coach/ExerciseManagementScreen";
 import { ChatProvider } from "./contexts/ChatContext";
 import authService from "./services/authService";
 import notificationService from "./services/notificationService";
@@ -323,6 +324,13 @@ export default function App(): React.ReactElement {
             <Stack.Screen
               name="ChatUserSelection"
               component={ChatUserSelectionScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="ExerciseManagement"
+              component={ExerciseManagementScreen}
               options={{
                 headerShown: false,
               }}

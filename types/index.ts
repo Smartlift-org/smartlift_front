@@ -87,6 +87,10 @@ export type RootStackParamList = {
   Chat: { conversationId: number; participantName: string };
   ChatUserSelection: undefined;
 
+  // Exercise Management
+  ExerciseManagement: undefined;
+  ExerciseVideoEdit: { exerciseId: number };
+
 };
 
 export interface User {

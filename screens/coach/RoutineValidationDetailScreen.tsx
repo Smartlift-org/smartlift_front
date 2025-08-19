@@ -14,6 +14,7 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../types";
 import ScreenHeader from "../../components/ScreenHeader";
 import AppAlert from "../../components/AppAlert";
+import RoutineEditModal from "../../components/RoutineEditModal";
 import routineValidationService from "../../services/routineValidationService";
 
 type RoutineValidationDetailScreenProps = {
@@ -36,6 +37,8 @@ const RoutineValidationDetailScreen: React.FC<
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(
     null
   );
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     loadRoutineDetails();
@@ -105,6 +108,44 @@ const RoutineValidationDetailScreen: React.FC<
     setShowNotesInput(false);
     setActionType(null);
     setNotes("");
+  };
+
+  const handleEdit = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = async (editData: any) => {
+    setEditing(true);
+    try {
+      const updatedRoutine = await routineValidationService.editRoutine(
+        routineId,
+        editData
+      );
+      
+      setRoutine(updatedRoutine);
+      setShowEditModal(false);
+      
+      if (editData.auto_validate) {
+        AppAlert.success(
+          "¡Rutina editada y validada!",
+          "La rutina ha sido editada y aprobada automáticamente"
+        );
+        navigation.goBack();
+      } else {
+        AppAlert.success(
+          "¡Rutina editada!",
+          "Los cambios han sido guardados exitosamente"
+        );
+      }
+    } catch (error: any) {
+      AppAlert.error("Error", error.message);
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setShowEditModal(false);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -285,6 +326,56 @@ const RoutineValidationDetailScreen: React.FC<
             </View>
           )}
 
+          {/* Action Buttons */}
+          {routine.validation_status === "pending" && !showNotesInput && (
+            <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
+              <Text className="text-lg font-semibold text-gray-800 mb-4">
+                Acciones de Validación
+              </Text>
+              
+              {/* Edit Button */}
+              <TouchableOpacity
+                onPress={handleEdit}
+                disabled={validating || editing}
+                className="bg-blue-500 py-3 px-4 rounded-lg mb-3"
+              >
+                <View className="flex-row items-center justify-center">
+                  <FontAwesome5 name="edit" size={16} color="white" />
+                  <Text className="text-white text-center font-semibold ml-2">
+                    ✏️ Editar Rutina
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <View className="flex-row space-x-3">
+                <TouchableOpacity
+                  onPress={() => {
+                    setActionType("approve");
+                    setShowNotesInput(true);
+                  }}
+                  disabled={validating || editing}
+                  className="flex-1 bg-green-500 py-3 px-4 rounded-lg"
+                >
+                  <Text className="text-white text-center font-semibold">
+                    ✓ Aprobar
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setActionType("reject");
+                    setShowNotesInput(true);
+                  }}
+                  disabled={validating || editing}
+                  className="flex-1 bg-red-500 py-3 px-4 rounded-lg"
+                >
+                  <Text className="text-white text-center font-semibold">
+                    ✗ Rechazar
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Input de notas */}
           {showNotesInput && (
             <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
@@ -308,70 +399,49 @@ const RoutineValidationDetailScreen: React.FC<
             </View>
           )}
 
-          {/* Botones de acción */}
-          {routine.validation_info?.validation_status === "pending" && (
-            <View className="space-y-3 mb-8">
-              {!showNotesInput ? (
-                <>
-                  <TouchableOpacity
-                    className="bg-green-600 py-4 rounded-lg"
-                    onPress={handleApprove}
-                  >
-                    <View className="flex-row items-center justify-center">
-                      <FontAwesome5 name="check" size={16} color="white" />
-                      <Text className="text-white font-semibold ml-2 text-lg">
-                        Aprobar Rutina
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+          {/* Confirmation Buttons */}
+          {showNotesInput && (
+            <View className="flex-row space-x-3 mb-8">
+              <TouchableOpacity
+                className="flex-1 bg-gray-500 py-4 rounded-lg"
+                onPress={cancelAction}
+                disabled={validating}
+              >
+                <Text className="text-white font-semibold text-center">
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
 
-                  <TouchableOpacity
-                    className="bg-red-600 py-4 rounded-lg"
-                    onPress={handleReject}
-                  >
-                    <View className="flex-row items-center justify-center">
-                      <FontAwesome5 name="times" size={16} color="white" />
-                      <Text className="text-white font-semibold ml-2 text-lg">
-                        Rechazar Rutina
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <View className="flex-row space-x-3">
-                  <TouchableOpacity
-                    className="flex-1 bg-gray-500 py-4 rounded-lg"
-                    onPress={cancelAction}
-                    disabled={validating}
-                  >
-                    <Text className="text-white font-semibold text-center">
-                      Cancelar
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    className={`flex-1 py-4 rounded-lg ${
-                      actionType === "approve" ? "bg-green-600" : "bg-red-600"
-                    }`}
-                    onPress={confirmAction}
-                    disabled={validating}
-                  >
-                    {validating ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text className="text-white font-semibold text-center">
-                        {actionType === "approve"
-                          ? "Confirmar Aprobación"
-                          : "Confirmar Rechazo"}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              )}
+              <TouchableOpacity
+                className={`flex-1 py-4 rounded-lg ${
+                  actionType === "approve" ? "bg-green-600" : "bg-red-600"
+                }`}
+                onPress={confirmAction}
+                disabled={validating}
+              >
+                {validating ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white font-semibold text-center">
+                    {actionType === "approve"
+                      ? "Confirmar Aprobación"
+                      : "Confirmar Rechazo"}
+                  </Text>
+                )}
+              </TouchableOpacity>
             </View>
           )}
         </View>
       </ScrollView>
+
+      {/* Edit Modal */}
+      <RoutineEditModal
+        visible={showEditModal}
+        routine={routine}
+        onClose={handleEditCancel}
+        onSave={handleEditSave}
+        loading={editing}
+      />
     </SafeAreaView>
   );
 };

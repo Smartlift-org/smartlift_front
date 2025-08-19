@@ -288,6 +288,23 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              🎥 Gestión de Ejercicios
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Administra los videos de ejercicios para mejorar la experiencia de entrenamiento de tus miembros.
+            </Text>
+            <TouchableOpacity
+              className="bg-blue-100 p-3 rounded-lg"
+              onPress={() => navigation.navigate("ExerciseManagement")}
+            >
+              <Text className="text-blue-800 font-medium text-center">
+                🎥 Gestionar Videos de Ejercicios
+              </Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </>

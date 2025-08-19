@@ -35,7 +35,34 @@ export interface RoutineExercise {
   weight?: number;
 }
 
-// Estructura simplificada para el backend
+// Payload para modificar ejercicios específicos (NUEVO FLUJO)
+export interface ExerciseModificationPayload {
+  user_message: string;
+  exercises: {
+    exercise_id: number;
+    sets: number;
+    reps: number;
+    rest_time: number;
+    order: number;
+  }[];
+}
+
+// Respuesta del backend para modificación de ejercicios (NUEVO FLUJO)
+export interface ModifiedExercisesResponse {
+  success: boolean;
+  data: {
+    exercises: {
+      exercise_id: number;
+      sets: number;
+      reps: number;
+      rest_time: number;
+      order: number;
+    }[];
+    generated_at: string;
+  };
+}
+
+// DEPRECATED - Mantener para compatibilidad
 export interface RoutineModificationPayload {
   routine: {
     name: string;
@@ -51,7 +78,7 @@ export interface RoutineModificationPayload {
   modification_message: string;
 }
 
-// Respuesta del backend para modificación
+// DEPRECATED - Mantener para compatibilidad
 export interface ModifiedRoutineResponse {
   success: boolean;
   data: {
