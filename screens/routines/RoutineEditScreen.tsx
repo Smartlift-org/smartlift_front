@@ -132,25 +132,6 @@ const RoutineEditScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setSaving(true);
 
-      const nameChanged =
-        routine && routine.name.trim() !== formData.name.trim();
-
-      if (nameChanged) {
-        const nameExists = await routineService.checkRoutineNameExists(
-          formData.name.trim(),
-          routineId
-        );
-
-        if (nameExists) {
-          AppAlert.error(
-            "Nombre duplicado",
-            "Ya existe otra rutina con este nombre. Por favor, elige un nombre diferente."
-          );
-          setSaving(false);
-          return;
-        }
-      }
-
       const normalizedFormData = {
         ...formData,
         routine_exercises_attributes:

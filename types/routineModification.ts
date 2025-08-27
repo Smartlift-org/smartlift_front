@@ -39,7 +39,7 @@ export interface RoutineExercise {
 export interface ExerciseModificationPayload {
   user_message: string;
   exercises: {
-    exercise_id: number;
+    name: string;
     sets: number;
     reps: number;
     rest_time: number;
@@ -52,11 +52,15 @@ export interface ModifiedExercisesResponse {
   success: boolean;
   data: {
     exercises: {
-      exercise_id: number;
+      name: string;
       sets: number;
       reps: number;
       rest_time: number;
       order: number;
+      group_type: string;
+      group_order: number;
+      weight: number;
+      exercise_id: number;
     }[];
     generated_at: string;
   };

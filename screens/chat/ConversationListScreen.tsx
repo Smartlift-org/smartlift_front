@@ -127,7 +127,7 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       {/* Conversations List */}
-      {!isLoading || (conversations && conversations.length > 0) ? (
+      {!isLoading && (
         <ConversationList
           conversations={conversations}
           onConversationPress={handleConversationPress}
@@ -138,7 +138,7 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
           showCreateButton={currentUser?.role === "coach"}
           onCreateConversation={handleCreateConversation}
         />
-      ) : null}
+      )}
 
       {/* Connection Status */}
       {/* TODO: Add connection status indicator if needed */}

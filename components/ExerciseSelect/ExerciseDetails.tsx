@@ -46,7 +46,9 @@ const ExerciseDetails: React.FC<ExerciseDetailsProps> = ({
             {exercise.name}
           </Text>
 
-          <VideoPlayer videoId="https://youtu.be/xdmxM-v4KQg" />
+          <VideoPlayer 
+            videoId={exercise.video_url || "https://youtu.be/xdmxM-v4KQg"} 
+          />
 
           {exercise.images && exercise.images.length > 0 ? (
             <View>

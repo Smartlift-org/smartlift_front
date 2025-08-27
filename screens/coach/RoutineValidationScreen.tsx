@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RouteProp } from "@react-navigation/native";
+import { RouteProp, useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList } from "../../types";
 import ScreenHeader from "../../components/ScreenHeader";
 import AppAlert from "../../components/AppAlert";
@@ -38,6 +38,13 @@ const RoutineValidationScreen: React.FC<RoutineValidationScreenProps> = ({
   useEffect(() => {
     loadPendingRoutines();
   }, []);
+
+  // Reload routines when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPendingRoutines();
+    }, [])
+  );
 
   const loadPendingRoutines = async () => {
     try {

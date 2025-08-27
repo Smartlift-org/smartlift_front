@@ -12,11 +12,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../../types";
 import { Exercise } from "../../types/exercise";
 import exerciseService from "../../services/exerciseService";
 import VideoUrlEditor from "../../components/VideoUrlEditor";
+import ScreenHeader from "../../components/ScreenHeader";
 
-const ExerciseManagementScreen: React.FC = () => {
+type ExerciseManagementScreenProps = {
+  navigation: NativeStackNavigationProp<RootStackParamList, "ExerciseManagement">;
+  route: RouteProp<RootStackParamList, "ExerciseManagement">;
+};
+
+const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ navigation }) => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -151,15 +160,10 @@ const ExerciseManagementScreen: React.FC = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View className="bg-white px-4 py-3 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800">
-          Gestión de Ejercicios
-        </Text>
-        <Text className="text-gray-600 mt-1">
-          Administra los videos de los ejercicios
-        </Text>
-      </View>
+      <ScreenHeader
+        title="Gestión de Ejercicios"
+        onBack={() => navigation.goBack()}
+      />
 
       {/* Search Bar */}
       <View className="bg-white px-4 py-3 border-b border-gray-200">

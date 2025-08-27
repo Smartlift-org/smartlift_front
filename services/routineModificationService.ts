@@ -1,4 +1,5 @@
 import { apiClient } from "./apiClient";
+import routineService from "./routineService";
 import {
   AIRoutine,
   RoutineModificationPayload,
@@ -39,10 +40,19 @@ const routineModificationService = {
     payload: ExerciseModificationPayload
   ): Promise<ModifiedExercisesResponse> => {
     try {
+      console.log("📤 ENVIANDO A IA PARA MODIFICAR EJERCICIOS:");
+      console.log("💬 Mensaje del usuario:", payload.user_message);
+      console.log("🏃‍♂️ Ejercicios a modificar:", payload.exercises?.length || 0);
+      console.log("📄 Payload completo:", JSON.stringify(payload, null, 2));
+
       const response = await apiClient.post(
         "/api/v1/ai/workout_routines/modify",
         payload
       );
+
+      console.log("✅ RESPUESTA DE IA MODIFICACIÓN:");
+      console.log("📊 Status:", response.status);
+      console.log("📄 Response data:", JSON.stringify(response.data, null, 2));
 
       if (response.data.success) {
         return response.data;
@@ -50,6 +60,12 @@ const routineModificationService = {
         throw new Error("Error al modificar los ejercicios");
       }
     } catch (error: any) {
+      console.log("❌ ERROR EN MODIFICACIÓN DE EJERCICIOS:");
+      console.log("📊 Status:", error.response?.status || 'Sin status');
+      console.log("📄 Error response:", JSON.stringify(error.response?.data, null, 2));
+      console.log("📝 Error message:", error.message);
+      console.log("🔍 Error completo:", error);
+
       if (error.response?.status === 401) {
         throw new Error("No hay token de autenticación");
       } else if (error.response?.status === 400) {
@@ -149,18 +165,16 @@ const routineModificationService = {
     originalRoutineId?: number
   ): Promise<AIRoutine> => {
     try {
+
       const cleanRoutineData = {
         name: modifiedRoutineData.name,
         description: modifiedRoutineData.description,
         difficulty: modifiedRoutineData.difficulty,
         duration: modifiedRoutineData.duration,
-        source_type: "ai_generated",
-        ai_generated: true,
-        validation_status: "pending",
       };
 
       const cleanExercises =
-        modifiedRoutineData.routine_exercises?.map(
+        (modifiedRoutineData.routine_exercises_attributes || modifiedRoutineData.routine_exercises)?.map(
           (exercise: any, index: number) => ({
             exercise_id: exercise.exercise_id,
             sets: exercise.sets,
@@ -267,7 +281,7 @@ const routineModificationService = {
       const exercisesPayload: ExerciseModificationPayload = {
         user_message: userMessage,
         exercises: selectedExercises.map((exercise, index) => ({
-          exercise_id: exercise.exercise_id,
+          name: exercise.exercise.name,
           sets: exercise.sets,
           reps: exercise.reps,
           rest_time: exercise.rest_time,
@@ -280,19 +294,21 @@ const routineModificationService = {
         exercisesPayload
       );
 
-      // 3. Reemplazar ejercicios en la rutina original
+      // 3. Limitar ejercicios AI a la cantidad enviada originalmente
+      const limitedAiExercises = aiResponse.data.exercises.slice(0, selectedExercises.length);
+      
+      // 4. Reemplazar ejercicios en la rutina original
       const updatedRoutine = routineModificationService.replaceExercisesInRoutine(
         routine,
         selectedExercises,
-        aiResponse.data.exercises
+        limitedAiExercises
       );
 
-      // 4. Guardar rutina actualizada
+      // 5. Guardar rutina actualizada
       const savedRoutine = await routineModificationService.saveModifiedRoutine(
         updatedRoutine,
         routine.id
       );
-
       return savedRoutine;
     } catch (error: any) {
       console.error("❌ [ERROR]:", error.message);

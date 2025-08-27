@@ -51,6 +51,8 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
 
   useEffect(() => {
     if (routine && visible) {
+      console.log("Loading routine data:", routine);
+      console.log("Routine exercises:", routine.routine_exercises);
       setName(routine.name || "");
       setDescription(routine.description || "");
       setDifficulty(routine.difficulty || "beginner");
@@ -79,10 +81,7 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
       return;
     }
 
-    if (autoValidate && !validationNotes.trim()) {
-      Alert.alert("Error", "Las notas de validación son requeridas si auto-validas");
-      return;
-    }
+    // Notas opcionales para auto-validación
 
     const editData = {
       name: name.trim(),
@@ -121,6 +120,23 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
       updatedExercises.splice(index, 1);
     }
     setExercises(updatedExercises);
+  };
+
+  const handleAddExercise = () => {
+    // Placeholder para agregar ejercicios - se puede expandir para abrir un modal de selección
+    const newExercise: RoutineExercise = {
+      exercise_id: 1, // Temporal
+      sets: 3,
+      reps: 12,
+      rest_time: 60,
+      order: exercises.length + 1,
+      exercise: {
+        id: 1,
+        name: "Nuevo ejercicio",
+        primary_muscles: []
+      }
+    };
+    setExercises([...exercises, newExercise]);
   };
 
   const getDifficultyColor = (diff: string) => {
@@ -236,9 +252,22 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
 
           {/* Ejercicios */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
-            <Text className="text-lg font-semibold text-gray-800 mb-4">
-              Ejercicios ({exercises.filter(ex => !ex._destroy).length})
-            </Text>
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-semibold text-gray-800">
+                Ejercicios ({exercises.filter(ex => !ex._destroy).length})
+              </Text>
+              <TouchableOpacity
+                onPress={handleAddExercise}
+                className="bg-blue-500 px-3 py-2 rounded-lg"
+              >
+                <View className="flex-row items-center">
+                  <FontAwesome5 name="plus" size={12} color="white" />
+                  <Text className="text-white text-sm font-medium ml-1">
+                    Agregar
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
 
             {exercises.map((exercise, index) => {
               if (exercise._destroy) return null;
@@ -325,7 +354,7 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
             {autoValidate && (
               <View>
                 <Text className="text-gray-700 mb-2 font-medium">
-                  Notas de validación *
+                  Notas de validación (opcional)
                 </Text>
                 <TextInput
                   className="border border-gray-300 rounded-lg p-3 text-gray-800 min-h-[60px]"

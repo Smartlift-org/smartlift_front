@@ -94,18 +94,6 @@ const RoutineCreateScreen: React.FC<RoutineCreateScreenProps> = ({
 
     setIsLoading(true);
     try {
-      const nameExists = await routineService.checkRoutineNameExists(
-        name.trim()
-      );
-
-      if (nameExists) {
-        AppAlert.error(
-          "Nombre duplicado",
-          "Ya existe una rutina con este nombre. Por favor, elige un nombre diferente."
-        );
-        return;
-      }
-
       navigation.navigate("ExerciseSelect", {
         routineData: {
           name: name.trim(),
