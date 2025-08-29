@@ -1,4 +1,3 @@
-// Fixed null safety issues - 2024
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -13,15 +12,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
-import { challengeService } from "../services/challengeService";
-import { Challenge, DIFFICULTY_LEVELS } from "../types/challenge";
-import AppAlert from "../components/AppAlert";
-import ScreenHeader from "../components/ScreenHeader";
+import { RootStackParamList } from "../../types";
+import { challengeService } from "../../services/challengeService";
+import { Challenge, DIFFICULTY_LEVELS } from "../../types/challenge";
+import AppAlert from "../../components/AppAlert";
+import ScreenHeader from "../../components/ScreenHeader";
 import {
   formatTimeRemaining,
   calculateCompletionRate,
-} from "../utils/challengeUtils";
+} from "../../utils/challengeUtils";
 
 type ChallengeManagementScreenProps = {
   navigation: NativeStackNavigationProp<
@@ -109,7 +108,6 @@ const ChallengeManagementScreen: React.FC<ChallengeManagementScreenProps> = ({
   const timeRemaining = formatTimeRemaining(challenge.end_date);
   const isExpired = timeRemaining === "Expirado";
 
-  // Defensive data handling
   const participantsCount = challenge.participants_count ?? 0;
   const completedAttempts = challenge.completed_attempts ?? 0;
   const totalAttempts = challenge.total_attempts ?? 0;
@@ -120,7 +118,6 @@ const ChallengeManagementScreen: React.FC<ChallengeManagementScreenProps> = ({
     totalAttempts
   );
 
-  // Safely get exercises array
   const exercises = challenge.challenge_exercises || [];
 
   return (
@@ -138,7 +135,6 @@ const ChallengeManagementScreen: React.FC<ChallengeManagementScreenProps> = ({
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* Header del desafío */}
           <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
             <View className="flex-row justify-between items-start mb-4">
               <View className="flex-1 mr-4">
@@ -195,7 +191,6 @@ const ChallengeManagementScreen: React.FC<ChallengeManagementScreenProps> = ({
             </Text>
           </View>
 
-          {/* Estadísticas principales */}
           <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
             <Text className="text-lg font-bold text-gray-900 mb-4 text-center">
               📊 Estadísticas del Desafío
@@ -236,7 +231,6 @@ const ChallengeManagementScreen: React.FC<ChallengeManagementScreenProps> = ({
             </View>
           </View>
 
-          {/* Ejercicios del desafío */}
           <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
             <Text className="text-lg font-bold text-gray-900 mb-4">
               💪 Ejercicios ({exercises.length})
@@ -277,7 +271,6 @@ const ChallengeManagementScreen: React.FC<ChallengeManagementScreenProps> = ({
             )}
           </View>
 
-          {/* Botones de acción */}
           <View className="space-y-3">
             <TouchableOpacity
               className="bg-gray-500 py-4 rounded-lg"

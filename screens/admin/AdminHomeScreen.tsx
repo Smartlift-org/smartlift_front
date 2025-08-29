@@ -71,7 +71,6 @@ const AdminHomeScreen: React.FC<AdminHomeScreenProps> = ({ navigation }) => {
             ¡Hola, {currentUser?.first_name || "Administrador"}!
           </Text>
 
-          {/* Admin Profile Section */}
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
             <View className="flex-row items-center">
               <Avatar

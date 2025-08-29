@@ -95,7 +95,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
         activeOpacity={0.7}
       >
         <View className="flex-row items-center">
-          {/* Avatar */}
           <View className="mr-3">
             {participant?.profile_picture_url &&
             typeof participant.profile_picture_url === "string" ? (
@@ -112,11 +111,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
               </View>
             )}
 
-            {/* Online indicator (placeholder for future implementation) */}
             <View className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
           </View>
 
-          {/* Conversation info */}
           <View className="flex-1">
             <View className="flex-row items-center justify-between mb-1">
               <Text
@@ -152,7 +149,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
               </View>
             </View>
 
-            {/* Role indicator */}
             <View className="flex-row items-center justify-between">
               <View className="flex-1">
                 <Text
@@ -172,7 +168,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
                 </Text>
               </View>
 
-              {/* Chevron */}
               <Ionicons
                 name="chevron-forward"
                 size={16}

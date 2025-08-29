@@ -1,4 +1,4 @@
-import { format, parseISO, startOfWeek, differenceInDays } from "date-fns";
+import { format, parseISO, differenceInDays } from "date-fns";
 import workoutService from "./workoutService";
 import { Workout } from "../types/workout";
 
@@ -113,7 +113,6 @@ function calculateStreaks(workouts: Workout[]): {
 
     for (let i = 0; i < uniqueDates.length; i++) {
       const currentDate = uniqueDates[i];
-      const prevDate = i > 0 ? uniqueDates[i - 1] : null;
 
       if (
         format(parseISO(currentDate), "yyyy-MM-dd") ===

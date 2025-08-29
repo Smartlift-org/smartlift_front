@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,18 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
-import { challengeService } from "../services/challengeService";
-import { Challenge, DIFFICULTY_LEVELS } from "../types/challenge";
-import AppAlert from "../components/AppAlert";
-import ScreenHeader from "../components/ScreenHeader";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../types";
+import { challengeService } from "../../services/challengeService";
+import { Challenge, DIFFICULTY_LEVELS } from "../../types/challenge";
+import ScreenHeader from "../../components/ScreenHeader";
+import AppAlert from "../../components/AppAlert";
+import { ChallengeCard } from "../../components/challenge";
 import {
-  formatTimeRemaining,
   getChallengeCardStatusColor,
-} from "../utils/challengeUtils";
+  formatTimeRemaining,
+} from "../../utils/challengeUtils";
+import { useLoadingState } from "../../hooks/useLoadingState";
 
 type CoachChallengeListNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -29,20 +31,23 @@ type CoachChallengeListNavigationProp = NativeStackNavigationProp<
 const CoachChallengeListScreen: React.FC = () => {
   const navigation = useNavigation<CoachChallengeListNavigationProp>();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { isLoading: loading, withLoading } = useLoadingState(true);
+  const { isLoading: refreshing, withLoading: withRefresh } = useLoadingState();
+
+  const fetchChallenges = useCallback(async () => {
+    const challengeData = await challengeService.getMyChallenges();
+    setChallenges(challengeData);
+  }, []);
 
   const loadChallenges = useCallback(async () => {
-    try {
-      const challengeData = await challengeService.getMyChallenges();
-      setChallenges(challengeData);
-    } catch (error: any) {
-      AppAlert.error("Error", error.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    await withLoading(async () => {
+      try {
+        await fetchChallenges();
+      } catch (error: any) {
+        AppAlert.error("Error", error.message);
+      }
+    });
+  }, [withLoading, fetchChallenges]);
 
   useFocusEffect(
     useCallback(() => {
@@ -50,10 +55,15 @@ const CoachChallengeListScreen: React.FC = () => {
     }, [loadChallenges])
   );
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadChallenges();
-  }, [loadChallenges]);
+  const onRefresh = useCallback(async () => {
+    await withRefresh(async () => {
+      try {
+        await fetchChallenges();
+      } catch (error: any) {
+        AppAlert.error("Error", error.message);
+      }
+    });
+  }, [withRefresh, fetchChallenges]);
 
   const handleDeleteChallenge = (challenge: Challenge) => {
     AppAlert.confirm(

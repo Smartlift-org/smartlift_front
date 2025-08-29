@@ -55,14 +55,14 @@ import ConversationListScreen from "./screens/chat/ConversationListScreen";
 import ChatScreen from "./screens/chat/ChatScreen";
 import ChatUserSelectionScreen from "./screens/chat/ChatUserSelectionScreen";
 import ExerciseManagementScreen from "./screens/coach/ExerciseManagementScreen";
-import ChallengeListScreen from "./screens/ChallengeListScreen";
-import ChallengeDetailScreen from "./screens/ChallengeDetailScreen";
-import ChallengeExecutionScreen from "./screens/ChallengeExecutionScreen";
-import ChallengeLeaderboardScreen from "./screens/ChallengeLeaderboardScreen";
-import MyAttemptsScreen from "./screens/MyAttemptsScreen";
-import CoachChallengeListScreen from "./screens/CoachChallengeListScreen";
-import CreateChallengeScreen from "./screens/CreateChallengeScreen";
-import ChallengeManagementScreen from "./screens/ChallengeManagementScreen";
+import ChallengeListScreen from "./screens/challenges/ChallengeListScreen";
+import ChallengeDetailScreen from "./screens/challenges/ChallengeDetailScreen";
+import ChallengeExecutionScreen from "./screens/challenges/ChallengeExecutionScreen";
+import ChallengeLeaderboardScreen from "./screens/challenges/ChallengeLeaderboardScreen";
+import MyAttemptsScreen from "./screens/challenges/MyAttemptsScreen";
+import CoachChallengeListScreen from "./screens/challenges/CoachChallengeListScreen";
+import CreateChallengeScreen from "./screens/challenges/CreateChallengeScreen";
+import ChallengeManagementScreen from "./screens/challenges/ChallengeManagementScreen";
 import { ChatProvider } from "./contexts/ChatContext";
 import authService from "./services/authService";
 import notificationService from "./services/notificationService";
@@ -339,21 +339,39 @@ export default function App(): React.ReactElement {
                 headerShown: false,
               }}
             />
-            <Stack.Screen name="ChallengeList" component={ChallengeListScreen} />
-            <Stack.Screen name="ChallengeDetail" component={ChallengeDetailScreen} />
-            <Stack.Screen 
-              name="ChallengeExecution" 
+            <Stack.Screen
+              name="ChallengeList"
+              component={ChallengeListScreen}
+            />
+            <Stack.Screen
+              name="ChallengeDetail"
+              component={ChallengeDetailScreen}
+            />
+            <Stack.Screen
+              name="ChallengeExecution"
               component={ChallengeExecutionScreen}
-              options={{ 
+              options={{
                 title: "Desafío en Curso",
-                headerShown: false 
+                headerShown: false,
               }}
             />
-            <Stack.Screen name="ChallengeLeaderboard" component={ChallengeLeaderboardScreen} />
+            <Stack.Screen
+              name="ChallengeLeaderboard"
+              component={ChallengeLeaderboardScreen}
+            />
             <Stack.Screen name="MyAttempts" component={MyAttemptsScreen} />
-            <Stack.Screen name="CoachChallengeList" component={CoachChallengeListScreen} />
-            <Stack.Screen name="CreateChallenge" component={CreateChallengeScreen} />
-            <Stack.Screen name="ChallengeManagement" component={ChallengeManagementScreen} />
+            <Stack.Screen
+              name="CoachChallengeList"
+              component={CoachChallengeListScreen}
+            />
+            <Stack.Screen
+              name="CreateChallenge"
+              component={CreateChallengeScreen}
+            />
+            <Stack.Screen
+              name="ChallengeManagement"
+              component={ChallengeManagementScreen}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaView>

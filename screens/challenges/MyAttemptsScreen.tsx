@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,18 +12,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
-import { challengeAttemptService } from "../services/challengeAttemptService";
-import { ChallengeAttempt } from "../types/challenge";
-import AppAlert from "../components/AppAlert";
-import ScreenHeader from "../components/ScreenHeader";
+import { RootStackParamList } from "../../types";
+import { challengeAttemptService } from "../../services/challengeAttemptService";
+import { ChallengeAttempt } from "../../types/challenge";
+import AppAlert from "../../components/AppAlert";
+import ScreenHeader from "../../components/ScreenHeader";
 import {
   getAttemptStatusColor,
   getAttemptStatusText,
   getAttemptStatusEmoji,
   formatChallengeDate,
   formatSecondsToMinutesSeconds,
-} from "../utils/challengeUtils";
+} from "../../utils/challengeUtils";
 
 type MyAttemptsScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "MyAttempts">;

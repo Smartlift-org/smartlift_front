@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,17 +12,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
-import { challengeService } from "../services/challengeService";
-import { challengeAttemptService } from "../services/challengeAttemptService";
+import { RootStackParamList } from "../../types";
+import { challengeService } from "../../services/challengeService";
+import { challengeAttemptService } from "../../services/challengeAttemptService";
 import {
   Challenge,
   ChallengeAttempt,
   DIFFICULTY_LEVELS,
-} from "../types/challenge";
-import AppAlert from "../components/AppAlert";
-import ScreenHeader from "../components/ScreenHeader";
-import { formatTimeRemaining } from "../utils/challengeUtils";
+} from "../../types/challenge";
+import AppAlert from "../../components/AppAlert";
+import ScreenHeader from "../../components/ScreenHeader";
+import { formatTimeRemaining } from "../../utils/challengeUtils";
 
 type ChallengeDetailScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "ChallengeDetail">;
@@ -41,7 +41,6 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
   const [startingAttempt, setStartingAttempt] = useState(false);
 
   const loadChallengeData = useCallback(async () => {
-    // Validar que challengeId existe y no es undefined
     if (!challengeId || challengeId === "undefined") {
       AppAlert.error("Error", "ID de desafío no válido");
       navigation.goBack();
@@ -72,7 +71,6 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
   const handleStartChallenge = async () => {
     if (!challenge) return;
 
-    // Verificar si hay un intento activo
     const activeAttempt = userAttempts.find(
       (attempt) => attempt.status === "in_progress"
     );
@@ -119,10 +117,6 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
     }
   };
 
-  const getBestAttempt = () => {
-    return userAttempts.find((attempt) => attempt.is_best_attempt);
-  };
-
   if (loading) {
     return (
       <SafeAreaView
@@ -150,9 +144,7 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
     DIFFICULTY_LEVELS[challenge.difficulty_level] || DIFFICULTY_LEVELS[1];
   const timeRemaining = formatTimeRemaining(challenge.end_date);
   const isExpired = timeRemaining === "Expirado";
-  const bestAttempt = getBestAttempt();
 
-  // Defensive data handling
   const participantsCount = challenge.participants_count ?? 0;
   const completedAttempts = challenge.completed_attempts ?? 0;
   const isActiveNow = challenge.is_active_now ?? false;
@@ -168,7 +160,6 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
           />
           <ScrollView className="flex-1">
             <View className="p-4">
-              {/* Header */}
               <View className="bg-white rounded-lg p-6 mb-4 shadow-sm">
                 <View className="flex-row justify-between items-start mb-4">
                   <View className="flex-1 mr-4">
@@ -214,7 +205,6 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
                 </Text>
               </View>
 
-              {/* Exercises */}
               <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
                 <Text className="text-lg font-bold text-gray-900 mb-4">
                   Ejercicios ({challenge.challenge_exercises?.length || 0})
@@ -248,7 +238,6 @@ const ChallengeDetailScreen: React.FC<ChallengeDetailScreenProps> = ({
                 ))}
               </View>
 
-              {/* Action Buttons */}
               <View className="space-y-3">
                 <TouchableOpacity
                   className={`py-4 rounded-lg ${

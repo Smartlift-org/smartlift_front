@@ -121,10 +121,10 @@ const RoutineValidationDetailScreen: React.FC<
         routineId,
         editData
       );
-      
+
       setRoutine(updatedRoutine);
       setShowEditModal(false);
-      
+
       if (editData.auto_validate) {
         AppAlert.success(
           "¡Rutina editada y validada!",
@@ -209,7 +209,6 @@ const RoutineValidationDetailScreen: React.FC<
 
       <ScrollView className="flex-1 px-4">
         <View className="py-4">
-          {/* Header de la rutina */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-xl font-bold text-gray-800 flex-1 mr-2">
@@ -263,7 +262,6 @@ const RoutineValidationDetailScreen: React.FC<
             </View>
           </View>
 
-          {/* Lista de ejercicios */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Ejercicios de la rutina
@@ -307,7 +305,6 @@ const RoutineValidationDetailScreen: React.FC<
             )}
           </View>
 
-          {/* Información de validación */}
           {routine.validation_info && (
             <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-800 mb-3">
@@ -326,14 +323,12 @@ const RoutineValidationDetailScreen: React.FC<
             </View>
           )}
 
-          {/* Action Buttons */}
           {routine.validation_status === "pending" && !showNotesInput && (
             <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-800 mb-4">
                 Acciones de Validación
               </Text>
-              
-              {/* Edit Button */}
+
               <TouchableOpacity
                 onPress={handleEdit}
                 disabled={validating || editing}
@@ -376,7 +371,6 @@ const RoutineValidationDetailScreen: React.FC<
             </View>
           )}
 
-          {/* Input de notas */}
           {showNotesInput && (
             <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-800 mb-3">
@@ -399,7 +393,6 @@ const RoutineValidationDetailScreen: React.FC<
             </View>
           )}
 
-          {/* Confirmation Buttons */}
           {showNotesInput && (
             <View className="flex-row space-x-3 mb-8">
               <TouchableOpacity
@@ -434,7 +427,6 @@ const RoutineValidationDetailScreen: React.FC<
         </View>
       </ScrollView>
 
-      {/* Edit Modal */}
       <RoutineEditModal
         visible={showEditModal}
         routine={routine}

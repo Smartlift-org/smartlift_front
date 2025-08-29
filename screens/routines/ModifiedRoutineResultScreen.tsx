@@ -120,7 +120,6 @@ const ModifiedRoutineResultScreen: React.FC<Props> = ({
         </View>
       </View>
 
-      {/* Lista de ejercicios */}
       <View className="border-t border-gray-200 pt-3">
         <Text className="font-medium text-gray-800 mb-2">Ejercicios:</Text>
         {routine.routine_exercises
@@ -247,7 +246,6 @@ const ModifiedRoutineResultScreen: React.FC<Props> = ({
         Comparación Detallada
       </Text>
 
-      {/* Tabla de comparación */}
       <View className="bg-white rounded-lg border border-gray-200">
         <View className="flex-row border-b border-gray-200">
           <View className="flex-1 p-3 border-r border-gray-200">
@@ -321,13 +319,11 @@ const ModifiedRoutineResultScreen: React.FC<Props> = ({
       <ScreenHeader title="Rutina Modificada" />
 
       <ScrollView className="flex-1">
-        {/* Comparación de rutinas */}
         <View className="p-4">
           {renderRoutineCard(originalRoutine, "Rutina Original")}
           {renderRoutineCard(modifiedRoutine, "Rutina Modificada", true)}
         </View>
 
-        {/* Tabs */}
         <View className="bg-white">
           <View className="flex-row border-b border-gray-200">
             <TouchableOpacity
@@ -365,14 +361,12 @@ const ModifiedRoutineResultScreen: React.FC<Props> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Contenido de tabs */}
           {activeTab === "comparison"
             ? renderChangesApplied()
             : renderDetailedComparison()}
         </View>
       </ScrollView>
 
-      {/* Botones de acción */}
       <View className="p-4 bg-white border-t border-gray-200">
         <View className="flex-row space-x-3">
           <TouchableOpacity

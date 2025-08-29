@@ -1,5 +1,4 @@
 import { RoutineExerciseFormData } from "../services/routineService";
-import { AIRoutine } from "./routineModification";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -88,14 +87,12 @@ export type RootStackParamList = {
   ExerciseManagement: undefined;
   ExerciseVideoEdit: { exerciseId: number };
 
-  // Challenge routes
   ChallengeList: undefined;
   ChallengeDetail: { challengeId: number };
   ChallengeExecution: { challengeId: number; attemptId: number };
   ChallengeLeaderboard: { challengeId: number };
   MyAttempts: { challengeId: number };
-  
-  // Coach challenge routes
+
   CoachChallengeList: undefined;
   CreateChallenge: undefined;
   ChallengeManagement: { challengeId: number };

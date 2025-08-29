@@ -19,20 +19,28 @@ import { Exercise } from "../../types/exercise";
 import exerciseService from "../../services/exerciseService";
 import VideoUrlEditor from "../../components/VideoUrlEditor";
 import ScreenHeader from "../../components/ScreenHeader";
+import { useLoadingState } from "../../hooks/useLoadingState";
 
 type ExerciseManagementScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, "ExerciseManagement">;
+  navigation: NativeStackNavigationProp<
+    RootStackParamList,
+    "ExerciseManagement"
+  >;
   route: RouteProp<RootStackParamList, "ExerciseManagement">;
 };
 
-const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ navigation }) => {
+const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({
+  navigation,
+}) => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
+    null
+  );
   const [isEditorVisible, setIsEditorVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isLoading, withLoading } = useLoadingState(true);
 
   useEffect(() => {
     loadExercises();
@@ -43,20 +51,26 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
   }, [exercises, searchQuery]);
 
   const loadExercises = async () => {
+    await withLoading(async () => {
+      try {
+        const data = await exerciseService.getExercises();
+        setExercises(data);
+      } catch (error: any) {
+        Alert.alert("Error", error.message || "Error al cargar ejercicios");
+      }
+    });
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
     try {
       const data = await exerciseService.getExercises();
       setExercises(data);
     } catch (error: any) {
       Alert.alert("Error", error.message || "Error al cargar ejercicios");
     } finally {
-      setIsLoading(false);
+      setIsRefreshing(false);
     }
-  };
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await loadExercises();
-    setIsRefreshing(false);
   };
 
   const filterExercises = () => {
@@ -65,11 +79,12 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
       return;
     }
 
-    const filtered = exercises.filter((exercise) =>
-      exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exercise.primary_muscles.some((muscle) =>
-        muscle.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    const filtered = exercises.filter(
+      (exercise) =>
+        exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        exercise.primary_muscles.some((muscle) =>
+          muscle.toLowerCase().includes(searchQuery.toLowerCase())
+        )
     );
     setFilteredExercises(filtered);
   };
@@ -103,16 +118,29 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
             {item.primary_muscles.join(", ")}
           </Text>
           <View className="flex-row items-center">
-            <View className={`px-2 py-1 rounded-full ${
-              item.level === "beginner" ? "bg-green-100" :
-              item.level === "intermediate" ? "bg-yellow-100" : "bg-red-100"
-            }`}>
-              <Text className={`text-xs font-medium ${
-                item.level === "beginner" ? "text-green-800" :
-                item.level === "intermediate" ? "text-yellow-800" : "text-red-800"
-              }`}>
-                {item.level === "beginner" ? "Principiante" :
-                 item.level === "intermediate" ? "Intermedio" : "Experto"}
+            <View
+              className={`px-2 py-1 rounded-full ${
+                item.level === "beginner"
+                  ? "bg-green-100"
+                  : item.level === "intermediate"
+                  ? "bg-yellow-100"
+                  : "bg-red-100"
+              }`}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  item.level === "beginner"
+                    ? "text-green-800"
+                    : item.level === "intermediate"
+                    ? "text-yellow-800"
+                    : "text-red-800"
+                }`}
+              >
+                {item.level === "beginner"
+                  ? "Principiante"
+                  : item.level === "intermediate"
+                  ? "Intermedio"
+                  : "Experto"}
               </Text>
             </View>
             {item.video_url && (
@@ -123,7 +151,7 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
             )}
           </View>
         </View>
-        
+
         <TouchableOpacity
           onPress={() => handleEditVideo(item)}
           className="bg-blue-500 px-4 py-2 rounded-lg"
@@ -165,7 +193,6 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
         onBack={() => navigation.goBack()}
       />
 
-      {/* Search Bar */}
       <View className="bg-white px-4 py-3 border-b border-gray-200">
         <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
           <Ionicons name="search" size={20} color="#6B7280" />
@@ -184,7 +211,6 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
         </View>
       </View>
 
-      {/* Stats */}
       <View className="bg-white px-4 py-3 border-b border-gray-200">
         <View className="flex-row justify-between">
           <View className="items-center">
@@ -195,20 +221,19 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
           </View>
           <View className="items-center">
             <Text className="text-2xl font-bold text-green-600">
-              {filteredExercises.filter(ex => ex.video_url).length}
+              {filteredExercises.filter((ex) => ex.video_url).length}
             </Text>
             <Text className="text-xs text-gray-600">Con Video</Text>
           </View>
           <View className="items-center">
             <Text className="text-2xl font-bold text-orange-600">
-              {filteredExercises.filter(ex => !ex.video_url).length}
+              {filteredExercises.filter((ex) => !ex.video_url).length}
             </Text>
             <Text className="text-xs text-gray-600">Sin Video</Text>
           </View>
         </View>
       </View>
 
-      {/* Exercise List */}
       <FlatList
         data={filteredExercises}
         renderItem={renderExerciseItem}
@@ -225,19 +250,19 @@ const ExerciseManagementScreen: React.FC<ExerciseManagementScreenProps> = ({ nav
           <View className="flex-1 justify-center items-center py-12">
             <Ionicons name="fitness" size={64} color="#D1D5DB" />
             <Text className="text-gray-500 text-lg font-medium mt-4">
-              {searchQuery ? "No se encontraron ejercicios" : "No hay ejercicios"}
+              {searchQuery
+                ? "No se encontraron ejercicios"
+                : "No hay ejercicios"}
             </Text>
             <Text className="text-gray-400 text-center mt-2">
-              {searchQuery 
+              {searchQuery
                 ? "Intenta con otros términos de búsqueda"
-                : "Los ejercicios aparecerán aquí"
-              }
+                : "Los ejercicios aparecerán aquí"}
             </Text>
           </View>
         }
       />
 
-      {/* Video URL Editor Modal */}
       <Modal
         visible={isEditorVisible}
         transparent={true}

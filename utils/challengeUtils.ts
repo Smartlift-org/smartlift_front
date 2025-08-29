@@ -1,85 +1,68 @@
-/**
- * Utilidades comunes para manejo de desafíos
- */
-
-/**
- * Formatea el tiempo restante de un desafío
- */
 export const formatTimeRemaining = (endDate: string): string => {
   const now = new Date();
   const end = new Date(endDate);
   const timeDiff = end.getTime() - now.getTime();
-  
+
   if (timeDiff <= 0) return "Expirado";
-  
+
   const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  
+  const hours = Math.floor(
+    (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
+
   if (days > 0) return `${days}d ${hours}h restantes`;
   return `${hours}h restantes`;
 };
 
-/**
- * Obtiene el color para el estado de un intento de desafío
- */
 export const getAttemptStatusColor = (status: string): string => {
   switch (status) {
-    case 'completed':
-      return 'bg-green-100 text-green-800';
-    case 'in_progress':
-      return 'bg-blue-100 text-blue-800';
-    case 'abandoned':
-      return 'bg-red-100 text-red-800';
+    case "completed":
+      return "bg-green-100 text-green-800";
+    case "in_progress":
+      return "bg-blue-100 text-blue-800";
+    case "abandoned":
+      return "bg-red-100 text-red-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };
 
-/**
- * Obtiene el texto para el estado de un intento de desafío
- */
 export const getAttemptStatusText = (status: string): string => {
   switch (status) {
-    case 'completed':
-      return 'Completado';
-    case 'in_progress':
-      return 'En Progreso';
-    case 'abandoned':
-      return 'Abandonado';
+    case "completed":
+      return "Completado";
+    case "in_progress":
+      return "En Progreso";
+    case "abandoned":
+      return "Abandonado";
     default:
       return status;
   }
 };
 
-/**
- * Obtiene el emoji para el estado de un intento de desafío
- */
 export const getAttemptStatusEmoji = (status: string): string => {
   switch (status) {
-    case 'completed':
-      return '✅';
-    case 'in_progress':
-      return '⏳';
-    case 'abandoned':
-      return '❌';
+    case "completed":
+      return "✅";
+    case "in_progress":
+      return "⏳";
+    case "abandoned":
+      return "❌";
     default:
-      return '❓';
+      return "❓";
   }
 };
 
-/**
- * Obtiene el color de fondo para una tarjeta de desafío según su estado
- */
-export const getChallengeCardStatusColor = (endDate: string, isActiveNow: boolean): string => {
+export const getChallengeCardStatusColor = (
+  endDate: string,
+  isActiveNow: boolean
+): string => {
   const timeRemaining = formatTimeRemaining(endDate);
   if (timeRemaining === "Expirado") return "bg-red-100 border-red-200";
   if (isActiveNow) return "bg-green-100 border-green-200";
   return "bg-gray-100 border-gray-200";
 };
 
-/**
- * Obtiene el emoji de medalla según la posición en el ranking
- */
 export const getMedalEmoji = (position: number): string => {
   switch (position) {
     case 1:
@@ -93,9 +76,6 @@ export const getMedalEmoji = (position: number): string => {
   }
 };
 
-/**
- * Obtiene el color del texto según la posición en el ranking
- */
 export const getPositionColor = (position: number): string => {
   switch (position) {
     case 1:
@@ -109,38 +89,33 @@ export const getPositionColor = (position: number): string => {
   }
 };
 
-/**
- * Formatea una fecha para mostrar en formato legible
- */
 export const formatChallengeDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
-/**
- * Formatea tiempo en milisegundos a formato MM:SS
- */
 export const formatTime = (milliseconds: number): string => {
   const totalSeconds = Math.floor(milliseconds / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
 };
 
-/**
- * Calcula la tasa de completación de un desafío
- */
-export const calculateCompletionRate = (completedAttempts: number, totalAttempts: number): number => {
-  // Validate inputs
+export const calculateCompletionRate = (
+  completedAttempts: number,
+  totalAttempts: number
+): number => {
   const completed = completedAttempts || 0;
   const total = totalAttempts || 0;
-  
+
   if (total === 0) return 0;
   return Math.round((completed / total) * 100);
 };
@@ -148,10 +123,10 @@ export const calculateCompletionRate = (completedAttempts: number, totalAttempts
 export const getDifficultyColor = (level: number): string => {
   const colors = [
     "bg-green-500",
-    "bg-green-400", 
+    "bg-green-400",
     "bg-yellow-500",
     "bg-orange-500",
-    "bg-red-500"
+    "bg-red-500",
   ];
   return colors[level - 1] || colors[0];
 };
@@ -159,22 +134,23 @@ export const getDifficultyColor = (level: number): string => {
 export const getDifficultyText = (level: number): string => {
   const difficulties = [
     "Muy Fácil",
-    "Fácil", 
+    "Fácil",
     "Moderado",
     "Difícil",
-    "Muy Difícil"
+    "Muy Difícil",
   ];
   return difficulties[level - 1] || difficulties[0];
 };
 
-/**
- * Formatea segundos a formato MM:SS
- */
-export const formatSecondsToMinutesSeconds = (seconds: number | null | undefined): string => {
-  if (!seconds || seconds <= 0) return '--:--';
-  
+export const formatSecondsToMinutesSeconds = (
+  seconds: number | null | undefined
+): string => {
+  if (!seconds || seconds <= 0) return "--:--";
+
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
-  
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
+  return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+    .toString()
+    .padStart(2, "0")}`;
 };

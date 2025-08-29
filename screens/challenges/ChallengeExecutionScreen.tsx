@@ -10,15 +10,22 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
-import { challengeService } from "../services/challengeService";
-import { challengeAttemptService } from "../services/challengeAttemptService";
-import { Challenge, ChallengeAttempt, ChallengeExercise } from "../types/challenge";
-import AppAlert from "../components/AppAlert";
-import { formatTime } from "../utils/challengeUtils";
+import { RootStackParamList } from "../../types";
+import { challengeService } from "../../services/challengeService";
+import { challengeAttemptService } from "../../services/challengeAttemptService";
+import {
+  Challenge,
+  ChallengeAttempt,
+  ChallengeExercise,
+} from "../../types/challenge";
+import AppAlert from "../../components/AppAlert";
+import { formatTime } from "../../utils/challengeUtils";
 
 type ChallengeExecutionScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, "ChallengeExecution">;
+  navigation: NativeStackNavigationProp<
+    RootStackParamList,
+    "ChallengeExecution"
+  >;
   route: RouteProp<RootStackParamList, "ChallengeExecution">;
 };
 
@@ -29,14 +36,19 @@ interface ExerciseProgress {
   end_time?: number;
 }
 
-const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ navigation, route }) => {
+const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({
+  navigation,
+  route,
+}) => {
   const { challengeId, attemptId } = route.params;
 
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [attempt, setAttempt] = useState<ChallengeAttempt | null>(null);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
-  const [exerciseProgress, setExerciseProgress] = useState<Record<number, ExerciseProgress>>({});
+  const [exerciseProgress, setExerciseProgress] = useState<
+    Record<number, ExerciseProgress>
+  >({});
   const [isResting, setIsResting] = useState(false);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
@@ -53,13 +65,12 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
         challengeService.getChallengeDetail(challengeId),
         challengeAttemptService.getAttemptDetail(challengeId, attemptId),
       ]);
-      
+
       setChallenge(challengeData);
       setAttempt(attemptData);
-      
-      // Inicializar progreso de ejercicios
+
       const progress: Record<number, ExerciseProgress> = {};
-      challengeData.challenge_exercises?.forEach(ex => {
+      challengeData.challenge_exercises?.forEach((ex) => {
         if (ex.exercise?.id) {
           progress[ex.exercise.id] = {
             exercise_id: ex.exercise.id,
@@ -76,7 +87,6 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
     }
   }, [challengeId, attemptId, navigation]);
 
-  // Timer principal
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       setTotalTime(Date.now() - startTimeRef.current);
@@ -87,11 +97,10 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
     };
   }, []);
 
-  // Timer de descanso
   useEffect(() => {
     if (isResting && restTimeLeft > 0) {
       restIntervalRef.current = setInterval(() => {
-        setRestTimeLeft(prev => {
+        setRestTimeLeft((prev) => {
           if (prev <= 1) {
             setIsResting(false);
             return 0;
@@ -108,7 +117,6 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
     };
   }, [isResting, restTimeLeft]);
 
-  // Manejo del botón atrás
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
@@ -116,7 +124,10 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
         return true;
       };
 
-      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
       return () => subscription.remove();
     }, [])
   );
@@ -125,9 +136,12 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
     loadChallengeData();
   }, [loadChallengeData]);
 
-
   const getCurrentExercise = (): ChallengeExercise | null => {
-    if (!challenge || !challenge.challenge_exercises || currentExerciseIndex >= challenge.challenge_exercises.length) {
+    if (
+      !challenge ||
+      !challenge.challenge_exercises ||
+      currentExerciseIndex >= challenge.challenge_exercises.length
+    ) {
       return null;
     }
     return challenge.challenge_exercises[currentExerciseIndex];
@@ -138,21 +152,20 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
     if (!currentExercise || !currentExercise.exercise?.id) return;
 
     const exerciseId = currentExercise.exercise.id;
-    const newCompletedSets = (exerciseProgress[exerciseId]?.completed_sets || 0) + 1;
+    const newCompletedSets =
+      (exerciseProgress[exerciseId]?.completed_sets || 0) + 1;
 
-    setExerciseProgress(prev => ({
+    setExerciseProgress((prev) => ({
       ...prev,
       [exerciseId]: {
         ...prev[exerciseId],
         completed_sets: newCompletedSets,
-      }
+      },
     }));
 
     if (newCompletedSets >= currentExercise.sets) {
-      // Ejercicio completado, pasar al siguiente
       handleCompleteExercise();
     } else {
-      // Iniciar descanso entre series
       if (currentExercise.rest_time_seconds > 0) {
         setIsResting(true);
         setRestTimeLeft(currentExercise.rest_time_seconds);
@@ -164,14 +177,15 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
   const handleCompleteExercise = () => {
     if (!challenge) return;
 
-    if (challenge.challenge_exercises && currentExerciseIndex < challenge.challenge_exercises.length - 1) {
-      // Pasar al siguiente ejercicio
-      setCurrentExerciseIndex(prev => prev + 1);
+    if (
+      challenge.challenge_exercises &&
+      currentExerciseIndex < challenge.challenge_exercises.length - 1
+    ) {
+      setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentSet(1);
       setIsResting(false);
       setRestTimeLeft(0);
     } else {
-      // Último ejercicio completado, finalizar desafío
       handleCompleteChallenge();
     }
   };
@@ -184,12 +198,13 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
       const completionTimeMs = Date.now() - startTimeRef.current;
       const completionTimeSeconds = Math.floor(completionTimeMs / 1000);
 
-      // Calcular tiempos por ejercicio (simplificado)
       const exerciseTimes: Record<string, number> = {};
       if (challenge.challenge_exercises) {
         challenge.challenge_exercises.forEach((ex, index) => {
           if (ex.exercise?.id) {
-            exerciseTimes[ex.exercise.id.toString()] = Math.floor(completionTimeSeconds / challenge.challenge_exercises!.length);
+            exerciseTimes[ex.exercise.id.toString()] = Math.floor(
+              completionTimeSeconds / challenge.challenge_exercises!.length
+            );
           }
         });
       }
@@ -203,15 +218,13 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
         }
       );
 
-      // Mostrar resultado
       AppAlert.success(
         "¡Desafío Completado! 🎉",
         `Tiempo: ${formatTime(completionTimeMs)}\n` +
-        `Posición: #${result.leaderboard_position || 'N/A'}\n` +
-        `${result.is_new_personal_best ? '🏆 ¡Nuevo récord personal!' : ''}`
+          `Posición: #${result.leaderboard_position || "N/A"}\n` +
+          `${result.is_new_personal_best ? "🏆 ¡Nuevo récord personal!" : ""}`
       );
-      
-      // Navegar al ranking después de mostrar el resultado
+
       setTimeout(() => {
         navigation.replace("ChallengeLeaderboard", { challengeId });
       }, 2000);
@@ -258,12 +271,13 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
 
   const currentProgress = exerciseProgress[currentExercise.exercise.id];
   const completedSets = currentProgress?.completed_sets || 0;
-  const isLastExercise = challenge.challenge_exercises ? currentExerciseIndex === challenge.challenge_exercises.length - 1 : false;
+  const isLastExercise = challenge.challenge_exercises
+    ? currentExerciseIndex === challenge.challenge_exercises.length - 1
+    : false;
   const isLastSet = currentSet === currentExercise.sets;
 
   return (
     <View className="flex-1 bg-gray-900">
-      {/* Header con tiempo total */}
       <View className="bg-black p-4 pt-12">
         <View className="flex-row justify-between items-center">
           <TouchableOpacity
@@ -282,28 +296,42 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
         </View>
       </View>
 
-      {/* Progreso general */}
       <View className="bg-gray-800 p-4">
         <View className="flex-row justify-between items-center mb-2">
           <Text className="text-white font-bold">
-            Ejercicio {currentExerciseIndex + 1} de {challenge.challenge_exercises?.length || 0}
+            Ejercicio {currentExerciseIndex + 1} de{" "}
+            {challenge.challenge_exercises?.length || 0}
           </Text>
           <Text className="text-blue-400">
-            {challenge.challenge_exercises?.length ? Math.round(((currentExerciseIndex + (completedSets / currentExercise.sets)) / challenge.challenge_exercises.length) * 100) : 0}%
+            {challenge.challenge_exercises?.length
+              ? Math.round(
+                  ((currentExerciseIndex +
+                    completedSets / currentExercise.sets) /
+                    challenge.challenge_exercises.length) *
+                    100
+                )
+              : 0}
+            %
           </Text>
         </View>
         <View className="bg-gray-700 rounded-full h-2">
           <View
             className="bg-blue-500 h-2 rounded-full"
             style={{
-              width: `${challenge.challenge_exercises?.length ? ((currentExerciseIndex + (completedSets / currentExercise.sets)) / challenge.challenge_exercises.length) * 100 : 0}%`
+              width: `${
+                challenge.challenge_exercises?.length
+                  ? ((currentExerciseIndex +
+                      completedSets / currentExercise.sets) /
+                      challenge.challenge_exercises.length) *
+                    100
+                  : 0
+              }%`,
             }}
           />
         </View>
       </View>
 
       <ScrollView className="flex-1 p-6">
-        {/* Ejercicio actual */}
         <View className="bg-white rounded-lg p-6 mb-6">
           <Text className="text-2xl font-bold text-gray-900 mb-2">
             {currentExercise.exercise.name}
@@ -311,7 +339,7 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
           <Text className="text-gray-600 mb-4">
             Serie {currentSet} de {currentExercise.sets}
           </Text>
-          
+
           <View className="bg-blue-50 rounded-lg p-4 mb-4">
             <Text className="text-blue-900 text-lg font-bold text-center">
               {currentExercise.reps} repeticiones
@@ -326,7 +354,6 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
             </View>
           )}
 
-          {/* Progreso del ejercicio */}
           <View className="flex-row justify-center mb-4">
             {Array.from({ length: currentExercise.sets }, (_, index) => (
               <View
@@ -339,9 +366,11 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
                     : "border-gray-300 bg-gray-100"
                 }`}
               >
-                <Text className={`font-bold ${
-                  index < completedSets ? "text-white" : "text-gray-600"
-                }`}>
+                <Text
+                  className={`font-bold ${
+                    index < completedSets ? "text-white" : "text-gray-600"
+                  }`}
+                >
                   {index + 1}
                 </Text>
               </View>
@@ -349,20 +378,19 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
           </View>
         </View>
 
-        {/* Timer de descanso */}
         {isResting && (
           <View className="bg-orange-500 rounded-lg p-6 mb-6">
             <Text className="text-white text-xl font-bold text-center mb-2">
               ⏰ Descanso
             </Text>
             <Text className="text-white text-3xl font-bold text-center">
-              {Math.floor(restTimeLeft / 60)}:{(restTimeLeft % 60).toString().padStart(2, '0')}
+              {Math.floor(restTimeLeft / 60)}:
+              {(restTimeLeft % 60).toString().padStart(2, "0")}
             </Text>
           </View>
         )}
       </ScrollView>
 
-      {/* Botón de acción */}
       <View className="p-6 bg-gray-800">
         <TouchableOpacity
           className={`py-4 rounded-lg ${
@@ -381,8 +409,7 @@ const ChallengeExecutionScreen: React.FC<ChallengeExecutionScreenProps> = ({ nav
                 ? "🏁 Finalizar Desafío"
                 : completedSets >= currentExercise.sets - 1
                 ? "➡️ Siguiente Ejercicio"
-                : "✅ Completar Serie"
-              }
+                : "✅ Completar Serie"}
             </Text>
           )}
         </TouchableOpacity>

@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
+  FlatList,
   TouchableOpacity,
-  ScrollView,
-  RefreshControl,
   ActivityIndicator,
+  RefreshControl,
+  StatusBar,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ScreenHeader from "../../components/ScreenHeader";
-import AppAlert from "../../components/AppAlert";
-import Avatar from "../../components/Avatar";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList, User } from "../../types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList, User } from "../../types";
 import adminService from "../../services/adminService";
+import AppAlert from "../../components/AppAlert";
+import ScreenHeader from "../../components/ScreenHeader";
+import Avatar from "../../components/Avatar";
+import { useLoadingState } from "../../hooks/useLoadingState";
 
 type AdminUserListScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "AdminUserList">;
@@ -23,37 +26,43 @@ const AdminUserListScreen: React.FC<AdminUserListScreenProps> = ({
   navigation,
 }) => {
   const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState(true);
+  const { isLoading: isRefreshing, withLoading: withRefresh } = useLoadingState();
 
-  const loadUsers = async (showRefreshIndicator = false) => {
-    try {
-      if (showRefreshIndicator) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
+  const fetchUsers = useCallback(async () => {
+    const userList = await adminService.getUsers();
+    setUsers(userList);
+  }, []);
+
+  const loadUsers = useCallback(async () => {
+    await withLoading(async () => {
+      try {
+        await fetchUsers();
+      } catch (error: any) {
+        AppAlert.error(
+          "Error",
+          error.message || "No se pudo cargar la lista de usuarios"
+        );
       }
-
-      const userList = await adminService.getUsers();
-      setUsers(userList);
-    } catch (error: any) {
-      AppAlert.error(
-        "Error",
-        error.message || "No se pudo cargar la lista de usuarios"
-      );
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
+    });
+  }, [withLoading, fetchUsers]);
 
   useEffect(() => {
     loadUsers();
   }, []);
 
-  const onRefresh = () => {
-    loadUsers(true);
-  };
+  const onRefresh = useCallback(async () => {
+    await withRefresh(async () => {
+      try {
+        await fetchUsers();
+      } catch (error: any) {
+        AppAlert.error(
+          "Error",
+          error.message || "No se pudo cargar la lista de usuarios"
+        );
+      }
+    });
+  }, [withRefresh, fetchUsers]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

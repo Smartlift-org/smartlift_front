@@ -11,11 +11,12 @@ import {
   StatusBar,
 } from "react-native";
 import AppAlert from "../../components/AppAlert";
-
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import authService from "../../services/authService";
-import userStatsService from "../../services/userStatsService";
 import { RootStackParamList } from "../../types";
+import { useLoadingState } from "../../hooks/useLoadingState";
+import { validateLoginForm, sanitizeEmail } from "../../utils/authValidation";
+import { navigateAfterAuth } from "../../utils/authNavigation";
 
 type LoginScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Login">;
@@ -24,90 +25,35 @@ type LoginScreenProps = {
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState();
 
   const handleLogin = async (): Promise<void> => {
-    if (!email || !password) {
-      AppAlert.error("Error", "Por favor complete todos los campos");
+    const validation = validateLoginForm(email, password);
+    if (!validation.isValid) {
+      AppAlert.error("Error", validation.error!);
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const sanitizedEmail = email.trim().toLowerCase();
-
+    await withLoading(async () => {
+      const sanitizedEmail = sanitizeEmail(email);
       const response = await authService.login(sanitizedEmail, password);
 
       if (response && response.token && response.user) {
-        const userRole = response.user.role;
-
-        if (userRole === "coach") {
-          setIsLoading(false);
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "CoachHome" }],
-          });
-        } else if (userRole === "admin") {
-          setIsLoading(false);
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "AdminHome" }],
-          });
-        } else {
-          try {
-            const hasCompletedProfile =
-              await userStatsService.hasCompletedProfile();
-            setIsLoading(false);
-
-            if (!hasCompletedProfile) {
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "StatsProfile",
-                    params: { fromRedirect: true },
-                  },
-                ],
-              });
-
-              AppAlert.info(
-                "Perfil incompleto",
-                "Por favor complete su perfil para continuar.",
-                [{ text: "Entendido" }]
-              );
-            } else {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "UserHome" }],
-              });
-            }
-          } catch (error) {
-            setIsLoading(false);
-
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "UserHome" }],
-            });
-          }
-        }
+        await navigateAfterAuth(navigation, response.user.role);
       } else {
-        setIsLoading(false);
         AppAlert.error(
           "Error",
           "No se pudo obtener la información del usuario"
         );
       }
-    } catch (error: unknown) {
-      setIsLoading(false);
-
+    }).catch((error: unknown) => {
       if (error instanceof Error) {
         const errorMessage = error.message || "Error al iniciar sesión";
         AppAlert.error("Error de Inicio de Sesión", errorMessage);
       } else {
         AppAlert.error("Error de Inicio de Sesión", "Error desconocido");
       }
-    }
+    });
   };
 
   return (

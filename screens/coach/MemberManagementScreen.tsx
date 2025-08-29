@@ -1,22 +1,28 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   FlatList,
-  TextInput,
+  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList, Member, AvailableUser } from "../../types";
 import trainerService from "../../services/trainerService";
 import authService from "../../services/authService";
-import ScreenHeader from "../../components/ScreenHeader";
 import AppAlert from "../../components/AppAlert";
+import ScreenHeader from "../../components/ScreenHeader";
 import Avatar from "../../components/Avatar";
-import type { RootStackParamList, Member, AvailableUser } from "../../types";
+import { useLoadingState } from "../../hooks/useLoadingState";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type MemberManagementScreenProps = {
@@ -26,13 +32,13 @@ type MemberManagementScreenProps = {
 const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   navigation,
 }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState(true);
+  const { isLoading: refreshing, withLoading: withRefresh } = useLoadingState();
   const [members, setMembers] = useState<Member[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [trainerId, setTrainerId] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
@@ -56,7 +62,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
         const user = await authService.getCurrentUser();
         if (user && user.id) {
           setTrainerId(user.id);
-          await loadMembers(user.id);
+          await loadMembers(Number(user.id));
         }
       } catch (error) {
         AppAlert.error(
@@ -69,42 +75,57 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
     loadUserData();
   }, []);
 
-  const loadMembers = async (
-    id: string,
-    page: number = 1,
-    search: string = searchQuery,
-    status: string = statusFilter
-  ) => {
-    setIsLoading(true);
-    try {
-      const response = await trainerService.getMembers(id, page, 10, {
+  const fetchMembers = useCallback(
+    async (
+      page: number = 1,
+      search: string = searchQuery,
+      status: string = statusFilter
+    ) => {
+      const response = await trainerService.getMembers(trainerId, page, 10, {
         search,
-        status,
+        status: status === "all" ? undefined : status,
       });
-
-      setMembers(response.members || []);
+      setMembers(response.members);
       setCurrentPage(response.meta?.current_page || 1);
       setTotalPages(response.meta?.total_pages || 1);
-    } catch (error) {
-      AppAlert.error("Error", "No se pudieron cargar los miembros.");
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    [trainerId, searchQuery, statusFilter]
+  );
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadMembers(trainerId, 1);
-  };
+  const loadMembers = useCallback(
+    async (
+      page: number = 1,
+      search: string = searchQuery,
+      status: string = statusFilter
+    ) => {
+      await withLoading(async () => {
+        try {
+          await fetchMembers(page, search, status);
+        } catch (error) {
+          AppAlert.error("Error", "No se pudieron cargar los miembros.");
+        }
+      });
+    },
+    [withLoading, fetchMembers]
+  );
+
+  const onRefresh = useCallback(async () => {
+    await withRefresh(async () => {
+      try {
+        await fetchMembers(1, searchQuery, statusFilter);
+      } catch (error) {
+        AppAlert.error("Error", "No se pudieron cargar los miembros.");
+      }
+    });
+  }, [withRefresh, fetchMembers, searchQuery, statusFilter]);
 
   const handleSearch = () => {
-    loadMembers(trainerId, 1, searchQuery);
+    loadMembers(1, searchQuery);
   };
 
   const handleFilterByStatus = (status: string) => {
     setStatusFilter(status);
-    loadMembers(trainerId, 1, searchQuery, status);
+    loadMembers(1, searchQuery, status);
   };
 
   const handleMemberPress = (memberId: string) => {
@@ -165,7 +186,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
 
   const handleLoadMore = () => {
     if (currentPage < totalPages && !isLoading) {
-      loadMembers(trainerId, currentPage + 1);
+      loadMembers(currentPage + 1);
     }
   };
 
@@ -223,7 +244,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
       const updatedUsers = availableUsers.filter((user) => user.id !== userId);
       setAvailableUsers(updatedUsers);
 
-      await loadMembers(trainerId);
+      await loadMembers();
 
       AppAlert.success("Éxito", "Usuario asignado correctamente.");
       setModalVisible(false);
@@ -322,7 +343,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
-                onRefresh={handleRefresh}
+                onRefresh={onRefresh}
                 colors={["#4f46e5"]}
               />
             }
