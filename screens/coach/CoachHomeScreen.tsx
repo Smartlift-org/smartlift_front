@@ -243,6 +243,31 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              🏆 Gestión de Desafíos
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Crea y gestiona desafíos semanales para tus miembros. Monitorea su progreso y rankings.
+            </Text>
+            <TouchableOpacity
+              className="bg-orange-600 p-3 rounded-lg mb-2"
+              onPress={() => navigation.navigate("CoachChallengeList")}
+            >
+              <Text className="text-white font-medium text-center">
+                🏆 Mis Desafíos
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-orange-100 p-3 rounded-lg"
+              onPress={() => navigation.navigate("CreateChallenge")}
+            >
+              <Text className="text-orange-800 font-medium text-center">
+                ➕ Crear Desafío
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
               💬 Comunicación con Miembros
             </Text>
             <Text className="text-gray-600 mb-4">

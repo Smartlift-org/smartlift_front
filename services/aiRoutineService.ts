@@ -63,7 +63,6 @@ const aiRoutineService = {
 
     for (const routineResponse of routines) {
       try {
-        // 🔧 TRANSFORMAR: exercises → routine_exercises_attributes para el backend
         const routineData = routineResponse.routine as any;
         const transformedRoutine = {
           name: routineData.name,
@@ -72,27 +71,19 @@ const aiRoutineService = {
           duration: routineData.duration,
           source_type: "ai_generated",
           validation_status: "pending",
-          routine_exercises_attributes: routineData.exercises?.map((exercise: any) => ({
-            exercise_id: exercise.exercise_id,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            rest_time: exercise.rest_time || 0,
-            order: exercise.order || 1
-          })) || []
+          routine_exercises_attributes:
+            routineData.exercises?.map((exercise: any) => ({
+              exercise_id: exercise.exercise_id,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              rest_time: exercise.rest_time || 0,
+              order: exercise.order || 1,
+            })) || [],
         };
-
-        console.log("📤 ENVIANDO AL BACKEND /routines:");
-        console.log("📋 Rutina:", transformedRoutine.name);
-        console.log("🏃‍♂️ Ejercicios:", transformedRoutine.routine_exercises_attributes.length);
-        console.log("📄 Datos completos:", JSON.stringify({ routine: transformedRoutine }, null, 2));
 
         const response = await apiClient.post("/routines", {
           routine: transformedRoutine,
         });
-
-        console.log("✅ RESPUESTA DEL BACKEND:");
-        console.log("📊 Status:", response.status);
-        console.log("📄 Data:", JSON.stringify(response.data, null, 2));
 
         results.push({
           success: true,
@@ -101,12 +92,6 @@ const aiRoutineService = {
         });
         successCount++;
       } catch (error: any) {
-        console.log("❌ ERROR AL CREAR RUTINA:");
-        console.log("📋 Rutina fallida:", routineResponse.routine.name);
-        console.log("📊 Status:", error.response?.status || 'Sin status');
-        console.log("📄 Error response:", JSON.stringify(error.response?.data || error.message, null, 2));
-        console.log("🔍 Error completo:", error);
-
         results.push({
           success: false,
           error: error.response?.data || error.message,

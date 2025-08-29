@@ -31,8 +31,8 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
   const [urlError, setUrlError] = useState("");
 
   const validateUrl = (url: string): boolean => {
-    if (!url.trim()) return true; // Empty URL is valid (removes video)
-    
+    if (!url.trim()) return true;
+
     try {
       const urlObj = new URL(url);
       return urlObj.protocol === "http:" || urlObj.protocol === "https:";
@@ -44,7 +44,7 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
   const handleUrlChange = (text: string) => {
     setVideoUrl(text);
     setUrlError("");
-    
+
     if (text.trim() && !validateUrl(text)) {
       setUrlError("Ingresa una URL válida (http:// o https://)");
     }
@@ -52,7 +52,7 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
 
   const handleSave = async () => {
     if (urlError) return;
-    
+
     if (videoUrl.trim() && !validateUrl(videoUrl)) {
       setUrlError("URL inválida");
       return;
@@ -67,7 +67,10 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
       onUpdate(updatedExercise);
       Alert.alert("Éxito", "URL del video actualizada correctamente");
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Error al actualizar URL del video");
+      Alert.alert(
+        "Error",
+        error.message || "Error al actualizar URL del video"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -113,10 +116,7 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScreenHeader
-        title="Editar Video del Ejercicio"
-        onBack={onCancel}
-      />
+      <ScreenHeader title="Editar Video del Ejercicio" onBack={onCancel} />
       <View className="flex-1 p-4">
         <View className="bg-white rounded-lg p-6">
           <Text className="text-gray-600 mb-4 font-medium text-center">
@@ -124,7 +124,7 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
           </Text>
 
           <Text className="text-gray-700 mb-2">URL del Video:</Text>
-          
+
           <TextInput
             className={`border rounded-lg p-3 mb-2 ${
               urlError ? "border-red-500" : "border-gray-300"
@@ -147,7 +147,6 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
             Deja vacío para eliminar el video del ejercicio
           </Text>
 
-          {/* Botones de acción */}
           <View className="flex-row justify-between mb-4">
             {videoUrl.trim() && validateUrl(videoUrl) ? (
               <TouchableOpacity
@@ -172,7 +171,6 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
             ) : null}
           </View>
 
-          {/* Botones principales */}
           <View className="flex-row justify-end space-x-3">
             <TouchableOpacity
               onPress={onCancel}
@@ -186,9 +184,7 @@ const VideoUrlEditor: React.FC<VideoUrlEditorProps> = ({
               onPress={handleSave}
               disabled={isLoading || !!urlError}
               className={`px-6 py-3 rounded-lg ${
-                isLoading || urlError
-                  ? "bg-gray-300"
-                  : "bg-blue-500"
+                isLoading || urlError ? "bg-gray-300" : "bg-blue-500"
               }`}
             >
               {isLoading ? (

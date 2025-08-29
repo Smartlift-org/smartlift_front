@@ -38,7 +38,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
         throw new Error("No se pudo obtener el usuario actual");
       }
 
-      // Load conversations once to know which users already have a chat
       let ids: Set<number> = new Set();
       try {
         const conversationsResp = await chatService.getConversations();
@@ -48,7 +47,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
         conversationsList.forEach((conv: any) => {
           const otherId = conv?.other_participant?.id;
           if (typeof otherId === "number") ids.add(otherId);
-          // Some APIs may return string ids
           if (typeof otherId === "string" && otherId.trim() !== "") {
             const n = Number(otherId);
             if (!Number.isNaN(n)) ids.add(n);
@@ -56,7 +54,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
         });
         setExistingConversationUserIds(ids);
       } catch (e) {
-        // If conversations load fails, proceed without filtering to avoid blocking UX
         ids = new Set();
         setExistingConversationUserIds(ids);
       }
@@ -65,7 +62,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
         currentUser.id.toString()
       );
       const allAssigned: Member[] = response.members || [];
-      // Filter out users with existing conversation
       const filtered = allAssigned.filter((u) => {
         const uidNum =
           typeof u.id === "string" ? Number(u.id) : (u.id as unknown as number);
@@ -84,7 +80,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
     try {
       setLoading(true);
 
-      // Check if conversation already exists
       const conversations = await chatService.getConversations();
       const conversationsList = Array.isArray(conversations)
         ? conversations
@@ -94,13 +89,11 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
       );
 
       if (existingConversation) {
-        // Navigate to existing conversation
         navigation.replace("Chat", {
           conversationId: existingConversation.id,
           participantName: user.name,
         });
       } else {
-        // Create new conversation
         const newConversation = await chatService.createConversation({
           user_id: parseInt(user.id),
         });
@@ -172,7 +165,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
         onBack={() => navigation.goBack()}
       />
       <View className="flex-1">
-        {/* User List */}
         {assignedUsers.length === 0 ? (
           <View className="flex-1 justify-center items-center px-6">
             <Text className="text-gray-500 text-lg text-center">
@@ -192,7 +184,6 @@ const ChatUserSelectionScreen: React.FC<ChatUserSelectionScreenProps> = ({
           />
         )}
 
-        {/* Loading Overlay */}
         {loading && assignedUsers.length > 0 && (
           <View className="absolute inset-0 bg-black/20 justify-center items-center">
             <View className="bg-white p-6 rounded-lg shadow-lg">

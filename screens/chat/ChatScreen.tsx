@@ -53,7 +53,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const flatListRef = useRef<FlatList | null>(null);
 
-  // Load current user info
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
@@ -70,21 +69,17 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
     loadUserInfo();
   }, []);
 
-  // Load conversation when screen focuses
   useFocusEffect(
     React.useCallback(() => {
-      // Ensure WS is connected (idempotent)
       try {
         connectWebSocket && connectWebSocket();
       } catch {}
 
       loadConversation(conversationId);
 
-      // Mark conversation as read when entering
       markAsRead(conversationId);
 
       return () => {
-        // Clean up typing indicators when leaving
         sendStopTyping(conversationId);
       };
     }, [
@@ -96,14 +91,12 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
     ])
   );
 
-  // Handle errors from context
   useEffect(() => {
     if (error) {
       AppAlert.error("Error", error);
     }
   }, [error]);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -112,7 +105,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [messages]);
 
-  // Hide default navigation header to use custom ScreenHeader
   useEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -122,7 +114,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleSendMessage = async (messageText: string) => {
     try {
       await sendMessage(conversationId, messageText);
-      // Auto-scroll to bottom after sending
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -140,7 +131,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    // Normalize IDs to numbers to avoid string/number mismatches
     const currentUserIdNum =
       currentUser?.id != null ? Number(currentUser.id) : undefined;
     const senderIdRaw: any =
@@ -261,7 +251,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      {/* Custom Header */}
       <ScreenHeader
         title={participantName}
         onBack={() => navigation.goBack()}
@@ -272,7 +261,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        {/* Messages List */}
         <View className="flex-1 bg-gray-50">
           {messages.length === 0 ? (
             renderEmptyState()
@@ -286,11 +274,9 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
               contentContainerStyle={{ paddingVertical: 8 }}
               showsVerticalScrollIndicator={false}
               onContentSizeChange={() => {
-                // Auto-scroll to bottom when content changes
                 flatListRef.current?.scrollToEnd({ animated: false });
               }}
               onLayout={() => {
-                // Auto-scroll to bottom on initial layout
                 flatListRef.current?.scrollToEnd({ animated: false });
               }}
             />
@@ -298,7 +284,6 @@ const ChatScreen: React.FC<Props> = ({ navigation, route }) => {
           {renderTypingIndicator()}
         </View>
 
-        {/* Chat Input */}
         <ChatInput
           onSendMessage={handleSendMessage}
           onTyping={handleTyping}

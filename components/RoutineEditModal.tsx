@@ -43,7 +43,9 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [difficulty, setDifficulty] = useState<"beginner" | "intermediate" | "advanced">("beginner");
+  const [difficulty, setDifficulty] = useState<
+    "beginner" | "intermediate" | "advanced"
+  >("beginner");
   const [duration, setDuration] = useState("");
   const [exercises, setExercises] = useState<RoutineExercise[]>([]);
   const [autoValidate, setAutoValidate] = useState(false);
@@ -51,8 +53,6 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
 
   useEffect(() => {
     if (routine && visible) {
-      console.log("Loading routine data:", routine);
-      console.log("Routine exercises:", routine.routine_exercises);
       setName(routine.name || "");
       setDescription(routine.description || "");
       setDifficulty(routine.difficulty || "beginner");
@@ -64,7 +64,6 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
   }, [routine, visible]);
 
   const handleSave = async () => {
-    // Validaciones básicas
     if (!name.trim()) {
       Alert.alert("Error", "El nombre es obligatorio");
       return;
@@ -80,8 +79,6 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
       Alert.alert("Error", "La duración debe estar entre 1 y 180 minutos");
       return;
     }
-
-    // Notas opcionales para auto-validación
 
     const editData = {
       name: name.trim(),
@@ -104,7 +101,11 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
     await onSave(editData);
   };
 
-  const updateExercise = (index: number, field: keyof RoutineExercise, value: any) => {
+  const updateExercise = (
+    index: number,
+    field: keyof RoutineExercise,
+    value: any
+  ) => {
     const updatedExercises = [...exercises];
     updatedExercises[index] = { ...updatedExercises[index], [field]: value };
     setExercises(updatedExercises);
@@ -113,19 +114,16 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
   const removeExercise = (index: number) => {
     const updatedExercises = [...exercises];
     if (updatedExercises[index].id) {
-      // Si tiene ID, marcarlo para eliminar
       updatedExercises[index]._destroy = true;
     } else {
-      // Si no tiene ID, eliminarlo del array
       updatedExercises.splice(index, 1);
     }
     setExercises(updatedExercises);
   };
 
   const handleAddExercise = () => {
-    // Placeholder para agregar ejercicios - se puede expandir para abrir un modal de selección
     const newExercise: RoutineExercise = {
-      exercise_id: 1, // Temporal
+      exercise_id: 1,
       sets: 3,
       reps: 12,
       rest_time: 60,
@@ -133,34 +131,45 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
       exercise: {
         id: 1,
         name: "Nuevo ejercicio",
-        primary_muscles: []
-      }
+        primary_muscles: [],
+      },
     };
     setExercises([...exercises, newExercise]);
   };
 
   const getDifficultyColor = (diff: string) => {
     switch (diff) {
-      case "beginner": return "bg-green-100 text-green-800";
-      case "intermediate": return "bg-yellow-100 text-yellow-800";
-      case "advanced": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "beginner":
+        return "bg-green-100 text-green-800";
+      case "intermediate":
+        return "bg-yellow-100 text-yellow-800";
+      case "advanced":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getDifficultyText = (diff: string) => {
     switch (diff) {
-      case "beginner": return "Principiante";
-      case "intermediate": return "Intermedio";
-      case "advanced": return "Avanzado";
-      default: return diff;
+      case "beginner":
+        return "Principiante";
+      case "intermediate":
+        return "Intermedio";
+      case "advanced":
+        return "Avanzado";
+      default:
+        return diff;
     }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
       <View className="flex-1 bg-gray-50">
-        {/* Header */}
         <View className="bg-white px-4 py-3 border-b border-gray-200">
           <View className="flex-row items-center justify-between">
             <TouchableOpacity onPress={onClose} disabled={loading}>
@@ -172,7 +181,9 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
             <TouchableOpacity
               onPress={handleSave}
               disabled={loading}
-              className={`px-4 py-2 rounded-lg ${loading ? "bg-gray-300" : "bg-blue-500"}`}
+              className={`px-4 py-2 rounded-lg ${
+                loading ? "bg-gray-300" : "bg-blue-500"
+              }`}
             >
               {loading ? (
                 <ActivityIndicator size="small" color="white" />
@@ -184,7 +195,6 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
         </View>
 
         <ScrollView className="flex-1 px-4 py-4">
-          {/* Información básica */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <Text className="text-lg font-semibold text-gray-800 mb-4">
               Información Básica
@@ -202,7 +212,9 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-gray-700 mb-2 font-medium">Descripción *</Text>
+              <Text className="text-gray-700 mb-2 font-medium">
+                Descripción *
+              </Text>
               <TextInput
                 className="border border-gray-300 rounded-lg p-3 text-gray-800 min-h-[80px]"
                 value={description}
@@ -227,9 +239,11 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
                         : "border-gray-300 bg-white"
                     }`}
                   >
-                    <Text className={`text-center font-medium ${
-                      difficulty === diff ? "" : "text-gray-600"
-                    }`}>
+                    <Text
+                      className={`text-center font-medium ${
+                        difficulty === diff ? "" : "text-gray-600"
+                      }`}
+                    >
                       {getDifficultyText(diff)}
                     </Text>
                   </TouchableOpacity>
@@ -238,7 +252,9 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
             </View>
 
             <View className="mb-4">
-              <Text className="text-gray-700 mb-2 font-medium">Duración (minutos) *</Text>
+              <Text className="text-gray-700 mb-2 font-medium">
+                Duración (minutos) *
+              </Text>
               <TextInput
                 className="border border-gray-300 rounded-lg p-3 text-gray-800"
                 value={duration}
@@ -250,11 +266,10 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
             </View>
           </View>
 
-          {/* Ejercicios */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-lg font-semibold text-gray-800">
-                Ejercicios ({exercises.filter(ex => !ex._destroy).length})
+                Ejercicios ({exercises.filter((ex) => !ex._destroy).length})
               </Text>
               <TouchableOpacity
                 onPress={handleAddExercise}
@@ -271,12 +286,13 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
 
             {exercises.map((exercise, index) => {
               if (exercise._destroy) return null;
-              
+
               return (
                 <View key={index} className="mb-4 p-3 bg-gray-50 rounded-lg">
                   <View className="flex-row justify-between items-start mb-3">
                     <Text className="text-base font-medium text-gray-800 flex-1">
-                      {exercise.exercise?.name || `Ejercicio ID: ${exercise.exercise_id}`}
+                      {exercise.exercise?.name ||
+                        `Ejercicio ID: ${exercise.exercise_id}`}
                     </Text>
                     <TouchableOpacity
                       onPress={() => removeExercise(index)}
@@ -292,7 +308,9 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
                       <TextInput
                         className="border border-gray-300 rounded p-2 text-center"
                         value={exercise.sets.toString()}
-                        onChangeText={(text) => updateExercise(index, "sets", parseInt(text) || 1)}
+                        onChangeText={(text) =>
+                          updateExercise(index, "sets", parseInt(text) || 1)
+                        }
                         keyboardType="numeric"
                         maxLength={2}
                       />
@@ -302,17 +320,27 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
                       <TextInput
                         className="border border-gray-300 rounded p-2 text-center"
                         value={exercise.reps.toString()}
-                        onChangeText={(text) => updateExercise(index, "reps", parseInt(text) || 1)}
+                        onChangeText={(text) =>
+                          updateExercise(index, "reps", parseInt(text) || 1)
+                        }
                         keyboardType="numeric"
                         maxLength={3}
                       />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-xs text-gray-600 mb-1">Descanso (s)</Text>
+                      <Text className="text-xs text-gray-600 mb-1">
+                        Descanso (s)
+                      </Text>
                       <TextInput
                         className="border border-gray-300 rounded p-2 text-center"
                         value={exercise.rest_time.toString()}
-                        onChangeText={(text) => updateExercise(index, "rest_time", parseInt(text) || 0)}
+                        onChangeText={(text) =>
+                          updateExercise(
+                            index,
+                            "rest_time",
+                            parseInt(text) || 0
+                          )
+                        }
                         keyboardType="numeric"
                         maxLength={3}
                       />
@@ -329,7 +357,6 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
             })}
           </View>
 
-          {/* Auto-validación */}
           <View className="bg-white rounded-lg shadow-sm p-4 mb-4">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-lg font-semibold text-gray-800">
@@ -341,14 +368,17 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
                   autoValidate ? "bg-blue-500" : "bg-gray-300"
                 }`}
               >
-                <View className={`w-5 h-5 rounded-full bg-white mt-0.5 ${
-                  autoValidate ? "ml-6" : "ml-0.5"
-                }`} />
+                <View
+                  className={`w-5 h-5 rounded-full bg-white mt-0.5 ${
+                    autoValidate ? "ml-6" : "ml-0.5"
+                  }`}
+                />
               </TouchableOpacity>
             </View>
 
             <Text className="text-gray-600 text-sm mb-3">
-              Si activas esta opción, la rutina será automáticamente aprobada después de editarla.
+              Si activas esta opción, la rutina será automáticamente aprobada
+              después de editarla.
             </Text>
 
             {autoValidate && (

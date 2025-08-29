@@ -70,7 +70,6 @@ export type RootStackParamList = {
   AdminCoachEdit: { coachId: string };
   AdminUserEdit: { userId: string };
 
-  // Routine Modification
   RoutineModification: { routineId: number };
   ModifiedRoutineResult: {
     originalRoutine: any;
@@ -82,15 +81,24 @@ export type RootStackParamList = {
   PublicProfileDetail: { userId: number };
   PrivacySettings: undefined;
 
-  // Chat screens
   ConversationList: undefined;
   Chat: { conversationId: number; participantName: string };
   ChatUserSelection: undefined;
 
-  // Exercise Management
   ExerciseManagement: undefined;
   ExerciseVideoEdit: { exerciseId: number };
 
+  // Challenge routes
+  ChallengeList: undefined;
+  ChallengeDetail: { challengeId: number };
+  ChallengeExecution: { challengeId: number; attemptId: number };
+  ChallengeLeaderboard: { challengeId: number };
+  MyAttempts: { challengeId: number };
+  
+  // Coach challenge routes
+  CoachChallengeList: undefined;
+  CreateChallenge: undefined;
+  ChallengeManagement: { challengeId: number };
 };
 
 export interface User {

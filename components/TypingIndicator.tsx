@@ -1,12 +1,15 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { View, Text, Animated } from "react-native";
 
 interface TypingIndicatorProps {
   userName: string;
   show: boolean;
 }
 
-const TypingIndicator: React.FC<TypingIndicatorProps> = ({ userName, show }) => {
+const TypingIndicator: React.FC<TypingIndicatorProps> = ({
+  userName,
+  show,
+}) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
@@ -14,14 +17,12 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({ userName, show }) => 
 
   useEffect(() => {
     if (show) {
-      // Fade in the indicator
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
       }).start();
 
-      // Animate the dots
       const animateDots = () => {
         const createDotAnimation = (dot: Animated.Value, delay: number) => {
           return Animated.loop(
@@ -50,14 +51,12 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({ userName, show }) => 
 
       animateDots();
     } else {
-      // Fade out the indicator
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 200,
         useNativeDriver: true,
       }).start();
 
-      // Reset dots
       dot1.setValue(0);
       dot2.setValue(0);
       dot3.setValue(0);
@@ -73,21 +72,18 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({ userName, show }) => 
       style={{ opacity: fadeAnim }}
       className="flex-row items-center mb-3 px-4"
     >
-      {/* Avatar placeholder */}
       <View className="w-8 h-8 rounded-full bg-gray-300 items-center justify-center mr-2">
         <Text className="text-white text-xs font-bold">
           {userName.charAt(0).toUpperCase()}
         </Text>
       </View>
 
-      {/* Typing bubble */}
       <View className="bg-gray-200 rounded-2xl rounded-bl-md px-4 py-2">
         <View className="flex-row items-center">
           <Text className="text-gray-600 text-sm mr-2">
             {userName} está escribiendo
           </Text>
-          
-          {/* Animated dots */}
+
           <View className="flex-row space-x-1">
             <Animated.View
               style={{

@@ -48,7 +48,6 @@ class WebSocketService {
 
       this.consumer = createConsumer(wsUrl);
 
-      // Simple connection success logging
       logger.info("WebSocket consumer created successfully");
       this.reconnectAttempts = 0;
       this.reconnectDelay = 1000;
@@ -68,7 +67,6 @@ class WebSocketService {
     }
 
     if (this.subscription) {
-      // Mark as manual to avoid triggering auto-reconnect when switching conversations
       this.manualUnsubscribe = true;
       this.subscription.unsubscribe();
     }
@@ -88,8 +86,6 @@ class WebSocketService {
 
         disconnected: () => {
           logger.debug(`Unsubscribed from conversation ${conversationId}`);
-          // If this was a manual unsubscribe (switching conversations or intentional disconnect),
-          // do not emit a global disconnected event or trigger reconnection.
           if (this.manualUnsubscribe) {
             this.manualUnsubscribe = false;
             return;
@@ -118,7 +114,6 @@ class WebSocketService {
 
   unsubscribeFromConversation(): void {
     if (this.subscription) {
-      // Mark as manual so we don't auto-reconnect from the subscription callback
       this.manualUnsubscribe = true;
       this.subscription.unsubscribe();
       this.subscription = null;
@@ -143,7 +138,6 @@ class WebSocketService {
   }
 
   disconnect(): void {
-    // Prevent auto-reconnect on intentional disconnects
     this.manualUnsubscribe = true;
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -182,7 +176,6 @@ class WebSocketService {
     try {
       return this.consumer?.connection?.isOpen() || false;
     } catch (error) {
-      // Fallback if isOpen() method is not available
       return this.consumer !== null;
     }
   }
@@ -229,10 +222,10 @@ class WebSocketService {
       logger.warn("WebSocket event handlers not properly initialized");
       return;
     }
-    
+
     this.eventHandlers.forEach((handler) => {
       try {
-        if (typeof handler === 'function') {
+        if (typeof handler === "function") {
           handler(type, data);
         }
       } catch (error) {

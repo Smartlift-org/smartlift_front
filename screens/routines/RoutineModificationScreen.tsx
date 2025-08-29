@@ -16,7 +16,6 @@ import routineModificationService from "../../services/routineModificationServic
 import {
   AIRoutine,
   ExerciseModificationSelection,
-  RoutineModificationPayload,
 } from "../../types/routineModification";
 import AppAlert from "../../components/AppAlert";
 
@@ -153,7 +152,6 @@ const RoutineModificationScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setSubmitting(true);
 
-      // NUEVO FLUJO: Obtener solo ejercicios seleccionados para modificar
       const exercisesToModify = selectedRoutine.routine_exercises.filter(
         (exercise: any) => {
           const selection = exerciseSelections.find(
@@ -163,12 +161,12 @@ const RoutineModificationScreen: React.FC<Props> = ({ navigation, route }) => {
         }
       );
 
-      // Llamar al nuevo método que maneja el flujo completo
-      const savedRoutine = await routineModificationService.modifyExercisesAndSaveRoutine(
-        selectedRoutine,
-        exercisesToModify,
-        modificationMessage.trim()
-      );
+      const savedRoutine =
+        await routineModificationService.modifyExercisesAndSaveRoutine(
+          selectedRoutine,
+          exercisesToModify,
+          modificationMessage.trim()
+        );
 
       AppAlert.success(
         "¡Éxito!",

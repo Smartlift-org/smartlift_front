@@ -39,7 +39,6 @@ const RoutineValidationScreen: React.FC<RoutineValidationScreenProps> = ({
     loadPendingRoutines();
   }, []);
 
-  // Reload routines when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       loadPendingRoutines();

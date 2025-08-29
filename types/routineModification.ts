@@ -2,10 +2,10 @@ export interface AIRoutine {
   id: number;
   name: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   duration: number;
   ai_generated: boolean;
-  validation_status: 'pending' | 'approved' | 'rejected';
+  validation_status: "pending" | "approved" | "rejected";
   created_at: string;
   formatted_created_at: string;
   formatted_updated_at: string;
@@ -31,11 +31,10 @@ export interface RoutineExercise {
   reps: number;
   rest_time: number;
   order: number;
-  needs_modification?: boolean; // Para marcar ejercicios que necesitan modificación
+  needs_modification?: boolean;
   weight?: number;
 }
 
-// Payload para modificar ejercicios específicos (NUEVO FLUJO)
 export interface ExerciseModificationPayload {
   user_message: string;
   exercises: {
@@ -47,7 +46,6 @@ export interface ExerciseModificationPayload {
   }[];
 }
 
-// Respuesta del backend para modificación de ejercicios (NUEVO FLUJO)
 export interface ModifiedExercisesResponse {
   success: boolean;
   data: {
@@ -66,7 +64,6 @@ export interface ModifiedExercisesResponse {
   };
 }
 
-// DEPRECATED - Mantener para compatibilidad
 export interface RoutineModificationPayload {
   routine: {
     name: string;
@@ -82,7 +79,6 @@ export interface RoutineModificationPayload {
   modification_message: string;
 }
 
-// DEPRECATED - Mantener para compatibilidad
 export interface ModifiedRoutineResponse {
   success: boolean;
   data: {
@@ -93,7 +89,6 @@ export interface ModifiedRoutineResponse {
   };
 }
 
-// Interface para la UI de selección de ejercicios
 export interface ExerciseModificationSelection {
   exerciseId: number;
   exerciseName: string;
@@ -101,12 +96,12 @@ export interface ExerciseModificationSelection {
 }
 
 export const MUSCLE_GROUPS = [
-  'Pecho',
-  'Espalda', 
-  'Hombros',
-  'Brazos',
-  'Piernas',
-  'Glúteos',
-  'Abdomen',
-  'Cardio'
+  "Pecho",
+  "Espalda",
+  "Hombros",
+  "Brazos",
+  "Piernas",
+  "Glúteos",
+  "Abdomen",
+  "Cardio",
 ];

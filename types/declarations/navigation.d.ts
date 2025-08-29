@@ -3,6 +3,7 @@ declare module "@react-navigation/native" {
   export function NavigationContainer(props: any): any;
   export type NavigationContainerRef<T = any> = any;
   export function useRoute(): any;
+  export function useNavigation<T = any>(): T;
   export type RouteProp<T, K extends keyof T> = any;
   export function useFocusEffect(callback: () => void | (() => void)): void;
 }

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { format, isToday, isYesterday } from 'date-fns';
-import { Message } from '../types/chat';
+import React from "react";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { format, isToday, isYesterday } from "date-fns";
+import { Message } from "../types/chat";
 
 interface ChatBubbleProps {
   message: Message;
@@ -22,21 +22,21 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 }: ChatBubbleProps) => {
   const formatMessageTime = (dateString: string): string => {
     const date = new Date(dateString);
-    
+
     if (isToday(date)) {
-      return format(date, 'HH:mm');
+      return format(date, "HH:mm");
     } else if (isYesterday(date)) {
-      return `Ayer ${format(date, 'HH:mm')}`;
+      return `Ayer ${format(date, "HH:mm")}`;
     } else {
-      return format(date, 'dd/MM/yyyy HH:mm');
+      return format(date, "dd/MM/yyyy HH:mm");
     }
   };
 
   const getMessageStatus = (): string => {
     if (message.read_at) {
-      return 'Leído';
+      return "Leído";
     }
-    return 'Enviado';
+    return "Enviado";
   };
 
   return (
@@ -45,12 +45,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         styles.rowContainer,
         isCurrentUser ? styles.alignEnd : styles.alignStart,
         isCurrentUser ? styles.nudgeRight : styles.nudgeLeft,
-        // Reduce vertical spacing within a group
         isLastInGroup ? styles.rowMarginLarge : styles.rowMarginTight,
       ]}
     >
       <View style={[styles.innerRow, isCurrentUser ? styles.rowReverse : null]}>
-        {/* Avatar for other user, only on first in group */}
         {!isCurrentUser && showAvatar && isFirstInGroup && (
           <View style={styles.avatarWrapper}>
             {message.sender?.profile_picture_url ? (
@@ -69,19 +67,16 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
           </View>
         )}
 
-        {/* Message bubble */}
         <View style={styles.flex1}>
           <View
             style={[
               styles.messageBubble,
               isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble,
-              // Shadows: cleaner look for own messages; light for others on edges only
               isCurrentUser
                 ? styles.shadowNone
                 : isFirstInGroup || isLastInGroup
                 ? styles.shadowLight
                 : styles.shadowNone,
-              // Tail for first in group
               isCurrentUser
                 ? isFirstInGroup
                   ? styles.tailCurrentUser
@@ -91,14 +86,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
                 : styles.tailOtherUserGroup,
             ]}
           >
-            {/* Sender name only for other user and only on first in group */}
             {!isCurrentUser && isFirstInGroup && (
               <Text style={styles.senderName}>
                 {message.sender.first_name} {message.sender.last_name}
               </Text>
             )}
 
-            {/* Message content */}
             <Text
               style={[
                 styles.messageText,
@@ -108,23 +101,26 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
               {message.content}
             </Text>
 
-            {/* Message metadata for non-text types */}
-            {message.message_type !== 'text' && (
+            {message.message_type !== "text" && (
               <Text
                 style={[
                   styles.metaText,
                   isCurrentUser ? styles.metaTextCurrent : styles.metaTextOther,
                 ]}
               >
-                {message.message_type === 'image' && '📷 Imagen'}
-                {message.message_type === 'file' && '📎 Archivo'}
+                {message.message_type === "image" && "📷 Imagen"}
+                {message.message_type === "file" && "📎 Archivo"}
               </Text>
             )}
           </View>
 
-          {/* Timestamp and status: only when last in group */}
           {showTimestamp && isLastInGroup && (
-            <View style={[styles.timestampRow, isCurrentUser ? styles.alignEnd : styles.alignStart]}>
+            <View
+              style={[
+                styles.timestampRow,
+                isCurrentUser ? styles.alignEnd : styles.alignStart,
+              ]}
+            >
               <Text style={styles.timestampText}>
                 {formatMessageTime(message.created_at)}
                 {isCurrentUser && (
@@ -143,69 +139,76 @@ const styles = StyleSheet.create({
   rowContainer: {
     paddingHorizontal: 16,
   },
-  // Nudge others slightly further to the left, and own slightly from the right
   nudgeLeft: { paddingLeft: 8, paddingRight: 16 },
   nudgeRight: { paddingRight: 8, paddingLeft: 16 },
   rowMarginLarge: { marginBottom: 12 },
   rowMarginTight: { marginBottom: 4 },
-  alignEnd: { alignItems: 'flex-end' },
-  alignStart: { alignItems: 'flex-start' },
+  alignEnd: { alignItems: "flex-end" },
+  alignStart: { alignItems: "flex-start" },
   innerRow: {
-    flexDirection: 'row',
-    maxWidth: '85%',
+    flexDirection: "row",
+    maxWidth: "85%",
   },
-  rowReverse: { flexDirection: 'row-reverse' },
+  rowReverse: { flexDirection: "row-reverse" },
   flex1: { flex: 1 },
   messageBubble: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
   },
-  // Shadow presets
   shadowNone: {
-    shadowColor: 'transparent',
+    shadowColor: "transparent",
     shadowOpacity: 0,
     elevation: 0,
   },
   shadowLight: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 1.5,
     elevation: 1,
   },
   currentUserBubble: {
-    backgroundColor: '#3B82F6', // Blue-500
+    backgroundColor: "#3B82F6",
     borderBottomRightRadius: 4,
   },
   otherUserBubble: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#E5E7EB', // Gray-200
+    borderColor: "#E5E7EB",
   },
-  // Tail radius variations
-  tailCurrentUser: { borderBottomRightRadius: 4, borderBottomLeftRadius: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+  tailCurrentUser: {
+    borderBottomRightRadius: 4,
+    borderBottomLeftRadius: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
   tailCurrentUserGroup: { borderBottomRightRadius: 16 },
-  tailOtherUser: { borderBottomLeftRadius: 4, borderBottomRightRadius: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+  tailOtherUser: {
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
   tailOtherUserGroup: { borderBottomLeftRadius: 16 },
   messageText: {
     fontSize: 16,
     lineHeight: 20,
   },
   currentUserText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   otherUserText: {
-    color: '#1F2937', // Gray-800
+    color: "#1F2937",
   },
   metaText: { fontSize: 12, marginTop: 4 },
-  metaTextCurrent: { color: '#DBEAFE' }, // Blue-100
-  metaTextOther: { color: '#6B7280' }, // Gray-500
+  metaTextCurrent: { color: "#DBEAFE" },
+  metaTextOther: { color: "#6B7280" },
   senderName: {
     fontSize: 12,
-    color: '#6B7280', // Gray-500
-    fontWeight: '600',
+    color: "#6B7280",
+    fontWeight: "600",
     marginBottom: 4,
   },
   avatarWrapper: { marginRight: 12, marginTop: 4 },
@@ -214,14 +217,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#6366F1', // Indigo-500
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#6366F1",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  fallbackAvatarText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
-  timestampRow: { marginTop: 4, width: '100%' },
-  timestampText: { fontSize: 12, color: '#6B7280' },
-  statusText: { fontSize: 12, color: '#9CA3AF' },
+  fallbackAvatarText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
+  timestampRow: { marginTop: 4, width: "100%" },
+  timestampText: { fontSize: 12, color: "#6B7280" },
+  statusText: { fontSize: 12, color: "#9CA3AF" },
 });
 
 export default ChatBubble;

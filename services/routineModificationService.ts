@@ -1,5 +1,4 @@
 import { apiClient } from "./apiClient";
-import routineService from "./routineService";
 import {
   AIRoutine,
   RoutineModificationPayload,
@@ -8,7 +7,6 @@ import {
   ModifiedExercisesResponse,
   RoutineExercise,
 } from "../types/routineModification";
-
 const routineModificationService = {
   getUserAIRoutines: async (): Promise<AIRoutine[]> => {
     try {
@@ -35,24 +33,14 @@ const routineModificationService = {
     }
   },
 
-  // NUEVO MÉTODO - Modificar ejercicios específicos
   modifyExercises: async (
     payload: ExerciseModificationPayload
   ): Promise<ModifiedExercisesResponse> => {
     try {
-      console.log("📤 ENVIANDO A IA PARA MODIFICAR EJERCICIOS:");
-      console.log("💬 Mensaje del usuario:", payload.user_message);
-      console.log("🏃‍♂️ Ejercicios a modificar:", payload.exercises?.length || 0);
-      console.log("📄 Payload completo:", JSON.stringify(payload, null, 2));
-
       const response = await apiClient.post(
         "/api/v1/ai/workout_routines/modify",
         payload
       );
-
-      console.log("✅ RESPUESTA DE IA MODIFICACIÓN:");
-      console.log("📊 Status:", response.status);
-      console.log("📄 Response data:", JSON.stringify(response.data, null, 2));
 
       if (response.data.success) {
         return response.data;
@@ -60,12 +48,6 @@ const routineModificationService = {
         throw new Error("Error al modificar los ejercicios");
       }
     } catch (error: any) {
-      console.log("❌ ERROR EN MODIFICACIÓN DE EJERCICIOS:");
-      console.log("📊 Status:", error.response?.status || 'Sin status');
-      console.log("📄 Error response:", JSON.stringify(error.response?.data, null, 2));
-      console.log("📝 Error message:", error.message);
-      console.log("🔍 Error completo:", error);
-
       if (error.response?.status === 401) {
         throw new Error("No hay token de autenticación");
       } else if (error.response?.status === 400) {
@@ -96,7 +78,6 @@ const routineModificationService = {
     }
   },
 
-  // DEPRECATED - Mantener para compatibilidad
   modifyRoutine: async (
     payload: RoutineModificationPayload
   ): Promise<ModifiedRoutineResponse> => {
@@ -165,7 +146,6 @@ const routineModificationService = {
     originalRoutineId?: number
   ): Promise<AIRoutine> => {
     try {
-
       const cleanRoutineData = {
         name: modifiedRoutineData.name,
         description: modifiedRoutineData.description,
@@ -174,16 +154,17 @@ const routineModificationService = {
       };
 
       const cleanExercises =
-        (modifiedRoutineData.routine_exercises_attributes || modifiedRoutineData.routine_exercises)?.map(
-          (exercise: any, index: number) => ({
-            exercise_id: exercise.exercise_id,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            rest_time: exercise.rest_time,
-            order: index + 1,
-            _destroy: false,
-          })
-        ) || [];
+        (
+          modifiedRoutineData.routine_exercises_attributes ||
+          modifiedRoutineData.routine_exercises
+        )?.map((exercise: any, index: number) => ({
+          exercise_id: exercise.exercise_id,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          rest_time: exercise.rest_time,
+          order: index + 1,
+          _destroy: false,
+        })) || [];
 
       const routineToSave = {
         ...cleanRoutineData,
@@ -264,20 +245,128 @@ const routineModificationService = {
             reps: exercise.reps,
             rest_time: exercise.rest_time,
             order: index + 1,
-            _destroy: false,
           })
         ) || [],
     };
   },
 
-  // NUEVO MÉTODO - Modificar ejercicios específicos y guardar rutina
+  saveModifiedRoutineWithReplacement: async (
+    routineUpdateData: any,
+    originalRoutine: AIRoutine
+  ): Promise<AIRoutine> => {
+    try {
+      const exercisesToDestroy = routineUpdateData.selectedExerciseIds.map(
+        (id: number) => ({
+          id: id,
+          _destroy: true,
+        })
+      );
+
+      const deletePayload = {
+        name: routineUpdateData.name,
+        description: routineUpdateData.description,
+        difficulty: routineUpdateData.difficulty,
+        duration: routineUpdateData.duration,
+        routine_exercises_attributes: exercisesToDestroy,
+      };
+
+      await apiClient.put(`/routines/${originalRoutine.id}`, {
+        routine: deletePayload,
+      });
+
+      const updatedRoutineResponse = await apiClient.get(
+        `/routines/${originalRoutine.id}`
+      );
+      const updatedRoutine = updatedRoutineResponse.data;
+
+      const currentOrders = (updatedRoutine.routine_exercises || [])
+        .map((ex: any) => ex.order)
+        .sort((a: number, b: number) => a - b);
+
+      const findAvailableOrders = (
+        currentOrders: number[],
+        neededCount: number
+      ): number[] => {
+        const availableOrders: number[] = [];
+        let currentIndex = 1;
+
+        for (
+          let i = 0;
+          i < currentOrders.length && availableOrders.length < neededCount;
+          i++
+        ) {
+          while (
+            currentIndex < currentOrders[i] &&
+            availableOrders.length < neededCount
+          ) {
+            availableOrders.push(currentIndex);
+            currentIndex++;
+          }
+          currentIndex = currentOrders[i] + 1;
+        }
+
+        while (availableOrders.length < neededCount) {
+          availableOrders.push(currentIndex);
+          currentIndex++;
+        }
+
+        return availableOrders;
+      };
+
+      const availableOrders = findAvailableOrders(
+        currentOrders,
+        routineUpdateData.newExercises.length
+      );
+
+      const newExercises = routineUpdateData.newExercises.map(
+        (aiExercise: any, index: number) => ({
+          exercise_id: aiExercise.exercise_id,
+          sets: aiExercise.sets,
+          reps: aiExercise.reps,
+          rest_time: aiExercise.rest_time,
+          order: availableOrders[index],
+        })
+      );
+
+      const addPayload = {
+        name: routineUpdateData.name,
+        description: routineUpdateData.description,
+        difficulty: routineUpdateData.difficulty,
+        duration: routineUpdateData.duration,
+        routine_exercises_attributes: newExercises,
+      };
+
+      const finalResponse = await apiClient.put(
+        `/routines/${originalRoutine.id}`,
+        {
+          routine: addPayload,
+        }
+      );
+
+      return finalResponse.data;
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        const errorDetails = error.response?.data?.errors || [];
+        const errorMessage = Array.isArray(errorDetails)
+          ? errorDetails.join(", ")
+          : "Error de validación al reemplazar ejercicios";
+        throw new Error(`Error de validación: ${errorMessage}`);
+      } else {
+        throw new Error(
+          error.response?.data?.error ||
+            error.message ||
+            "Error al guardar rutina con ejercicios reemplazados"
+        );
+      }
+    }
+  },
+
   modifyExercisesAndSaveRoutine: async (
     routine: AIRoutine,
     selectedExercises: RoutineExercise[],
     userMessage: string
   ): Promise<AIRoutine> => {
     try {
-      // 1. Preparar payload para IA con solo ejercicios seleccionados
       const exercisesPayload: ExerciseModificationPayload = {
         user_message: userMessage,
         exercises: selectedExercises.map((exercise, index) => ({
@@ -289,26 +378,28 @@ const routineModificationService = {
         })),
       };
 
-      // 2. Llamar a IA para modificar ejercicios
       const aiResponse = await routineModificationService.modifyExercises(
         exercisesPayload
       );
-
-      // 3. Limitar ejercicios AI a la cantidad enviada originalmente
-      const limitedAiExercises = aiResponse.data.exercises.slice(0, selectedExercises.length);
-      
-      // 4. Reemplazar ejercicios en la rutina original
-      const updatedRoutine = routineModificationService.replaceExercisesInRoutine(
-        routine,
-        selectedExercises,
-        limitedAiExercises
+      const limitedAiExercises = aiResponse.data.exercises.slice(
+        0,
+        selectedExercises.length
       );
 
-      // 5. Guardar rutina actualizada
-      const savedRoutine = await routineModificationService.saveModifiedRoutine(
-        updatedRoutine,
-        routine.id
-      );
+      const routineUpdateData = {
+        name: routine.name,
+        description: routine.description,
+        difficulty: routine.difficulty,
+        duration: routine.duration,
+        selectedExerciseIds: selectedExercises.map((ex) => ex.id),
+        newExercises: limitedAiExercises,
+      };
+
+      const savedRoutine =
+        await routineModificationService.saveModifiedRoutineWithReplacement(
+          routineUpdateData,
+          routine
+        );
       return savedRoutine;
     } catch (error: any) {
       console.error("❌ [ERROR]:", error.message);
@@ -318,23 +409,19 @@ const routineModificationService = {
     }
   },
 
-  // NUEVO MÉTODO - Reemplazar ejercicios específicos en rutina
   replaceExercisesInRoutine: (
     originalRoutine: AIRoutine,
     originalExercises: RoutineExercise[],
     newExercises: any[]
   ): any => {
-    // Crear mapa de ejercicios originales por exercise_id para fácil lookup
     const originalExerciseIds = new Set(
-      originalExercises.map(ex => ex.exercise_id)
+      originalExercises.map((ex) => ex.exercise_id)
     );
 
-    // Filtrar ejercicios que NO fueron modificados
     const unchangedExercises = originalRoutine.routine_exercises.filter(
-      exercise => !originalExerciseIds.has(exercise.exercise_id)
+      (exercise) => !originalExerciseIds.has(exercise.exercise_id)
     );
 
-    // Combinar ejercicios no modificados + ejercicios nuevos de IA
     const allExercises = [
       ...unchangedExercises.map((exercise, index) => ({
         exercise_id: exercise.exercise_id,
@@ -354,7 +441,6 @@ const routineModificationService = {
       })),
     ];
 
-    // Renumerar orden secuencialmente
     allExercises.forEach((exercise, index) => {
       exercise.order = index + 1;
     });
@@ -373,7 +459,6 @@ const routineModificationService = {
     };
   },
 
-  // DEPRECATED - Mantener para compatibilidad
   modifyAndSaveRoutine: async (
     payload: RoutineModificationPayload,
     originalRoutineId?: number

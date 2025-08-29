@@ -265,15 +265,7 @@ const RoutineListScreen: React.FC<RoutineListScreenProps> = ({
     <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
       <ScreenHeader
         title={"Tus Rutinas"}
-        onBack={() => {
-          const canGoBack = navigation.canGoBack();
-
-          if (canGoBack) {
-            navigation.goBack();
-          } else {
-            navigation.navigate("UserHome");
-          }
-        }}
+        onBack={() => navigation.navigate("UserHome")}
       />
 
       <View className="flex-1 px-4 pb-4">

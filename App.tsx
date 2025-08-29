@@ -55,6 +55,14 @@ import ConversationListScreen from "./screens/chat/ConversationListScreen";
 import ChatScreen from "./screens/chat/ChatScreen";
 import ChatUserSelectionScreen from "./screens/chat/ChatUserSelectionScreen";
 import ExerciseManagementScreen from "./screens/coach/ExerciseManagementScreen";
+import ChallengeListScreen from "./screens/ChallengeListScreen";
+import ChallengeDetailScreen from "./screens/ChallengeDetailScreen";
+import ChallengeExecutionScreen from "./screens/ChallengeExecutionScreen";
+import ChallengeLeaderboardScreen from "./screens/ChallengeLeaderboardScreen";
+import MyAttemptsScreen from "./screens/MyAttemptsScreen";
+import CoachChallengeListScreen from "./screens/CoachChallengeListScreen";
+import CreateChallengeScreen from "./screens/CreateChallengeScreen";
+import ChallengeManagementScreen from "./screens/ChallengeManagementScreen";
 import { ChatProvider } from "./contexts/ChatContext";
 import authService from "./services/authService";
 import notificationService from "./services/notificationService";
@@ -71,7 +79,6 @@ const navigationConfig = {
   },
 };
 
-// Unified header style for chat-related screens
 const chatHeaderOptions = {
   headerShown: true,
   headerBackTitleVisible: false,
@@ -94,7 +101,6 @@ export default function App(): React.ReactElement {
           const userData = await authService.getCurrentUser();
           setUser(userData);
 
-          // Initialize notifications for authenticated users
           try {
             await notificationService.initialize();
           } catch (notificationError) {
@@ -125,10 +131,8 @@ export default function App(): React.ReactElement {
         if (pendingNavigation) {
           const navigationData = JSON.parse(pendingNavigation);
 
-          // Clear the pending navigation
           await AsyncStorage.removeItem("pending_navigation");
 
-          // Navigate to the specified screen
           if (navigationData.screen === "Chat" && navigationData.params) {
             navigationRef.current.navigate("Chat", navigationData.params);
           }
@@ -335,6 +339,21 @@ export default function App(): React.ReactElement {
                 headerShown: false,
               }}
             />
+            <Stack.Screen name="ChallengeList" component={ChallengeListScreen} />
+            <Stack.Screen name="ChallengeDetail" component={ChallengeDetailScreen} />
+            <Stack.Screen 
+              name="ChallengeExecution" 
+              component={ChallengeExecutionScreen}
+              options={{ 
+                title: "Desafío en Curso",
+                headerShown: false 
+              }}
+            />
+            <Stack.Screen name="ChallengeLeaderboard" component={ChallengeLeaderboardScreen} />
+            <Stack.Screen name="MyAttempts" component={MyAttemptsScreen} />
+            <Stack.Screen name="CoachChallengeList" component={CoachChallengeListScreen} />
+            <Stack.Screen name="CreateChallenge" component={CreateChallengeScreen} />
+            <Stack.Screen name="ChallengeManagement" component={ChallengeManagementScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaView>

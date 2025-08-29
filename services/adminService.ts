@@ -1,4 +1,4 @@
-import { apiClient, TOKEN_KEY, USER_KEY } from "./apiClient";
+import { apiClient } from "./apiClient";
 import type { User } from "../types/index";
 
 interface AdminRegisterData {

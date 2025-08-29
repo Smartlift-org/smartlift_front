@@ -74,7 +74,6 @@ const ConversationList: React.FC<ConversationListProps> = ({
     const lastMessageTime = formatLastMessageTime(item.last_message_at);
     const lastMessagePreview = getLastMessagePreview(item);
 
-    // Handle case where participant might be undefined or missing properties
     if (!participant) {
       return null;
     }
