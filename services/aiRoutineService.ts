@@ -7,7 +7,7 @@ const aiRoutineService = {
   ): Promise<AIRoutineResponse[]> => {
     try {
       const response = await apiClient.post(
-        "/api/v1/ai/workout_routines",
+        "/ai/workout_routines",
         params
       );
 
