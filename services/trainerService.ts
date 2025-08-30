@@ -17,7 +17,7 @@ const trainerService = {
   ): Promise<PaginatedResponse<Member>> => {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/members`,
+        `/trainers/${trainerId}/members`,
         {
           params: {
             page,
@@ -36,7 +36,7 @@ const trainerService = {
   async getDashboard(trainerId: string): Promise<TrainerDashboard> {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/dashboard`
+        `/trainers/${trainerId}/dashboard`
       );
       const data = response.data;
 
@@ -56,7 +56,7 @@ const trainerService = {
   assignMember: async (trainerId: string, userId: string) => {
     try {
       const response = await apiClient.post(
-        `/api/v1/trainers/${trainerId}/members`,
+        `/trainers/${trainerId}/members`,
         { user_id: userId }
       );
       return response.data;
@@ -68,7 +68,7 @@ const trainerService = {
   unassignMember: async (trainerId: string, userId: string) => {
     try {
       const response = await apiClient.delete(
-        `/api/v1/trainers/${trainerId}/members/${userId}`
+        `/trainers/${trainerId}/members/${userId}`
       );
       return response.data;
     } catch (error) {
@@ -79,7 +79,7 @@ const trainerService = {
   getMemberProfile: async (trainerId: string, memberId: string) => {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/members/${memberId}`
+        `/trainers/${trainerId}/members/${memberId}`
       );
       const memberData = response.data;
 
@@ -111,7 +111,7 @@ const trainerService = {
   ) => {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/members/${memberId}/activity`,
+        `/trainers/${trainerId}/members/${memberId}/activity`,
         {
           params: {
             page,
@@ -133,7 +133,7 @@ const trainerService = {
   ): Promise<PaginatedResponse<AvailableUser>> => {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/available_users`,
+        `/trainers/${trainerId}/available_users`,
         {
           params: {
             page,
@@ -160,7 +160,7 @@ const trainerService = {
   ): Promise<PaginatedRoutinesResponse> => {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/routines`,
+        `/trainers/${trainerId}/routines`,
         {
           params: {
             page,
@@ -183,7 +183,7 @@ const trainerService = {
   ): Promise<TrainerRoutine> => {
     try {
       const response = await apiClient.post(
-        `/api/v1/trainers/${trainerId}/members/${userId}/assign_routine`,
+        `/trainers/${trainerId}/members/${userId}/assign_routine`,
         {
           routine_id: routineId,
           custom_name: customName,
@@ -203,7 +203,7 @@ const trainerService = {
   ) => {
     try {
       const response = await apiClient.get(
-        `/api/v1/trainers/${trainerId}/members/${memberId}/routines`,
+        `/trainers/${trainerId}/members/${memberId}/routines`,
         {
           params: {
             page,
@@ -224,7 +224,7 @@ const trainerService = {
   ) => {
     try {
       const response = await apiClient.delete(
-        `/api/v1/trainers/${trainerId}/members/${memberId}/routines/${routineId}`
+        `/trainers/${trainerId}/members/${memberId}/routines/${routineId}`
       );
       return response.data;
     } catch (error) {
@@ -240,7 +240,7 @@ const trainerService = {
   ) => {
     try {
       const response = await apiClient.put(
-        `/api/v1/trainers/${trainerId}/members/${memberId}/routines/${routineId}`,
+        `/trainers/${trainerId}/members/${memberId}/routines/${routineId}`,
         { routine: routineData }
       );
       return response.data;

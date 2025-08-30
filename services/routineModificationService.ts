@@ -38,7 +38,7 @@ const routineModificationService = {
   ): Promise<ModifiedExercisesResponse> => {
     try {
       const response = await apiClient.post(
-        "/api/v1/ai/workout_routines/modify",
+        "/ai/workout_routines/modify",
         payload
       );
 
@@ -83,7 +83,7 @@ const routineModificationService = {
   ): Promise<ModifiedRoutineResponse> => {
     try {
       const response = await apiClient.post(
-        "/api/v1/ai/workout_routines/modify",
+        "/ai/workout_routines/modify",
         payload
       );
 

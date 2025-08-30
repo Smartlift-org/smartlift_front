@@ -6,7 +6,7 @@ export const challengeService = {
   getAvailableChallenges: async (): Promise<Challenge[]> => {
     return executeApiCall(
       async () => {
-        const response = await apiClient.get("/api/v1/challenges");
+        const response = await apiClient.get("/challenges");
         return response.data;
       },
       { 404: "No tienes un entrenador asignado" }
@@ -16,7 +16,7 @@ export const challengeService = {
   getChallengeDetail: async (challengeId: number): Promise<Challenge> => {
     return executeApiCall(
       async () => {
-        const response = await apiClient.get(`/api/v1/challenges/${challengeId}`);
+        const response = await apiClient.get(`/challenges/${challengeId}`);
         return response.data;
       },
       { 404: "Desafío no encontrado" }
@@ -27,7 +27,7 @@ export const challengeService = {
     return executeApiCall(
       async () => {
         const response = await apiClient.get(
-          `/api/v1/challenges/${challengeId}/leaderboard`
+          `/challenges/${challengeId}/leaderboard`
         );
         if (response.data.success) {
           return response.data.data;
@@ -41,7 +41,7 @@ export const challengeService = {
   getMyChallenges: async (): Promise<Challenge[]> => {
     return executeApiCall(
       async () => {
-        const response = await apiClient.get("/api/v1/challenges/my_challenges");
+        const response = await apiClient.get("/challenges/my_challenges");
         return response.data;
       },
       { 403: "Solo los entrenadores pueden acceder a esta función" }
@@ -53,7 +53,7 @@ export const challengeService = {
   ): Promise<Challenge> => {
     return executeApiCall(
       async () => {
-        const response = await apiClient.post("/api/v1/challenges", {
+        const response = await apiClient.post("/challenges", {
           challenge: challengeData,
         });
         return response.data;
@@ -65,7 +65,7 @@ export const challengeService = {
   deleteChallenge: async (challengeId: number): Promise<void> => {
     return executeApiCall(
       async () => {
-        await apiClient.delete(`/api/v1/challenges/${challengeId}`);
+        await apiClient.delete(`/challenges/${challengeId}`);
       },
       {
         403: "No tienes permisos para eliminar este desafío",

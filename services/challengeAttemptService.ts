@@ -7,7 +7,7 @@ export const challengeAttemptService = {
     return executeApiCall(
       async () => {
         const response = await apiClient.post(
-          `/api/v1/challenges/${challengeId}/attempts`
+          `/challenges/${challengeId}/attempts`
         );
         return handleApiResponse<ChallengeAttempt>(response, "Error al iniciar el intento");
       },
@@ -31,7 +31,7 @@ export const challengeAttemptService = {
     return executeApiCall(
       async () => {
         const response = await apiClient.put(
-          `/api/v1/challenges/${challengeId}/attempts/${attemptId}/complete`,
+          `/challenges/${challengeId}/attempts/${attemptId}/complete`,
           data
         );
         if (response.data.success) {
@@ -57,7 +57,7 @@ export const challengeAttemptService = {
     return executeApiCall(
       async () => {
         const response = await apiClient.put(
-          `/api/v1/challenges/${challengeId}/attempts/${attemptId}/abandon`
+          `/challenges/${challengeId}/attempts/${attemptId}/abandon`
         );
         return handleApiResponse<ChallengeAttempt>(response, "Error al abandonar el intento");
       },
@@ -72,7 +72,7 @@ export const challengeAttemptService = {
     return executeApiCall(
       async () => {
         const response = await apiClient.get(
-          `/api/v1/challenges/${challengeId}/attempts`
+          `/challenges/${challengeId}/attempts`
         );
         return handleApiResponse<ChallengeAttempt[]>(response, "Error al obtener el historial");
       },
@@ -83,7 +83,7 @@ export const challengeAttemptService = {
   getAllMyAttempts: async (): Promise<ChallengeAttempt[]> => {
     return executeApiCall(
       async () => {
-        const response = await apiClient.get("/api/v1/my-attempts");
+        const response = await apiClient.get("/my-attempts");
         return handleApiResponse<ChallengeAttempt[]>(response, "Error al obtener el historial");
       },
       { 404: "No tienes intentos registrados" }
@@ -97,7 +97,7 @@ export const challengeAttemptService = {
     return executeApiCall(
       async () => {
         const response = await apiClient.get(
-          `/api/v1/challenges/${challengeId}/attempts/${attemptId}`
+          `/challenges/${challengeId}/attempts/${attemptId}`
         );
         return handleApiResponse<ChallengeAttempt>(response, "Error al obtener el intento");
       },
