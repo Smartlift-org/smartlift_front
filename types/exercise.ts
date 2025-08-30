@@ -5,6 +5,7 @@ export interface Exercise {
   primary_muscles: string[];
   level: "beginner" | "intermediate" | "expert";
   images: string[];
+  video_url?: string;
   difficulty_level: number;
 }
 

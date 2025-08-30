@@ -15,18 +15,11 @@ class ChatService {
       const response = await apiClient.get("/conversations", {
         params: { page },
       });
-      // Ensure we always return a proper structure
       if (!response.data) {
         return { conversations: [] };
       }
-
-      // If API returns conversations directly as array
       if (Array.isArray(response.data)) {
-        // Map the API response to our expected structure
         const mappedConversations = response.data.map((conv: any) => {
-          // Determine who is the "other participant" based on current user role
-          // For coaches, the other participant is the user
-          // For users, the other participant is the coach
           const otherParticipant = conv.user || conv.coach;
 
           return {
@@ -38,7 +31,6 @@ class ChatService {
         return { conversations: mappedConversations };
       }
 
-      // If API returns proper structure but conversations is undefined
       if (response.data && !response.data.conversations) {
         logger.warn("API returned object but no conversations property");
         return { conversations: [] };

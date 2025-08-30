@@ -52,7 +52,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     setMessage("");
     handleStopTyping();
 
-    // Focus back to input after sending
     setTimeout(() => {
       inputRef.current?.focus();
     }, 100);
@@ -61,19 +60,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const handleTextChange = (text: string) => {
     setMessage(text);
 
-    // Handle typing indicators
     if (text.trim() && !isTyping) {
       handleStartTyping();
     } else if (!text.trim() && isTyping) {
       handleStopTyping();
     }
 
-    // Reset typing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-
-    // Stop typing after 3 seconds of inactivity
     if (text.trim()) {
       typingTimeoutRef.current = setTimeout(() => {
         handleStopTyping();
@@ -100,7 +95,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -109,7 +103,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     };
   }, []);
 
-  // Handle focus events
   const handleFocus = () => {
     if (message.trim()) {
       handleStartTyping();
@@ -129,7 +122,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     >
       <View className="bg-white border-t border-gray-200 px-4 py-3">
         <View className="flex-row items-end space-x-3">
-          {/* Text Input */}
           <View className="flex-1">
             <TextInput
               ref={inputRef}
@@ -156,7 +148,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
               blurOnSubmit={false}
             />
 
-            {/* Character count */}
             {message.length > maxLength * 0.8 && (
               <Text
                 className={`text-xs mt-1 text-right ${
@@ -168,7 +159,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
             )}
           </View>
 
-          {/* Send Button */}
           <TouchableOpacity
             onPress={handleSendMessage}
             disabled={!canSend}
@@ -185,7 +175,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Status indicators */}
         {disabled && (
           <Text className="text-xs text-gray-500 mt-2 text-center">
             Chat deshabilitado

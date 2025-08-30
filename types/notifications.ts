@@ -1,9 +1,10 @@
-// Push Notifications types for Expo integration
-
-export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined';
+export type NotificationPermissionStatus =
+  | "granted"
+  | "denied"
+  | "undetermined";
 
 export interface PushNotificationData {
-  type: 'chat_message';
+  type: "chat_message";
   conversation_id: number;
   message_id: number;
   sender_id: number;

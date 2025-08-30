@@ -3,8 +3,10 @@ import {
   AIRoutine,
   RoutineModificationPayload,
   ModifiedRoutineResponse,
+  ExerciseModificationPayload,
+  ModifiedExercisesResponse,
+  RoutineExercise,
 } from "../types/routineModification";
-
 const routineModificationService = {
   getUserAIRoutines: async (): Promise<AIRoutine[]> => {
     try {
@@ -26,6 +28,51 @@ const routineModificationService = {
           error.response?.data?.error ||
             error.message ||
             "Error al obtener rutinas IA"
+        );
+      }
+    }
+  },
+
+  modifyExercises: async (
+    payload: ExerciseModificationPayload
+  ): Promise<ModifiedExercisesResponse> => {
+    try {
+      const response = await apiClient.post(
+        "/api/v1/ai/workout_routines/modify",
+        payload
+      );
+
+      if (response.data.success) {
+        return response.data;
+      } else {
+        throw new Error("Error al modificar los ejercicios");
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error("No hay token de autenticación");
+      } else if (error.response?.status === 400) {
+        const details = error.response?.data?.details;
+        if (details && typeof details === "object") {
+          const errorMessages = Object.entries(details)
+            .map(
+              ([field, messages]) =>
+                `${field}: ${
+                  Array.isArray(messages) ? messages.join(", ") : messages
+                }`
+            )
+            .join("; ");
+          throw new Error(`Datos inválidos: ${errorMessages}`);
+        }
+        throw new Error("Datos de modificación inválidos");
+      } else if (error.response?.status === 422) {
+        throw new Error("Servicio de IA devolvió respuesta inválida");
+      } else if (error.response?.status === 503) {
+        throw new Error("Servicio de IA temporalmente no disponible");
+      } else {
+        throw new Error(
+          error.response?.data?.error ||
+            error.message ||
+            "Error al modificar los ejercicios"
         );
       }
     }
@@ -104,22 +151,20 @@ const routineModificationService = {
         description: modifiedRoutineData.description,
         difficulty: modifiedRoutineData.difficulty,
         duration: modifiedRoutineData.duration,
-        source_type: "ai_generated",
-        ai_generated: true,
-        validation_status: "pending",
       };
 
       const cleanExercises =
-        modifiedRoutineData.routine_exercises?.map(
-          (exercise: any, index: number) => ({
-            exercise_id: exercise.exercise_id,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            rest_time: exercise.rest_time,
-            order: index + 1,
-            _destroy: false,
-          })
-        ) || [];
+        (
+          modifiedRoutineData.routine_exercises_attributes ||
+          modifiedRoutineData.routine_exercises
+        )?.map((exercise: any, index: number) => ({
+          exercise_id: exercise.exercise_id,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          rest_time: exercise.rest_time,
+          order: index + 1,
+          _destroy: false,
+        })) || [];
 
       const routineToSave = {
         ...cleanRoutineData,
@@ -200,9 +245,217 @@ const routineModificationService = {
             reps: exercise.reps,
             rest_time: exercise.rest_time,
             order: index + 1,
-            _destroy: false,
           })
         ) || [],
+    };
+  },
+
+  saveModifiedRoutineWithReplacement: async (
+    routineUpdateData: any,
+    originalRoutine: AIRoutine
+  ): Promise<AIRoutine> => {
+    try {
+      const exercisesToDestroy = routineUpdateData.selectedExerciseIds.map(
+        (id: number) => ({
+          id: id,
+          _destroy: true,
+        })
+      );
+
+      const deletePayload = {
+        name: routineUpdateData.name,
+        description: routineUpdateData.description,
+        difficulty: routineUpdateData.difficulty,
+        duration: routineUpdateData.duration,
+        routine_exercises_attributes: exercisesToDestroy,
+      };
+
+      await apiClient.put(`/routines/${originalRoutine.id}`, {
+        routine: deletePayload,
+      });
+
+      const updatedRoutineResponse = await apiClient.get(
+        `/routines/${originalRoutine.id}`
+      );
+      const updatedRoutine = updatedRoutineResponse.data;
+
+      const currentOrders = (updatedRoutine.routine_exercises || [])
+        .map((ex: any) => ex.order)
+        .sort((a: number, b: number) => a - b);
+
+      const findAvailableOrders = (
+        currentOrders: number[],
+        neededCount: number
+      ): number[] => {
+        const availableOrders: number[] = [];
+        let currentIndex = 1;
+
+        for (
+          let i = 0;
+          i < currentOrders.length && availableOrders.length < neededCount;
+          i++
+        ) {
+          while (
+            currentIndex < currentOrders[i] &&
+            availableOrders.length < neededCount
+          ) {
+            availableOrders.push(currentIndex);
+            currentIndex++;
+          }
+          currentIndex = currentOrders[i] + 1;
+        }
+
+        while (availableOrders.length < neededCount) {
+          availableOrders.push(currentIndex);
+          currentIndex++;
+        }
+
+        return availableOrders;
+      };
+
+      const availableOrders = findAvailableOrders(
+        currentOrders,
+        routineUpdateData.newExercises.length
+      );
+
+      const newExercises = routineUpdateData.newExercises.map(
+        (aiExercise: any, index: number) => ({
+          exercise_id: aiExercise.exercise_id,
+          sets: aiExercise.sets,
+          reps: aiExercise.reps,
+          rest_time: aiExercise.rest_time,
+          order: availableOrders[index],
+        })
+      );
+
+      const addPayload = {
+        name: routineUpdateData.name,
+        description: routineUpdateData.description,
+        difficulty: routineUpdateData.difficulty,
+        duration: routineUpdateData.duration,
+        routine_exercises_attributes: newExercises,
+      };
+
+      const finalResponse = await apiClient.put(
+        `/routines/${originalRoutine.id}`,
+        {
+          routine: addPayload,
+        }
+      );
+
+      return finalResponse.data;
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        const errorDetails = error.response?.data?.errors || [];
+        const errorMessage = Array.isArray(errorDetails)
+          ? errorDetails.join(", ")
+          : "Error de validación al reemplazar ejercicios";
+        throw new Error(`Error de validación: ${errorMessage}`);
+      } else {
+        throw new Error(
+          error.response?.data?.error ||
+            error.message ||
+            "Error al guardar rutina con ejercicios reemplazados"
+        );
+      }
+    }
+  },
+
+  modifyExercisesAndSaveRoutine: async (
+    routine: AIRoutine,
+    selectedExercises: RoutineExercise[],
+    userMessage: string
+  ): Promise<AIRoutine> => {
+    try {
+      const exercisesPayload: ExerciseModificationPayload = {
+        user_message: userMessage,
+        exercises: selectedExercises.map((exercise, index) => ({
+          name: exercise.exercise.name,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          rest_time: exercise.rest_time,
+          order: index + 1,
+        })),
+      };
+
+      const aiResponse = await routineModificationService.modifyExercises(
+        exercisesPayload
+      );
+      const limitedAiExercises = aiResponse.data.exercises.slice(
+        0,
+        selectedExercises.length
+      );
+
+      const routineUpdateData = {
+        name: routine.name,
+        description: routine.description,
+        difficulty: routine.difficulty,
+        duration: routine.duration,
+        selectedExerciseIds: selectedExercises.map((ex) => ex.id),
+        newExercises: limitedAiExercises,
+      };
+
+      const savedRoutine =
+        await routineModificationService.saveModifiedRoutineWithReplacement(
+          routineUpdateData,
+          routine
+        );
+      return savedRoutine;
+    } catch (error: any) {
+      console.error("❌ [ERROR]:", error.message);
+      throw new Error(
+        error.message || "Error al modificar ejercicios y guardar la rutina"
+      );
+    }
+  },
+
+  replaceExercisesInRoutine: (
+    originalRoutine: AIRoutine,
+    originalExercises: RoutineExercise[],
+    newExercises: any[]
+  ): any => {
+    const originalExerciseIds = new Set(
+      originalExercises.map((ex) => ex.exercise_id)
+    );
+
+    const unchangedExercises = originalRoutine.routine_exercises.filter(
+      (exercise) => !originalExerciseIds.has(exercise.exercise_id)
+    );
+
+    const allExercises = [
+      ...unchangedExercises.map((exercise, index) => ({
+        exercise_id: exercise.exercise_id,
+        sets: exercise.sets,
+        reps: exercise.reps,
+        rest_time: exercise.rest_time,
+        order: index + 1,
+        _destroy: false,
+      })),
+      ...newExercises.map((exercise, index) => ({
+        exercise_id: exercise.exercise_id,
+        sets: exercise.sets,
+        reps: exercise.reps,
+        rest_time: exercise.rest_time,
+        order: unchangedExercises.length + index + 1,
+        _destroy: false,
+      })),
+    ];
+
+    allExercises.forEach((exercise, index) => {
+      exercise.order = index + 1;
+    });
+
+    return {
+      id: originalRoutine.id,
+      user_id: originalRoutine.user.id,
+      name: originalRoutine.name,
+      description: originalRoutine.description,
+      difficulty: originalRoutine.difficulty,
+      duration: originalRoutine.duration,
+      source_type: "ai_generated",
+      ai_generated: true,
+      validation_status: "pending",
+      routine_exercises_attributes: allExercises,
     };
   },
 

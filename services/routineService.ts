@@ -334,22 +334,6 @@ const routineService = {
     }
   },
 
-  checkRoutineNameExists: async (
-    name: string,
-    excludeRoutineId?: number
-  ): Promise<boolean> => {
-    try {
-      const routines = await routineService.getRoutines();
-
-      return routines.some(
-        (routine) =>
-          routine.name.toLowerCase() === name.toLowerCase() &&
-          (!excludeRoutineId || routine.id !== excludeRoutineId)
-      );
-    } catch (error) {
-      throw error;
-    }
-  },
 
   getActiveWorkouts: async (): Promise<WorkoutSession[]> => {
     try {

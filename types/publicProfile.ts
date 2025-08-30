@@ -1,5 +1,3 @@
-// Types for public profiles functionality
-
 export interface PrivacySettings {
   show_name: boolean;
   show_profile_picture: boolean;
@@ -14,7 +12,7 @@ export interface PersonalRecord {
   exercise_name: string;
   weight: number;
   reps: number;
-  pr_type: 'weight' | 'reps' | 'volume';
+  pr_type: "weight" | "reps" | "volume";
   achieved_at: string;
 }
 

@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
+  FlatList,
   TouchableOpacity,
-  ScrollView,
-  RefreshControl,
   ActivityIndicator,
+  RefreshControl,
+  StatusBar,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ScreenHeader from "../../components/ScreenHeader";
-import AppAlert from "../../components/AppAlert";
-import Avatar from "../../components/Avatar";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList, User } from "../../types";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList, User } from "../../types";
 import adminService from "../../services/adminService";
+import AppAlert from "../../components/AppAlert";
+import ScreenHeader from "../../components/ScreenHeader";
+import Avatar from "../../components/Avatar";
+import { useLoadingState } from "../../hooks/useLoadingState";
 
 type AdminCoachListScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "AdminCoachList">;
@@ -23,37 +26,43 @@ const AdminCoachListScreen: React.FC<AdminCoachListScreenProps> = ({
   navigation,
 }) => {
   const [coaches, setCoaches] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState(true);
+  const { isLoading: isRefreshing, withLoading: withRefresh } = useLoadingState();
 
-  const loadCoaches = async (showRefreshIndicator = false) => {
-    try {
-      if (showRefreshIndicator) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
+  const fetchCoaches = useCallback(async () => {
+    const coachList = await adminService.getCoaches();
+    setCoaches(coachList);
+  }, []);
+
+  const loadCoaches = useCallback(async () => {
+    await withLoading(async () => {
+      try {
+        await fetchCoaches();
+      } catch (error: any) {
+        AppAlert.error(
+          "Error",
+          error.message || "No se pudo cargar la lista de entrenadores"
+        );
       }
-
-      const coachList = await adminService.getCoaches();
-      setCoaches(coachList);
-    } catch (error: any) {
-      AppAlert.error(
-        "Error",
-        error.message || "No se pudo cargar la lista de entrenadores"
-      );
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
+    });
+  }, [withLoading, fetchCoaches]);
 
   useEffect(() => {
     loadCoaches();
   }, []);
 
-  const onRefresh = () => {
-    loadCoaches(true);
-  };
+  const onRefresh = useCallback(async () => {
+    await withRefresh(async () => {
+      try {
+        await fetchCoaches();
+      } catch (error: any) {
+        AppAlert.error(
+          "Error",
+          error.message || "No se pudo cargar la lista de entrenadores"
+        );
+      }
+    });
+  }, [withRefresh, fetchCoaches]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

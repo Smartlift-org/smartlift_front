@@ -19,7 +19,6 @@ export interface Routine {
   image_url?: string;
   exercises?: RoutineExercise[];
   routine_exercises?: RoutineExercise[];
-  // AI validation fields
   source_type?: "manual" | "ai_generated";
   ai_generated?: boolean;
   validation_status?: "pending" | "approved" | "rejected";

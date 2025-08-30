@@ -63,12 +63,26 @@ const aiRoutineService = {
 
     for (const routineResponse of routines) {
       try {
+        const routineData = routineResponse.routine as any;
+        const transformedRoutine = {
+          name: routineData.name,
+          description: routineData.description,
+          difficulty: routineData.difficulty,
+          duration: routineData.duration,
+          source_type: "ai_generated",
+          validation_status: "pending",
+          routine_exercises_attributes:
+            routineData.exercises?.map((exercise: any) => ({
+              exercise_id: exercise.exercise_id,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              rest_time: exercise.rest_time || 0,
+              order: exercise.order || 1,
+            })) || [],
+        };
+
         const response = await apiClient.post("/routines", {
-          routine: {
-            ...routineResponse.routine,
-            source_type: "ai_generated",
-            validation_status: "pending"
-          },
+          routine: transformedRoutine,
         });
 
         results.push({

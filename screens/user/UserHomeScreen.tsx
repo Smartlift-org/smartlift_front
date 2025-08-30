@@ -69,9 +69,22 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
     }
   };
 
+  const checkTrainerAssignment = async (): Promise<boolean> => {
+    const user = currentUser || (await authService.getCurrentUser());
+    const assignedCoachId = (user as any)?.coach_id;
+
+    if (!assignedCoachId) {
+      AppAlert.info(
+        "Sin entrenador",
+        "Aún no tienes un entrenador asignado. Contacta al administrador para que te asigne uno."
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleOpenChat = async () => {
     try {
-      // 1) Buscar conversación existente (usuario solo tendrá una con su coach)
       const { conversations } = await chatService.getConversations();
 
       if (conversations && conversations.length > 0) {
@@ -86,23 +99,15 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
         return;
       }
 
-      // 2) Si no hay conversación, intentar crearla con el coach asignado
-      // Intentamos obtener el coach asignado desde la info del usuario almacenada
+      const hasTrainer = await checkTrainerAssignment();
+      if (!hasTrainer) return;
+
       const user = currentUser || (await authService.getCurrentUser());
       const assignedCoachId =
-        // formatos posibles según backend/serializador
         (user as any)?.assigned_coach?.id ||
         (user as any)?.coach?.id ||
         (user as any)?.coach_id ||
         (user as any)?.assignedCoachId;
-
-      if (!assignedCoachId) {
-        AppAlert.info(
-          "Sin entrenador",
-          "Aún no tienes un entrenador asignado. Cuando tengas uno, podrás chatear desde aquí."
-        );
-        return;
-      }
 
       const newConv = await chatService.createConversation({
         coach_id: assignedCoachId,
@@ -116,6 +121,20 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
       });
     } catch (e: any) {
       AppAlert.error("Error", e?.message || "No se pudo abrir el chat");
+    }
+  };
+
+  const handleChallengeNavigation = async () => {
+    const hasTrainer = await checkTrainerAssignment();
+    if (hasTrainer) {
+      navigation.navigate("ChallengeList");
+    }
+  };
+
+  const handleMyAttemptsNavigation = async () => {
+    const hasTrainer = await checkTrainerAssignment();
+    if (hasTrainer) {
+      navigation.navigate("MyAttempts");
     }
   };
 
@@ -150,6 +169,32 @@ const UserHomeScreen: React.FC<UserHomeScreenProps> = ({ navigation }) => {
             <Text className="text-lg text-gray-600 font-medium italic">
               "{quote}"
             </Text>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              🏆 Desafíos Semanales
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Participa en desafíos creados por tu entrenador y compite por el
+              mejor tiempo.
+            </Text>
+            <TouchableOpacity
+              className="bg-orange-600 p-3 rounded-lg mb-2"
+              onPress={handleChallengeNavigation}
+            >
+              <Text className="text-white font-medium text-center">
+                🏆 Ver Desafíos
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-orange-100 p-3 rounded-lg"
+              onPress={handleMyAttemptsNavigation}
+            >
+              <Text className="text-orange-800 font-medium text-center">
+                📈 Mis Intentos
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-5">

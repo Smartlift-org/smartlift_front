@@ -16,6 +16,8 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types";
 import authService from "../../services/authService";
 import { Ionicons } from "@expo/vector-icons";
+import { useLoadingState } from "../../hooks/useLoadingState";
+import { validateEmail, sanitizeEmail } from "../../utils/authValidation";
 
 type ForgotPasswordScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "ForgotPassword">;
@@ -26,44 +28,54 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
 }) => {
   const [email, setEmail] = useState<string>("");
   const [token, setToken] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isValidatingToken, setIsValidatingToken] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState();
+  const { isLoading: isValidatingToken, withLoading: withTokenValidation } = useLoadingState();
   const [requestSent, setRequestSent] = useState<boolean>(false);
   const [tokenError, setTokenError] = useState<string>("");
 
   const handleForgotPassword = async (): Promise<void> => {
-    if (!email) {
-      AppAlert.error("Error", "Por favor ingresa tu correo electrónico");
+    const emailValidation = validateEmail(email);
+    if (emailValidation) {
+      AppAlert.error("Error", emailValidation);
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      AppAlert.error("Error", "Por favor ingresa un correo electrónico válido");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const sanitizedEmail = email.trim().toLowerCase();
+    await withLoading(async () => {
+      const sanitizedEmail = sanitizeEmail(email);
       await authService.forgotPassword(sanitizedEmail);
-
-      setIsLoading(false);
       setRequestSent(true);
-
       AppAlert.success(
         "Email enviado",
         "Si el correo electrónico está registrado, recibirás instrucciones para restablecer tu contraseña"
       );
-    } catch (error: any) {
-      setIsLoading(false);
+    }).catch((error: any) => {
+      AppAlert.error("Error", error.message || "Error al enviar el correo");
+    });
+  };
 
-      AppAlert.info(
-        "Solicitud procesada",
-        "Si el correo electrónico está registrado, recibirás instrucciones para restablecer tu contraseña"
-      );
+  const handleValidateToken = async (): Promise<void> => {
+    if (!token) {
+      setTokenError("Por favor ingresa el código de verificación");
+      return;
     }
+
+    if (token.length !== 6) {
+      setTokenError("El código debe tener 6 dígitos");
+      return;
+    }
+
+    setTokenError("");
+
+    await withTokenValidation(async () => {
+      const isValid = await authService.validateToken(token);
+      if (isValid) {
+        navigation.navigate("ResetPassword", { token });
+      } else {
+        setTokenError("Código inválido o expirado");
+      }
+    }).catch((error: any) => {
+      setTokenError(error.message || "Error al validar el código");
+    });
   };
 
   return (
@@ -167,77 +179,7 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
                     isValidatingToken ? "bg-opacity-50" : ""
                   }`}
                   disabled={isValidatingToken}
-                  onPress={async () => {
-                    const trimmedToken = token.trim();
-                    if (!trimmedToken) {
-                      setTokenError(
-                        "Por favor ingresa el token recibido en tu correo"
-                      );
-                      AppAlert.error(
-                        "Error",
-                        "Por favor ingresa el token recibido en tu correo"
-                      );
-                      return;
-                    }
-
-                    if (trimmedToken.length < 40) {
-                      setTokenError(
-                        "El token parece ser demasiado corto. Verifica que lo hayas copiado completamente"
-                      );
-                      AppAlert.error(
-                        "Error",
-                        "El token parece ser demasiado corto. Verifica que lo hayas copiado completamente"
-                      );
-                      return;
-                    }
-
-                    const validTokenRegex = /^[A-Za-z0-9\-_]+$/;
-                    if (!validTokenRegex.test(trimmedToken)) {
-                      setTokenError(
-                        "El token contiene caracteres no válidos. Por favor cópialo exactamente como aparece en el correo"
-                      );
-                      AppAlert.error(
-                        "Error",
-                        "El token contiene caracteres no válidos. Por favor cópialo exactamente como aparece en el correo"
-                      );
-                      return;
-                    }
-
-                    setTokenError("");
-                    setIsValidatingToken(true);
-
-                    try {
-                      const validationResult = await authService.validateToken(
-                        trimmedToken
-                      );
-                      setIsValidatingToken(false);
-
-                      if (validationResult.valid) {
-                        navigation.navigate("ResetPassword", {
-                          token: trimmedToken,
-                        });
-                      } else {
-                        setTokenError(
-                          validationResult.error ||
-                            "El token es inválido o ha expirado"
-                        );
-                        AppAlert.error(
-                          "Error",
-                          validationResult.error ||
-                            "El token es inválido o ha expirado"
-                        );
-                      }
-                    } catch (error) {
-                      setIsValidatingToken(false);
-                      setTokenError(
-                        "Error de conexión. Por favor intenta nuevamente."
-                      );
-                      AppAlert.error(
-                        "Error",
-                        "No se pudo validar el token. Verifica tu conexión a internet."
-                      );
-                    }
-                  }}
+                  onPress={handleValidateToken}
                 >
                   {isValidatingToken ? (
                     <ActivityIndicator color="#ffffff" />

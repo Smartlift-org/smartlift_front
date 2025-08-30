@@ -1,11 +1,9 @@
-// Chat related types for user-trainer messaging
-
 export interface ChatUser {
   id: number;
   first_name: string;
   last_name: string;
   email: string;
-  role: 'user' | 'coach';
+  role: "user" | "coach";
   profile_picture_url?: string;
 }
 
@@ -14,7 +12,7 @@ export interface Message {
   conversation_id: number;
   sender_id: number;
   content: string;
-  message_type: 'text' | 'image' | 'file';
+  message_type: "text" | "image" | "file";
   read_at?: string;
   created_at: string;
   updated_at: string;
@@ -26,7 +24,7 @@ export interface Conversation {
   id: number;
   user_id: number;
   coach_id: number;
-  status: 'active' | 'archived';
+  status: "active" | "archived";
   last_message_at?: string;
   created_at: string;
   updated_at: string;
@@ -61,12 +59,12 @@ export interface CreateConversationRequest {
 
 export interface CreateMessageRequest {
   content: string;
-  message_type: 'text' | 'image' | 'file';
+  message_type: "text" | "image" | "file";
   metadata?: any;
 }
 
 export interface WebSocketMessage {
-  type: 'new_message' | 'typing' | 'stop_typing';
+  type: "new_message" | "typing" | "stop_typing";
   message?: Message;
   user?: ChatUser;
   timestamp: string;
@@ -79,15 +77,13 @@ export interface ChatContextType {
   isLoading: boolean;
   error?: string;
   typingIndicators: TypingIndicator[];
-  
-  // Actions
+
   loadConversations: () => Promise<void>;
   loadConversation: (conversationId: number) => Promise<void>;
   sendMessage: (conversationId: number, content: string) => Promise<void>;
   markAsRead: (conversationId: number) => Promise<void>;
   createConversation: (participantId: number) => Promise<Conversation | null>;
-  
-  // WebSocket actions
+
   connectWebSocket: () => void;
   disconnectWebSocket: () => void;
   sendTyping: (conversationId: number) => void;

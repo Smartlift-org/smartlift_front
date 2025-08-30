@@ -121,6 +121,62 @@ const routineValidationService = {
       }
     }
   },
+
+  editRoutine: async (
+    routineId: number,
+    editData: {
+      name?: string;
+      description?: string;
+      difficulty?: "beginner" | "intermediate" | "advanced";
+      duration?: number;
+      routine_exercises_attributes?: Array<{
+        id?: number;
+        exercise_id?: number;
+        sets?: number;
+        reps?: number;
+        rest_time?: number;
+        order?: number;
+        _destroy?: boolean;
+      }>;
+      auto_validate?: boolean;
+      validation_notes?: string;
+    }
+  ): Promise<any> => {
+    try {
+      const response = await apiClient.put(
+        `/api/v1/routine_validations/${routineId}/edit`,
+        editData
+      );
+
+      if (response.data.success) {
+        return response.data.data.routine;
+      } else {
+        throw new Error(response.data.error || "Error al editar la rutina");
+      }
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        throw new Error("Solo se pueden editar rutinas pendientes de validación");
+      } else if (error.response?.status === 400) {
+        const details = error.response?.data?.details;
+        if (details && Array.isArray(details)) {
+          throw new Error(`Datos inválidos: ${details.join(", ")}`);
+        }
+        throw new Error("Datos de edición inválidos");
+      } else if (error.response?.status === 403) {
+        throw new Error(
+          "Acceso denegado. Solo los entrenadores pueden editar rutinas."
+        );
+      } else if (error.response?.status === 404) {
+        throw new Error("Rutina no encontrada");
+      } else {
+        throw new Error(
+          error.response?.data?.error ||
+            error.message ||
+            "Error al editar la rutina"
+        );
+      }
+    }
+  },
 };
 
 export default routineValidationService;

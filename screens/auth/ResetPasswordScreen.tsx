@@ -17,6 +17,8 @@ import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../types";
 import authService from "../../services/authService";
 import { Ionicons } from "@expo/vector-icons";
+import { useLoadingState } from "../../hooks/useLoadingState";
+import { validatePasswordConfirmation } from "../../utils/authValidation";
 
 type ResetPasswordScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "ResetPassword">;
@@ -30,48 +32,39 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   const { token } = route.params;
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState();
   const [resetSuccess, setResetSuccess] = useState<boolean>(false);
 
   const handleResetPassword = async (): Promise<void> => {
-    if (!password || !confirmPassword) {
-      AppAlert.error("Error", "Por favor completa todos los campos");
-      return;
-    }
-    if (password !== confirmPassword) {
-      AppAlert.error("Error", "Las contraseñas no coinciden");
-      return;
-    }
-    if (password.length < 6) {
-      AppAlert.error("Error", "La contraseña debe tener al menos 6 caracteres");
+    const passwordValidation = validatePasswordConfirmation(password, confirmPassword);
+    if (passwordValidation) {
+      AppAlert.error("Error", passwordValidation);
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const response = await authService.resetPassword(
+    await withLoading(async () => {
+      await authService.resetPassword(
         token,
         password,
         confirmPassword
       );
-
-      setIsLoading(false);
       setResetSuccess(true);
-
       AppAlert.success(
-        "¡Contraseña actualizada!",
-        "Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña."
+        "Contraseña Restablecida",
+        "Tu contraseña ha sido restablecida exitosamente"
       );
-    } catch (error: any) {
-      setIsLoading(false);
-
-      const errorMessage =
-        error.response?.data?.error ||
-        "No se pudo restablecer tu contraseña. El enlace podría haber expirado. Intenta solicitar un nuevo enlace de restablecimiento.";
-
-      AppAlert.error("Error", errorMessage);
-    }
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        });
+      }, 2000);
+    }).catch((error: any) => {
+      AppAlert.error(
+        "Error",
+        error.message || "Error al restablecer la contraseña"
+      );
+    });
   };
 
   return (

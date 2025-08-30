@@ -2,10 +2,10 @@ export interface AIRoutine {
   id: number;
   name: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   duration: number;
   ai_generated: boolean;
-  validation_status: 'pending' | 'approved' | 'rejected';
+  validation_status: "pending" | "approved" | "rejected";
   created_at: string;
   formatted_created_at: string;
   formatted_updated_at: string;
@@ -31,11 +31,39 @@ export interface RoutineExercise {
   reps: number;
   rest_time: number;
   order: number;
-  needs_modification?: boolean; // Para marcar ejercicios que necesitan modificación
+  needs_modification?: boolean;
   weight?: number;
 }
 
-// Estructura simplificada para el backend
+export interface ExerciseModificationPayload {
+  user_message: string;
+  exercises: {
+    name: string;
+    sets: number;
+    reps: number;
+    rest_time: number;
+    order: number;
+  }[];
+}
+
+export interface ModifiedExercisesResponse {
+  success: boolean;
+  data: {
+    exercises: {
+      name: string;
+      sets: number;
+      reps: number;
+      rest_time: number;
+      order: number;
+      group_type: string;
+      group_order: number;
+      weight: number;
+      exercise_id: number;
+    }[];
+    generated_at: string;
+  };
+}
+
 export interface RoutineModificationPayload {
   routine: {
     name: string;
@@ -51,7 +79,6 @@ export interface RoutineModificationPayload {
   modification_message: string;
 }
 
-// Respuesta del backend para modificación
 export interface ModifiedRoutineResponse {
   success: boolean;
   data: {
@@ -62,7 +89,6 @@ export interface ModifiedRoutineResponse {
   };
 }
 
-// Interface para la UI de selección de ejercicios
 export interface ExerciseModificationSelection {
   exerciseId: number;
   exerciseName: string;
@@ -70,12 +96,12 @@ export interface ExerciseModificationSelection {
 }
 
 export const MUSCLE_GROUPS = [
-  'Pecho',
-  'Espalda', 
-  'Hombros',
-  'Brazos',
-  'Piernas',
-  'Glúteos',
-  'Abdomen',
-  'Cardio'
+  "Pecho",
+  "Espalda",
+  "Hombros",
+  "Brazos",
+  "Piernas",
+  "Glúteos",
+  "Abdomen",
+  "Cardio",
 ];

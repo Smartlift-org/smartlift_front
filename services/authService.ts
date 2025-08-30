@@ -1,4 +1,3 @@
-import { InternalAxiosRequestConfig } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User, LoginResponse, RegisterData } from "../types/index";
 import { apiClient, TOKEN_KEY, USER_KEY } from "./apiClient";
@@ -92,10 +91,7 @@ const authService = {
         await notificationService.unregister();
         notificationService.cleanup();
       } catch (notificationError) {
-        logger.warn(
-          "Failed to cleanup push notifications:",
-          notificationError
-        );
+        logger.warn("Failed to cleanup push notifications:", notificationError);
       }
 
       await AsyncStorage.removeItem(TOKEN_KEY);

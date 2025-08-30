@@ -28,7 +28,6 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Load current user info
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
@@ -45,21 +44,18 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
     loadUserInfo();
   }, []);
 
-  // Hide default navigation header to use custom ScreenHeader
   useEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
   }, [navigation]);
 
-  // Handle errors from context
   useEffect(() => {
     if (error) {
       AppAlert.error("Error", error);
     }
   }, [error]);
 
-  // Load conversations when screen focuses
   useFocusEffect(
     React.useCallback(() => {
       loadConversations();
@@ -89,8 +85,6 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleCreateConversation = () => {
-    // For coaches, navigate to user selection screen
-    // For users, they can't create conversations (only coaches can initiate)
     if (currentUser?.role === "coach") {
       navigation.navigate("ChatUserSelection");
     } else {
@@ -110,24 +104,19 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  // Screen title now managed by navigation header
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
 
-      {/* Custom Header */}
       <ScreenHeader title="Conversaciones" onBack={() => navigation.goBack()} />
 
-      {/* Loading State */}
       {isLoading && (!conversations || conversations.length === 0) && (
         <View className="flex-1 items-center justify-center">
           <Text className="text-gray-500">Cargando conversaciones...</Text>
         </View>
       )}
 
-      {/* Conversations List */}
-      {!isLoading || (conversations && conversations.length > 0) ? (
+      {!isLoading && (
         <ConversationList
           conversations={conversations}
           onConversationPress={handleConversationPress}
@@ -138,10 +127,7 @@ const ConversationListScreen: React.FC<Props> = ({ navigation }) => {
           showCreateButton={currentUser?.role === "coach"}
           onCreateConversation={handleCreateConversation}
         />
-      ) : null}
-
-      {/* Connection Status */}
-      {/* TODO: Add connection status indicator if needed */}
+      )}
     </SafeAreaView>
   );
 };

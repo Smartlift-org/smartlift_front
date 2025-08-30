@@ -15,11 +15,12 @@ import {
 import AppAlert from "../../components/AppAlert";
 import PrivacyPolicyModal from "../../components/PrivacyPolicyModal";
 import TermsOfServiceModal from "../../components/TermsOfServiceModal";
-
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList, RegisterData } from "../../types";
 import authService from "../../services/authService";
-import userStatsService from "../../services/userStatsService";
+import { useLoadingState } from "../../hooks/useLoadingState";
+import { validateRegisterForm, sanitizeEmail } from "../../utils/authValidation";
+import { navigateAfterAuth } from "../../utils/authNavigation";
 
 type RegisterScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "Register">;
@@ -33,141 +34,53 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState();
   const [privacyPolicyVisible, setPrivacyPolicyVisible] =
     useState<boolean>(false);
   const [termsOfServiceVisible, setTermsOfServiceVisible] =
     useState<boolean>(false);
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
 
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+$/i;
-    return emailRegex.test(email);
-  };
-
-  const isOnlyWhitespace = (str: string): boolean => {
-    return str.trim().length === 0;
-  };
-
   const handleRegister = async (): Promise<void> => {
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      AppAlert.error("Error", "Por favor complete todos los campos");
+    const validation = validateRegisterForm(
+      firstName,
+      lastName,
+      email,
+      password,
+      confirmPassword,
+      acceptedTerms
+    );
+
+    if (!validation.isValid) {
+      AppAlert.error("Error", validation.error!);
       return;
     }
 
-    if (isOnlyWhitespace(firstName) || isOnlyWhitespace(lastName)) {
-      AppAlert.error("Error", "El nombre y apellido no pueden estar vacíos");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      AppAlert.error(
-        "Error",
-        "Por favor ingrese una dirección de correo válida"
-      );
-      return;
-    }
-    if (password.length < 6) {
-      AppAlert.error("Error", "La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      AppAlert.error("Error", "Las contraseñas no coinciden");
-      return;
-    }
-
-    if (!acceptedTerms) {
-      AppAlert.error(
-        "Términos no aceptados",
-        "Debes aceptar los Términos de Servicio y la Política de Privacidad para continuar"
-      );
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
+    await withLoading(async () => {
       const userData: RegisterData = {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        email: email.trim().toLowerCase(),
+        email: sanitizeEmail(email),
         password: password,
         password_confirmation: confirmPassword,
         role: "user",
       };
 
       await authService.register(userData);
+      const loginResponse = await authService.login(
+        userData.email,
+        userData.password
+      );
 
-      try {
-        const loginResponse = await authService.login(
-          userData.email,
-          userData.password
-        );
-
-        setIsLoading(false);
-
-        if (loginResponse.user.role === "coach") {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "CoachHome" }],
-          });
-        } else {
-          try {
-            const hasCompletedProfile =
-              await userStatsService.hasCompletedProfile();
-
-            if (!hasCompletedProfile) {
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "StatsProfile",
-                    params: { fromRedirect: true },
-                  },
-                ],
-              });
-
-              AppAlert.info(
-                "Perfil incompleto",
-                "Por favor complete su perfil para continuar.",
-                [{ text: "Entendido" }]
-              );
-            } else {
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "UserHome" }],
-              });
-            }
-          } catch (error) {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "UserHome" }],
-            });
-          }
-        }
-      } catch (loginError) {
-        setIsLoading(false);
-        AppAlert.info(
-          "Registro Exitoso",
-          "Tu cuenta ha sido creada correctamente, pero no pudimos iniciar sesión automáticamente. Por favor inicia sesión manualmente.",
-          [{ text: "Ir a Login", onPress: () => navigation.navigate("Login") }]
-        );
+      await navigateAfterAuth(navigation, loginResponse.user.role);
+    }).catch((error: unknown) => {
+      if (error instanceof Error) {
+        const errorMessage = error.message || "Error en el registro";
+        AppAlert.error("Error de Registro", errorMessage);
+      } else {
+        AppAlert.error("Error de Registro", "Error desconocido");
       }
-    } catch (error: unknown) {
-      setIsLoading(false);
-      let errorMessage = "Error al registrar usuario";
-
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as any;
-        errorMessage =
-          axiosError.response?.data?.errors?.[0] ||
-          axiosError.response?.data?.message ||
-          errorMessage;
-      }
-
-      AppAlert.error("Error de Registro", errorMessage);
-    }
+    });
   };
 
   return (

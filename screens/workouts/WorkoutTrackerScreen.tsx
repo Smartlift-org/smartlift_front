@@ -213,7 +213,6 @@ export default function WorkoutTrackerScreen({
 
         const formattedExercises = workoutExercises.map(
           (workoutExercise: any) => {
-            // Si no hay sets del backend, crear sets iniciales basados en la rutina
             let sets = workoutExercise.sets || [];
             if (sets.length === 0 && workoutExercise.target_sets) {
               sets = Array.from({ length: workoutExercise.target_sets }).map(
@@ -268,10 +267,8 @@ export default function WorkoutTrackerScreen({
 
       let mappedExercises: any[] = [];
 
-      // Si response.exercises existe, es un WorkoutSession (workout completado)
       if (response.exercises && Array.isArray(response.exercises)) {
         mappedExercises = response.exercises.map((workoutExercise: any) => {
-          // Buscar los sets del backend
           const backendExercise = workoutExercises.find(
             (we: any) => we.exercise_id === workoutExercise.exercise?.id
           );
@@ -296,8 +293,6 @@ export default function WorkoutTrackerScreen({
           };
         });
       } else {
-        // Si no tiene exercises, probablemente sea una rutina (caso anterior)
-        // Mantener la lógica original para compatibilidad
         mappedExercises = workoutExercises.map((workoutExercise: any) => ({
           ...workoutExercise,
           exercise: workoutExercise.exercise,
@@ -669,7 +664,13 @@ export default function WorkoutTrackerScreen({
           <>
             <ScreenHeader
               title={routine?.name || "Rutina"}
-              onBack={() => navigation.goBack()}
+              onBack={() => {
+                if (viewMode) {
+                  navigation.navigate("RoutineList");
+                } else {
+                  navigation.goBack();
+                }
+              }}
               rightComponent={
                 <View className="flex-row items-center">
                   <View className="bg-blue-100 px-2 py-1 rounded-full mr-2">

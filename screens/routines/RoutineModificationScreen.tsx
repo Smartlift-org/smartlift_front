@@ -16,7 +16,6 @@ import routineModificationService from "../../services/routineModificationServic
 import {
   AIRoutine,
   ExerciseModificationSelection,
-  RoutineModificationPayload,
 } from "../../types/routineModification";
 import AppAlert from "../../components/AppAlert";
 
@@ -153,30 +152,21 @@ const RoutineModificationScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setSubmitting(true);
 
-      const routineWithModifications = {
-        ...selectedRoutine,
-        routine_exercises_attributes: selectedRoutine.routine_exercises.map(
-          (exercise: any) => ({
-            exercise_id: exercise.exercise_id,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            rest_time: exercise.rest_time,
-            order: exercise.order,
-            needs_modification: exercise.needs_modification,
-          })
-        ),
-      };
-
-      const request: RoutineModificationPayload = {
-        routine: routineWithModifications,
-        modification_message: modificationMessage.trim(),
-      };
-
-      const result = await routineModificationService.modifyAndSaveRoutine(
-        request,
-        selectedRoutine.id
+      const exercisesToModify = selectedRoutine.routine_exercises.filter(
+        (exercise: any) => {
+          const selection = exerciseSelections.find(
+            (sel) => sel.exerciseId === exercise.exercise_id
+          );
+          return selection?.needsModification || false;
+        }
       );
-      const savedRoutine = result.modifiedRoutine;
+
+      const savedRoutine =
+        await routineModificationService.modifyExercisesAndSaveRoutine(
+          selectedRoutine,
+          exercisesToModify,
+          modificationMessage.trim()
+        );
 
       AppAlert.success(
         "¡Éxito!",
@@ -193,11 +183,11 @@ const RoutineModificationScreen: React.FC<Props> = ({ navigation, route }) => {
           },
         ]
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error modifying routine:", error);
       AppAlert.error(
         "Error",
-        "No se pudo modificar la rutina. Inténtalo de nuevo."
+        error.message || "No se pudo modificar la rutina. Inténtalo de nuevo."
       );
     } finally {
       setSubmitting(false);

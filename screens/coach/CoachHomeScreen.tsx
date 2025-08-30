@@ -1,27 +1,27 @@
-import React, { useLayoutEffect, useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
+  ScrollView,
   TouchableOpacity,
-  StatusBar,
-  FlatList,
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
+import { RootStackParamList } from "../../types";
+import { User } from "../../types";
+import { Member } from "../../types";
+import { TrainerDashboard } from "../../types";
 import authService from "../../services/authService";
 import trainerService from "../../services/trainerService";
-import type { RootStackParamList, User } from "../../types";
-import type {
-  Member,
-  TrainerDashboard,
-} from "../../types/declarations/trainer";
 import AppAlert from "../../components/AppAlert";
-import ScreenHeader from "../../components/ScreenHeader";
 import Avatar from "../../components/Avatar";
+import { useLoadingState } from "../../hooks/useLoadingState";
+import ScreenHeader from "../../components/ScreenHeader";
 
 type CoachHomeScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "CoachHome">;
@@ -33,49 +33,62 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({
   route,
 }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const { isLoading, withLoading } = useLoadingState(true);
+  const { isLoading: refreshing, withLoading: withRefresh } = useLoadingState();
   const [dashboard, setDashboard] = useState<TrainerDashboard | null>(null);
   const [recentMembers, setRecentMembers] = useState<Member[]>([]);
 
-  const loadData = async (showFullLoading = true) => {
-    if (showFullLoading) setIsLoading(true);
-    try {
-      const user = await authService.getCurrentUser();
-      setCurrentUser(user);
+  const fetchData = useCallback(async () => {
+    const user = await authService.getCurrentUser();
+    setCurrentUser(user);
 
-      if (user && user.id) {
-        const dashboardData = await trainerService.getDashboard(user.id);
-        setDashboard(dashboardData);
-
-        const membersResponse = await trainerService.getMembers(user.id, 1, 5);
-        setRecentMembers(membersResponse.members || []);
-      }
-    } catch (error) {
-      AppAlert.error(
-        "Error",
-        "No se pudieron cargar los datos del entrenador."
-      );
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
+    if (user?.id) {
+      const [dashboardData, membersData] = await Promise.all([
+        trainerService.getDashboard(user.id),
+        trainerService.getMembers(user.id),
+      ]);
+      setDashboard(dashboardData);
+      setRecentMembers(membersData.members);
     }
-  };
+  }, []);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData(false);
-  };
+  const loadData = useCallback(async () => {
+    await withLoading(async () => {
+      try {
+        await fetchData();
+      } catch (error: any) {
+        AppAlert.error(
+          "Error",
+          "No se pudieron cargar los datos del entrenador."
+        );
+      }
+    });
+  }, [withLoading, fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    await withRefresh(async () => {
+      try {
+        await fetchData();
+      } catch (error: any) {
+        AppAlert.error(
+          "Error",
+          "No se pudieron cargar los datos del entrenador."
+        );
+      }
+    });
+  }, [withRefresh, fetchData]);
 
   useEffect(() => {
     loadData();
   }, [route.params?.refresh]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+  useFocusEffect(
+    React.useCallback(() => {
+      navigation.setOptions({
+        headerShown: false,
+      });
+    }, [navigation])
+  );
 
   const handleLogout = async (): Promise<void> => {
     try {
@@ -243,6 +256,32 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({
 
           <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
             <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              🏆 Gestión de Desafíos
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Crea y gestiona desafíos semanales para tus miembros. Monitorea su
+              progreso y rankings.
+            </Text>
+            <TouchableOpacity
+              className="bg-orange-600 p-3 rounded-lg mb-2"
+              onPress={() => navigation.navigate("CoachChallengeList")}
+            >
+              <Text className="text-white font-medium text-center">
+                🏆 Mis Desafíos
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-orange-100 p-3 rounded-lg"
+              onPress={() => navigation.navigate("CreateChallenge")}
+            >
+              <Text className="text-orange-800 font-medium text-center">
+                ➕ Crear Desafío
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
               💬 Comunicación con Miembros
             </Text>
             <Text className="text-gray-600 mb-4">
@@ -285,6 +324,24 @@ const CoachHomeScreen: React.FC<CoachHomeScreenProps> = ({
             >
               <Text className="text-yellow-800 font-medium text-center">
                 Validar Rutinas IA
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <Text className="text-lg font-semibold text-indigo-800 mb-2">
+              🎥 Gestión de Ejercicios
+            </Text>
+            <Text className="text-gray-600 mb-4">
+              Administra los videos de ejercicios para mejorar la experiencia de
+              entrenamiento de tus miembros.
+            </Text>
+            <TouchableOpacity
+              className="bg-blue-100 p-3 rounded-lg"
+              onPress={() => navigation.navigate("ExerciseManagement")}
+            >
+              <Text className="text-blue-800 font-medium text-center">
+                🎥 Gestionar Videos de Ejercicios
               </Text>
             </TouchableOpacity>
           </View>
