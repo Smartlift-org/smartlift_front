@@ -4,7 +4,7 @@ import { RoutineValidation } from "../types/aiRoutines";
 const routineValidationService = {
   getPendingRoutines: async (): Promise<RoutineValidation[]> => {
     try {
-      const response = await apiClient.get("/api/v1/routine_validations");
+      const response = await apiClient.get("/routine_validations");
 
       if (response.data.success) {
         return response.data.data.routines;
@@ -31,7 +31,7 @@ const routineValidationService = {
   getRoutineDetails: async (routineId: number): Promise<any> => {
     try {
       const response = await apiClient.get(
-        `/api/v1/routine_validations/${routineId}`
+        `/routine_validations/${routineId}`
       );
 
       if (response.data.success) {
@@ -61,7 +61,7 @@ const routineValidationService = {
   approveRoutine: async (routineId: number, notes?: string): Promise<void> => {
     try {
       const response = await apiClient.post(
-        `/api/v1/routine_validations/${routineId}/approve`,
+        `/routine_validations/${routineId}/approve`,
         {
           notes: notes,
         }
@@ -94,7 +94,7 @@ const routineValidationService = {
       }
 
       const response = await apiClient.post(
-        `/api/v1/routine_validations/${routineId}/reject`,
+        `/routine_validations/${routineId}/reject`,
         {
           notes: notes.trim(),
         }
@@ -144,7 +144,7 @@ const routineValidationService = {
   ): Promise<any> => {
     try {
       const response = await apiClient.put(
-        `/api/v1/routine_validations/${routineId}/edit`,
+        `/routine_validations/${routineId}/edit`,
         editData
       );
 
