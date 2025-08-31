@@ -138,35 +138,6 @@ const AdminHomeScreen: React.FC<AdminHomeScreenProps> = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
-            <Text className="text-lg font-semibold text-red-800 mb-2">
-              📊 Estadísticas del Sistema
-            </Text>
-            <Text className="text-gray-600 mb-4">
-              Visualiza estadísticas generales de la plataforma.
-            </Text>
-
-            <TouchableOpacity className="bg-red-100 p-3 rounded-lg">
-              <Text className="text-red-800 font-medium text-center">
-                📈 Ver Estadísticas
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="bg-white rounded-xl shadow-sm p-5 mb-5">
-            <Text className="text-lg font-semibold text-red-800 mb-2">
-              ⚙️ Configuración del Sistema
-            </Text>
-            <Text className="text-gray-600 mb-4">
-              Configuraciones avanzadas y mantenimiento.
-            </Text>
-
-            <TouchableOpacity className="bg-red-100 p-3 rounded-lg">
-              <Text className="text-red-800 font-medium text-center">
-                🔧 Configuraciones
-              </Text>
-            </TouchableOpacity>
-          </View>
         </ScrollView>
       </SafeAreaView>
     </>
