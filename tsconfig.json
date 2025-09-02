@@ -20,7 +20,9 @@
     "types": [
       "react",
       "react-native",
-      "@types/react"
+      "@types/react",
+      "jest",
+      "@testing-library/jest-native"
     ]
   },
   "exclude": [
