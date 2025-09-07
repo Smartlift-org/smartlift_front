@@ -4,11 +4,11 @@
     "slug": "smartliftfront",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/smartlift_logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/smartlift_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,14 +17,32 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/smartlift_logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.fcavallo.smartliftfront",
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK"
+      ]
+    },
+    "notification": {
+      "icon": "./assets/smartlift_logo.png",
+      "color": "#000000",
+      "sounds": ["./assets/notification.wav"],
+      "androidMode": "default",
+      "androidCollapsedTitle": "SmartLift"
     },
     "web": {
-      "favicon": "./assets/logo.png",
+      "favicon": "./assets/smartlift_logo.png",
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "77b630ba-5812-4fd7-8edf-ad6a7a315fc1"
+      }
     }
   }
 }

@@ -1,13 +1,113 @@
+import { RoutineExerciseFormData } from "../services/routineService";
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  Home: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { token: string };
+
+  UserHome: undefined;
+  CoachHome: { refresh?: number } | undefined;
+  BasicProfile: undefined;
+  StatsProfile: { fromRedirect?: boolean };
+  RoutineList: { refresh?: boolean; startWorkout?: boolean };
+  RoutineManagement: { refresh?: boolean };
+  RoutineCreate: { customName?: string };
+  RoutineEdit: { routineId: number; refresh?: boolean };
+  ActiveWorkouts: undefined;
+  RoutineSelect: { fromActiveWorkouts?: boolean };
+  TrainerRoutines: { refresh?: boolean };
+  MemberSelection: { routineId: string; customName?: string };
+  MemberProfile: { memberId: string; refresh?: boolean };
+  MemberManagement: undefined;
+  MemberRoutineEdit: { routineId: number; memberId: string; refresh?: boolean };
+
+  ExerciseSelect: {
+    routineData: {
+      name: string;
+      description: string;
+      difficulty: "beginner" | "intermediate" | "advanced";
+      duration: number;
+    };
+  };
+  WorkoutTracker: { routineId: number; workoutId?: number; viewMode?: boolean };
+  WorkoutDetail: { workoutId: number };
+  WorkoutStats: { workoutId?: string; message?: string };
+  AIRoutineGenerator: undefined;
+  WorkoutHistory: undefined;
+  RoutineValidation: undefined;
+  RoutineValidationDetail: { routineId: number };
+  SelectedExercises: {
+    selectedExercises: RoutineExerciseFormData[];
+    onReturn: (updatedExercises: RoutineExerciseFormData[] | null) => void;
+  };
+  ReviewRoutines: {
+    routines: {
+      descripcion: string;
+      routine: {
+        name: string;
+        description: string;
+        difficulty: "beginner" | "intermediate" | "advanced";
+        duration: number;
+        routine_exercises_attributes: {
+          exercise_id: number;
+          sets: number;
+          reps: number;
+          rest_time: number;
+          order: number;
+        }[];
+      };
+    }[];
+  };
+
+  AdminHome: undefined;
+  AdminRegisterCoach: undefined;
+  AdminCoachList: undefined;
+  AdminUserList: undefined;
+  AdminUserDetail: { userId: string };
+  AdminCoachDetail: { coachId: string };
+  AdminCoachEdit: { coachId: string };
+  AdminUserEdit: { userId: string };
+
+  RoutineModification: { routineId: number };
+  ModifiedRoutineResult: {
+    originalRoutine: any;
+    modifiedRoutine: any;
+    appliedModifications: any;
+  };
+  AdminAssignUsers: { coachId: string; coachName: string };
+  PublicProfilesExplore: undefined;
+  PublicProfileDetail: { userId: number };
+  PrivacySettings: undefined;
+
+  ConversationList: undefined;
+  Chat: { conversationId: number; participantName: string };
+  ChatUserSelection: undefined;
+
+  ExerciseManagement: undefined;
+  ExerciseVideoEdit: { exerciseId: number };
+
+  ChallengeList: undefined;
+  ChallengeDetail: { challengeId: number };
+  ChallengeExecution: { challengeId: number; attemptId: number };
+  ChallengeLeaderboard: { challengeId: number };
+  MyAttempts: { challengeId: number };
+
+  CoachChallengeList: undefined;
+  CreateChallenge: undefined;
+  ChallengeManagement: { challengeId: number };
 };
 
 export interface User {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
+  role: "user" | "coach" | "admin";
+  profile_picture_url?: string | null;
+  created_at?: string;
+  password?: string;
+  password_confirmation?: string;
 }
 
 export interface LoginResponse {
@@ -21,4 +121,7 @@ export interface RegisterData {
   email: string;
   password: string;
   password_confirmation: string;
+  role?: "user" | "coach" | "admin";
 }
+
+export * from "./declarations/trainer";

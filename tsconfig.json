@@ -5,7 +5,10 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "jsx": "react-native",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "moduleResolution": "node16",
     "module": "node16",
     "noEmit": true,
@@ -14,9 +17,13 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*", "types/*"]
-    }
+    "types": [
+      "react",
+      "react-native",
+      "@types/react",
+      "jest",
+      "@testing-library/jest-native"
+    ]
   },
   "exclude": [
     "node_modules",

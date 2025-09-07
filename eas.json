@@ -1,0 +1,37 @@
+{
+  "cli": {
+    "version": ">= 16.17.3",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "node": "18.18.0",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "simple": {
+      "distribution": "internal",
+      "node": "18.18.0",
+      "android": {
+        "buildType": "apk",
+        "image": "default"
+      }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
