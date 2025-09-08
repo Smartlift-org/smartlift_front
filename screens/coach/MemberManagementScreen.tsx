@@ -38,7 +38,7 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [trainerId, setTrainerId] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
@@ -60,11 +60,33 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
     const loadUserData = async () => {
       try {
         const user = await authService.getCurrentUser();
+
         if (user && user.id) {
           setTrainerId(user.id);
-          await loadMembers(Number(user.id));
+
+          try {
+            const response = await trainerService.getMembers(user.id, 1, 10, {
+              search: "",
+              status: undefined,
+            });
+
+            const validMembers = Array.isArray(response.members)
+              ? response.members
+              : [];
+            setMembers(validMembers);
+            setCurrentPage(response.meta?.current_page || 1);
+            setTotalPages(response.meta?.total_pages || 1);
+          } catch (memberError) {
+            setMembers([]);
+          }
+        } else {
+          AppAlert.error(
+            "Error de Autenticación",
+            "No se pudo obtener la información del entrenador."
+          );
         }
       } catch (error) {
+        setMembers([]);
         AppAlert.error(
           "Error",
           "No se pudieron cargar los datos del entrenador."
@@ -81,13 +103,27 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
       search: string = searchQuery,
       status: string = statusFilter
     ) => {
-      const response = await trainerService.getMembers(trainerId, page, 10, {
-        search,
-        status: status === "all" ? undefined : status,
-      });
-      setMembers(response.members);
-      setCurrentPage(response.meta?.current_page || 1);
-      setTotalPages(response.meta?.total_pages || 1);
+      if (!trainerId) {
+        return;
+      }
+
+      try {
+        const response = await trainerService.getMembers(trainerId, page, 10, {
+          search,
+          status: status === "all" ? undefined : status,
+        });
+
+        const validMembers = Array.isArray(response.members)
+          ? response.members
+          : [];
+
+        setMembers(validMembers);
+        setCurrentPage(response.meta?.current_page || 1);
+        setTotalPages(response.meta?.total_pages || 1);
+      } catch (error) {
+        setMembers([]);
+        AppAlert.error("Error", "No se pudieron cargar los miembros.");
+      }
     },
     [trainerId, searchQuery, statusFilter]
   );
@@ -134,8 +170,9 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
 
   const renderMemberItem = ({ item }: { item: Member }) => {
     const isActive = item.activity?.activity_status !== "inactive";
-    const nameParts = (item.name || "").split(" ");
-    const firstName = nameParts[0] || "";
+    const safeName = item.name || "Usuario";
+    const nameParts = safeName.split(" ");
+    const firstName = nameParts[0] || "Usuario";
     const lastName = nameParts.slice(1).join(" ") || "";
 
     return (
@@ -153,9 +190,11 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
             />
             <View className="flex-1 ml-3">
               <Text className="text-lg font-medium text-gray-800">
-                {item.name || "-"}
+                {safeName}
               </Text>
-              <Text className="text-sm text-gray-500">{item.email}</Text>
+              <Text className="text-sm text-gray-500">
+                {item.email || "Sin email"}
+              </Text>
               <View className="flex-row mt-2 justify-between">
                 <View className="flex-row items-center">
                   <Text className="text-gray-600 text-sm">
@@ -191,7 +230,9 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
   };
 
   const loadAvailableUsers = async (page: number = 1, search: string = "") => {
-    if (!trainerId) return;
+    if (!trainerId) {
+      return;
+    }
 
     setAvailableUsersLoading(true);
     try {
@@ -202,16 +243,24 @@ const MemberManagementScreen: React.FC<MemberManagementScreenProps> = ({
         search
       );
 
-      const responseMembers = response.members || [];
+      const responseMembers = Array.isArray(response.members)
+        ? response.members
+        : [];
+
       if (page === 1) {
         setAvailableUsers(responseMembers);
       } else {
-        setAvailableUsers([...availableUsers, ...responseMembers]);
+        const currentUsers = Array.isArray(availableUsers)
+          ? availableUsers
+          : [];
+        const newUsers = [...currentUsers, ...responseMembers];
+        setAvailableUsers(newUsers);
       }
 
       setAvailableUsersPage(response.meta?.current_page || 1);
       setAvailableUsersTotalPages(response.meta?.total_pages || 1);
     } catch (error) {
+      setAvailableUsers([]);
       AppAlert.error(
         "Error",
         "No se pudieron cargar los usuarios disponibles."
