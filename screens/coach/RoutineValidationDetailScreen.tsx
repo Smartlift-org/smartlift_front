@@ -344,10 +344,7 @@ const RoutineValidationDetailScreen: React.FC<
 
               <View className="flex-row space-x-3">
                 <TouchableOpacity
-                  onPress={() => {
-                    setActionType("approve");
-                    setShowNotesInput(true);
-                  }}
+                  onPress={handleApprove}
                   disabled={validating || editing}
                   className="flex-1 bg-green-500 py-3 px-4 rounded-lg"
                 >
@@ -356,10 +353,7 @@ const RoutineValidationDetailScreen: React.FC<
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => {
-                    setActionType("reject");
-                    setShowNotesInput(true);
-                  }}
+                  onPress={handleReject}
                   disabled={validating || editing}
                   className="flex-1 bg-red-500 py-3 px-4 rounded-lg"
                 >

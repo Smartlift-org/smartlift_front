@@ -45,6 +45,8 @@ import RoutineModificationScreen from "./screens/routines/RoutineModificationScr
 import ModifiedRoutineResultScreen from "./screens/routines/ModifiedRoutineResultScreen";
 import AdminUserDetailScreen from "./screens/admin/AdminUserDetailScreen";
 import AdminCoachEditScreen from "./screens/admin/AdminCoachEditScreen";
+import AdminUserEditScreen from "./screens/admin/AdminUserEditScreen";
+import AdminCoachSelectionScreen from "./screens/admin/AdminCoachSelectionScreen";
 import AdminAssignUsersScreen from "./screens/admin/AdminAssignUsersScreen";
 import RoutineValidationScreen from "./screens/coach/RoutineValidationScreen";
 import RoutineValidationDetailScreen from "./screens/coach/RoutineValidationDetailScreen";
@@ -277,6 +279,14 @@ export default function App(): React.ReactElement {
             <Stack.Screen
               name="AdminCoachEdit"
               component={AdminCoachEditScreen}
+            />
+            <Stack.Screen
+              name="AdminUserEdit"
+              component={AdminUserEditScreen}
+            />
+            <Stack.Screen
+              name="AdminCoachSelection"
+              component={AdminCoachSelectionScreen}
             />
             <Stack.Screen
               name="AdminAssignUsers"

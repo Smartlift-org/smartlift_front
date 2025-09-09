@@ -245,6 +245,29 @@ class AdminService {
       throw error;
     }
   }
+
+  async assignCoachToUser(userId: string, coachId: string): Promise<void> {
+    try {
+      await this.makeAuthenticatedRequest(
+        `/admin/coaches/${coachId}/assign-users`,
+        "POST",
+        { user_ids: [userId] }
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async removeCoachFromUser(userId: string, coachId: string): Promise<void> {
+    try {
+      await this.makeAuthenticatedRequest(
+        `/admin/coaches/${coachId}/users/${userId}`,
+        "DELETE"
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export default new AdminService();

@@ -67,6 +67,33 @@ const AdminUserDetailScreen: React.FC<AdminUserDetailScreenProps> = ({
     });
   };
 
+  const handleAssignCoach = () => {
+    if (!user) return;
+    navigation.navigate("AdminCoachSelection", {
+      userId: user.id,
+      userName: `${user.first_name} ${user.last_name}`,
+      currentCoachId: user.assigned_coach?.id,
+    });
+  };
+
+  const handleEditUser = () => {
+    if (!user) return;
+    navigation.navigate("AdminUserEdit", {
+      userId: user.id,
+      userData: user,
+    });
+  };
+
+  const handleViewRoutines = () => {
+    // Placeholder - will be implemented when backend is ready
+    AppAlert.info("Función en desarrollo", "La función 'Ver Rutinas' estará disponible próximamente");
+  };
+
+  const handleDeactivateUser = () => {
+    // Placeholder - will be implemented when backend is ready
+    AppAlert.info("Función en desarrollo", "La función 'Desactivar Usuario' estará disponible próximamente");
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50" edges={["top"]}>
@@ -152,7 +179,10 @@ const AdminUserDetailScreen: React.FC<AdminUserDetailScreenProps> = ({
               <Text className="text-gray-400 text-center mb-4">
                 Este usuario aún no tiene un entrenador asignado
               </Text>
-              <TouchableOpacity className="bg-green-600 py-2 px-4 rounded-lg">
+              <TouchableOpacity 
+                className="bg-green-600 py-2 px-4 rounded-lg"
+                onPress={handleAssignCoach}
+              >
                 <Text className="text-white font-semibold">
                   Asignar Entrenador
                 </Text>
@@ -226,7 +256,10 @@ const AdminUserDetailScreen: React.FC<AdminUserDetailScreenProps> = ({
             ⚙️ Acciones
           </Text>
 
-          <TouchableOpacity className="bg-green-600 py-3 px-4 rounded-lg mb-3">
+          <TouchableOpacity 
+            className="bg-green-600 py-3 px-4 rounded-lg mb-3"
+            onPress={handleAssignCoach}
+          >
             <Text className="text-white font-semibold text-center">
               {user.assigned_coach
                 ? "Cambiar Entrenador"
@@ -234,19 +267,28 @@ const AdminUserDetailScreen: React.FC<AdminUserDetailScreenProps> = ({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="bg-blue-600 py-3 px-4 rounded-lg mb-3">
+          <TouchableOpacity 
+            className="bg-blue-600 py-3 px-4 rounded-lg mb-3"
+            onPress={handleViewRoutines}
+          >
             <Text className="text-white font-semibold text-center">
               Ver Rutinas
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="bg-gray-600 py-3 px-4 rounded-lg mb-3">
+          <TouchableOpacity 
+            className="bg-gray-600 py-3 px-4 rounded-lg mb-3"
+            onPress={handleEditUser}
+          >
             <Text className="text-white font-semibold text-center">
               Editar Información
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="bg-red-600 py-3 px-4 rounded-lg">
+          <TouchableOpacity 
+            className="bg-red-600 py-3 px-4 rounded-lg"
+            onPress={handleDeactivateUser}
+          >
             <Text className="text-white font-semibold text-center">
               Desactivar Usuario
             </Text>

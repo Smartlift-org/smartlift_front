@@ -10,6 +10,8 @@ import {
   Alert,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import exerciseService from "../services/exerciseService";
+import { Exercise } from "../types/exercise";
 
 interface RoutineExercise {
   id?: number;
@@ -48,8 +50,22 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
   >("beginner");
   const [duration, setDuration] = useState("");
   const [exercises, setExercises] = useState<RoutineExercise[]>([]);
+  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+  const [showExerciseSelector, setShowExerciseSelector] = useState(false);
+  const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
   const [autoValidate, setAutoValidate] = useState(false);
   const [validationNotes, setValidationNotes] = useState("");
+
+  // Load available exercises when modal opens
+  const loadExercises = async () => {
+    try {
+      const exercisesList = await exerciseService.getExercises();
+      setAvailableExercises(exercisesList);
+    } catch (error) {
+      console.error("Error loading exercises:", error);
+      Alert.alert("Error", "No se pudieron cargar los ejercicios");
+    }
+  };
 
   useEffect(() => {
     if (routine && visible) {
@@ -58,6 +74,7 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
       setDifficulty(routine.difficulty || "beginner");
       setDuration(routine.duration?.toString() || "");
       setExercises(routine.routine_exercises || []);
+      loadExercises(); // Load exercises when modal opens
       setAutoValidate(false);
       setValidationNotes("");
     }
@@ -122,19 +139,25 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
   };
 
   const handleAddExercise = () => {
+    setShowExerciseSelector(true);
+  };
+
+  const selectExercise = (exercise: Exercise) => {
     const newExercise: RoutineExercise = {
-      exercise_id: 1,
+      exercise_id: exercise.id,
       sets: 3,
       reps: 12,
       rest_time: 60,
       order: exercises.length + 1,
       exercise: {
-        id: 1,
-        name: "Nuevo ejercicio",
-        primary_muscles: [],
+        id: exercise.id,
+        name: exercise.name,
+        primary_muscles: exercise.primary_muscles,
       },
     };
     setExercises([...exercises, newExercise]);
+    setShowExerciseSelector(false);
+    setExerciseSearchQuery("");
   };
 
   const getDifficultyColor = (diff: string) => {
@@ -400,6 +423,97 @@ const RoutineEditModal: React.FC<RoutineEditModalProps> = ({
           </View>
         </ScrollView>
       </View>
+
+      {/* Exercise Selector Modal */}
+      <Modal
+        visible={showExerciseSelector}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View className="flex-1 bg-gray-50">
+          <View className="bg-white px-4 py-3 border-b border-gray-200">
+            <View className="flex-row items-center justify-between">
+              <TouchableOpacity
+                onPress={() => setShowExerciseSelector(false)}
+              >
+                <FontAwesome5 name="times" size={20} color="#6B7280" />
+              </TouchableOpacity>
+              <Text className="text-lg font-semibold text-gray-800">
+                Seleccionar Ejercicio
+              </Text>
+              <View style={{ width: 20 }} />
+            </View>
+          </View>
+
+          <View className="p-4">
+            <TextInput
+              className="bg-white border border-gray-300 rounded-lg px-4 py-3 mb-4"
+              placeholder="Buscar ejercicios..."
+              value={exerciseSearchQuery}
+              onChangeText={setExerciseSearchQuery}
+            />
+          </View>
+
+          <ScrollView className="flex-1 px-4">
+            {availableExercises
+              .filter((exercise) =>
+                exercise.name
+                  .toLowerCase()
+                  .includes(exerciseSearchQuery.toLowerCase())
+              )
+              .map((exercise) => (
+                <TouchableOpacity
+                  key={exercise.id}
+                  onPress={() => selectExercise(exercise)}
+                  className="bg-white rounded-lg p-4 mb-3 shadow-sm"
+                >
+                  <Text className="text-lg font-semibold text-gray-800 mb-2">
+                    {exercise.name}
+                  </Text>
+                  <View className="flex-row flex-wrap mb-2">
+                    {exercise.primary_muscles.map((muscle, index) => (
+                      <View
+                        key={index}
+                        className="bg-blue-100 px-2 py-1 rounded-full mr-2 mb-1"
+                      >
+                        <Text className="text-blue-800 text-xs font-medium">
+                          {muscle}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                  <View className="flex-row items-center">
+                    <View
+                      className={`px-2 py-1 rounded-full ${
+                        exercise.level === "beginner"
+                          ? "bg-green-100"
+                          : exercise.level === "intermediate"
+                          ? "bg-yellow-100"
+                          : "bg-red-100"
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs font-medium ${
+                          exercise.level === "beginner"
+                            ? "text-green-800"
+                            : exercise.level === "intermediate"
+                            ? "text-yellow-800"
+                            : "text-red-800"
+                        }`}
+                      >
+                        {exercise.level === "beginner"
+                          ? "Principiante"
+                          : exercise.level === "intermediate"
+                          ? "Intermedio"
+                          : "Experto"}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </Modal>
   );
 };

@@ -35,7 +35,7 @@ const routineValidationService = {
       );
 
       if (response.data.success) {
-        return response.data.data.routine;
+        return response.data.data;
       } else {
         throw new Error("Respuesta inválida del servidor");
       }

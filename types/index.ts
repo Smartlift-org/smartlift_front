@@ -67,7 +67,8 @@ export type RootStackParamList = {
   AdminUserDetail: { userId: string };
   AdminCoachDetail: { coachId: string };
   AdminCoachEdit: { coachId: string };
-  AdminUserEdit: { userId: string };
+  AdminUserEdit: { userId: string; userData: User };
+  AdminCoachSelection: { userId: string; userName: string; currentCoachId?: string };
 
   RoutineModification: { routineId: number };
   ModifiedRoutineResult: {
