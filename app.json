@@ -31,7 +31,6 @@
     "notification": {
       "icon": "./assets/smartlift_logo.png",
       "color": "#000000",
-      "sounds": ["./assets/notification.wav"],
       "androidMode": "default",
       "androidCollapsedTitle": "SmartLift"
     },
@@ -43,6 +42,9 @@
       "eas": {
         "projectId": "77b630ba-5812-4fd7-8edf-ad6a7a315fc1"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
